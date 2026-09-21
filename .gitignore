@@ -35,6 +35,8 @@ Shapefile_Geodatabase.zip
 # OS generated files
 .DS_Store
 Thumbs.db
+
 filebox-vault-*.json
-*.json  
- 
+*.json
+!package.json
+!package-lock.json
