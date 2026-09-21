@@ -25,9 +25,12 @@ class Command(BaseCommand):
             
             ma_xa = props.get('maXa')
             ten_xa = props.get('tenXa')
-            ma_huyen = props.get('maTinh_BNV') # Using some other column if maHuyen is not there? Wait, the columns are tenTinh, maTinh, maTinh_BNV, tenXa, maXa... wait, there is no tenHuyen! Let's check what tenTinh/maTinh actually means for communes.
+            ma_huyen = props.get('maTinh_BNV') 
             
-            # Since I didn't verify if Huyen (District) is available, I will just put District N/A for now or try to extract from ghiChu
+            # Bỏ qua Côn Đảo
+            if ten_xa and 'Côn Đảo' in ten_xa:
+                Ward.objects.filter(ten_xa__icontains='Côn Đảo').delete()
+                continue
             
             Ward.objects.update_or_create(
                 ma_xa=ma_xa,
