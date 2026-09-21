@@ -15,12 +15,8 @@
                 <!-- Khu Vực -->
                 <div class="col-span-1 md:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Khu Vực (Xã/Phường)</label>
-                    <select name="ward" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 bg-gray-50 border transition-all hover:bg-white">
-                        <option value="">-- Chọn Xã/Phường --</option>
-                        {% for ward in wards %}
-                            <option value="{{ ward.id }}">{{ ward.ten_xa }}</option>
-                        {% endfor %}
-                    </select>
+                    <input type="text" name="ward_names" placeholder="Ví dụ: Phường 1, Phường 2, Xã Bình Hưng" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 bg-gray-50 border transition-all hover:bg-white">
+                    <p class="text-xs text-gray-500 mt-1">Nhập chính xác tên các Xã/Phường, cách nhau bằng dấu phẩy ( , )</p>
                 </div>
 
                 <!-- Dataset -->

@@ -4,21 +4,49 @@ from .gee_utils import start_drive_export, check_task_and_get_drive_link, delete
 from django.contrib import messages
 import json
 
+import hashlib
+
 def home_view(request):
-    wards = Ward.objects.all().order_by('ten_xa')
     datasets = GEEDataRequest.DATASET_CHOICES
     
     if request.method == 'POST':
-        ward_id = request.POST.get('ward')
+        ward_names_input = request.POST.get('ward_names')
         dataset = request.POST.get('dataset')
         start_date = request.POST.get('start_date')
         end_date = request.POST.get('end_date')
         
-        ward = Ward.objects.get(id=ward_id)
+        # Parse names
+        names = [n.strip() for n in ward_names_input.split(',') if n.strip()]
+        
+        # Query wards
+        found_wards = list(Ward.objects.filter(ten_xa__in=names))
+        
+        if not found_wards:
+            messages.error(request, 'Không tìm thấy Xã/Phường nào trong cơ sở dữ liệu phù hợp với tên bạn nhập. Hãy chắc chắn bạn đã nhập đúng chính tả (VD: "Phường 1").')
+            return redirect('home')
+            
+        # Create a combined virtual ward if multiple selected
+        if len(found_wards) == 1:
+            combined_ward = found_wards[0]
+        else:
+            combined_name = ", ".join([w.ten_xa for w in found_wards])
+            combined_ward = Ward.objects.filter(ten_xa=combined_name).first()
+            if not combined_ward:
+                combined_geom = {
+                    "type": "GeometryCollection",
+                    "geometries": [w.geometry for w in found_wards]
+                }
+                # Create a pseudo-ward to link to GEEDataRequest
+                ma_xa_hash = "CTM_" + hashlib.md5(combined_name.encode()).hexdigest()[:8]
+                combined_ward = Ward.objects.create(
+                    ma_xa=ma_xa_hash,
+                    ten_xa=combined_name,
+                    geometry=combined_geom
+                )
         
         # Prepare filename
         dataset_name = dataset.split('/')[-1]
-        filename = f"{dataset_name}_{ward.ten_xa}_{start_date}_{end_date}".replace(" ", "_")
+        filename = f"{dataset_name}_{combined_ward.ten_xa}_{start_date}_{end_date}".replace(" ", "_")[:100]
         
         try:
             # Create Task in GEE
@@ -26,13 +54,13 @@ def home_view(request):
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
-                geometry_geojson=ward.geometry,
+                geometry_geojson=combined_ward.geometry,
                 filename=filename
             )
             
             # Save request to database
             req = GEEDataRequest.objects.create(
-                ward=ward,
+                ward=combined_ward,
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
@@ -40,14 +68,13 @@ def home_view(request):
                 status='PROCESSING'
             )
             
-            messages.success(request, f'Yêu cầu tải dữ liệu {ward.ten_xa} đã được đưa vào hàng đợi xử lý (Có thể mất vài phút).')
+            messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được đưa vào hàng đợi xử lý.')
             return redirect('history')
             
         except Exception as e:
             messages.error(request, f'Lỗi khi gọi GEE API: {e}')
     
     return render(request, 'gee_app/home.html', {
-        'wards': wards,
         'datasets': datasets
     })
 

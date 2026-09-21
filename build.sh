@@ -16,3 +16,6 @@ python manage.py collectstatic --no-input
 
 echo "Running database migrations..."
 python manage.py migrate
+
+echo "Importing Wards into database (if not exists)..."
+python manage.py import_wards
