@@ -1,21 +1,32 @@
 {% extends 'gee_app/base.html' %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto">
-    <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
-        <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
-            <h2 class="text-2xl font-bold">Tải Dữ Liệu GEE</h2>
-            <p class="text-blue-100 mt-1">Chọn khu vực TP Hồ Chí Minh và thời gian để tải ảnh vệ tinh.</p>
+<div class="max-w-7xl mx-auto">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <!-- Map Column -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[500px] lg:h-auto min-h-[500px]">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                <h3 class="text-lg font-semibold text-gray-800">Bản đồ Khu Vực</h3>
+                <p class="text-sm text-gray-500">Click vào các phường/xã trên bản đồ để chọn</p>
+            </div>
+            <div id="map" class="flex-grow w-full z-0"></div>
         </div>
-        
-        <form id="downloadForm" method="POST" class="p-8 space-y-6">
+
+        <!-- Form Column -->
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col">
+            <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+                <h2 class="text-2xl font-bold">Tải Dữ Liệu GEE</h2>
+                <p class="text-blue-100 mt-1">Xác nhận khu vực và thời gian để tải ảnh vệ tinh.</p>
+            </div>
+            
+            <form id="downloadForm" method="POST" class="p-8 space-y-6 flex-grow flex flex-col justify-between">
             {% csrf_token %}
             
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Khu Vực -->
                 <div class="col-span-1 md:col-span-2">
                     <label class="block text-sm font-semibold text-gray-700 mb-2">Khu Vực (Xã/Phường)</label>
-                    <input type="text" name="ward_names" placeholder="Ví dụ: Phường 1, Phường 2, Xã Bình Hưng" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 bg-gray-50 border transition-all hover:bg-white">
+                    <input type="text" id="wardNamesInput" name="ward_names" placeholder="Ví dụ: Phường 1, Phường 2, Xã Bình Hưng" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-3 px-4 bg-gray-50 border transition-all hover:bg-white">
                     <p class="text-xs text-gray-500 mt-1">Nhập chính xác tên các Xã/Phường, cách nhau bằng dấu phẩy ( , )</p>
                 </div>
 
@@ -42,7 +53,7 @@
                 </div>
             </div>
 
-            <div class="pt-4 flex items-center justify-between">
+            <div class="pt-4 flex items-center justify-between mt-auto">
                 <button type="button" onclick="showShapefileModal()" class="text-sm text-blue-600 hover:text-blue-800 font-medium transition-colors">
                     Tải Shapefile Tỉnh/Xã
                 </button>
@@ -52,6 +63,7 @@
                 </button>
             </div>
         </form>
+    </div>
     </div>
 </div>
 
@@ -98,6 +110,86 @@
 
 {% block scripts %}
 <script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Initialize Map
+        var map = L.map('map').setView([10.762622, 106.660172], 10);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '© OpenStreetMap contributors',
+            maxZoom: 18
+        }).addTo(map);
+
+        var selectedWards = new Set();
+        var wardNamesInput = document.getElementById('wardNamesInput');
+
+        // Style functions
+        var defaultStyle = {
+            color: "#3b82f6",
+            weight: 1,
+            fillOpacity: 0.1
+        };
+        
+        var highlightStyle = {
+            color: "#ef4444",
+            weight: 2,
+            fillOpacity: 0.5
+        };
+
+        // Load GeoJSON
+        fetch("{% static 'data/hcmc_wards.geojson' %}")
+            .then(response => response.json())
+            .then(data => {
+                var geojsonLayer = L.geoJSON(data, {
+                    style: defaultStyle,
+                    onEachFeature: function (feature, layer) {
+                        // Add tooltip
+                        if (feature.properties && feature.properties.tenXa) {
+                            layer.bindTooltip(feature.properties.tenXa, {
+                                sticky: true,
+                                className: 'bg-white font-semibold text-sm px-2 py-1 border-0 shadow-lg rounded'
+                            });
+                        }
+
+                        // Handle Click
+                        layer.on('click', function (e) {
+                            var wardName = feature.properties.tenXa;
+                            if (!wardName) return;
+
+                            if (selectedWards.has(wardName)) {
+                                selectedWards.delete(wardName);
+                                layer.setStyle(defaultStyle);
+                            } else {
+                                selectedWards.add(wardName);
+                                layer.setStyle(highlightStyle);
+                            }
+                            updateInput();
+                        });
+                    }
+                }).addTo(map);
+                
+                // Fit bounds to HCMC
+                map.fitBounds(geojsonLayer.getBounds());
+
+                // Sync input changes back to map
+                wardNamesInput.addEventListener('input', function() {
+                    var names = wardNamesInput.value.split(',').map(n => n.trim()).filter(n => n);
+                    selectedWards = new Set(names);
+                    
+                    geojsonLayer.eachLayer(function(layer) {
+                        if (layer.feature.properties && selectedWards.has(layer.feature.properties.tenXa)) {
+                            layer.setStyle(highlightStyle);
+                        } else {
+                            layer.setStyle(defaultStyle);
+                        }
+                    });
+                });
+            })
+            .catch(error => console.error('Error loading GeoJSON:', error));
+
+        function updateInput() {
+            wardNamesInput.value = Array.from(selectedWards).join(', ');
+        }
+    });
+
     function showShapefileModal() {
         document.getElementById('shapefileModal').classList.remove('hidden');
     }
