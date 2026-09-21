@@ -1,0 +1,37 @@
+# Environments
+venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Django Secrets & Database
+.env
+db.sqlite3
+
+# Node & Tailwind
+node_modules/
+.npm/
+
+# Static files (Render collectstatic destination)
+staticfiles/
+
+# GEE API Keys & Credentials
+# (Ignore any JSON file containing "key" or "cred" in its name)
+*key*.json
+*cred*.json
+*secret*.json
+gee-*.json
+service-account*.json
+
+# Ignore large Shapefiles and GeoDatabases
+Shapefile_Geodatabase/
+Shapefile_Geodatabase.zip
+*.shp
+*.shx
+*.dbf
+*.prj
+
+# OS generated files
+.DS_Store
+Thumbs.db

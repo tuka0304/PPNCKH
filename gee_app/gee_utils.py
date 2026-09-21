@@ -1,0 +1,114 @@
+import ee
+import os
+from django.conf import settings
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
+
+# Global initialization flag
+_is_initialized = False
+
+def init_gee():
+    global _is_initialized
+    if not _is_initialized:
+        try:
+            sa = getattr(settings, 'GEE_SERVICE_ACCOUNT', None) or os.environ.get('GEE_SERVICE_ACCOUNT')
+            key_path = getattr(settings, 'GEE_PRIVATE_KEY_PATH', None) or os.environ.get('GEE_PRIVATE_KEY_PATH')
+            
+            if sa and key_path:
+                credentials = ee.ServiceAccountCredentials(sa, key_path)
+                ee.Initialize(credentials=credentials)
+            else:
+                ee.Initialize(project='your-project-id') # Fallback
+            _is_initialized = True
+        except Exception as e:
+            print(f"Error initializing GEE: {e}")
+            raise e
+
+def get_drive_service():
+    key_path = getattr(settings, 'GEE_PRIVATE_KEY_PATH', None) or os.environ.get('GEE_PRIVATE_KEY_PATH')
+    if key_path and os.path.exists(key_path):
+        SCOPES = ['https://www.googleapis.com/auth/drive']
+        creds = service_account.Credentials.from_service_account_file(key_path, scopes=SCOPES)
+        return build('drive', 'v3', credentials=creds)
+    return None
+
+def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename):
+    init_gee()
+    
+    # Convert GeoJSON geometry to ee.Geometry
+    roi = ee.Geometry(geometry_geojson)
+    
+    # Load dataset
+    collection = ee.ImageCollection(dataset)\
+        .filterBounds(roi)\
+        .filterDate(str(start_date), str(end_date))
+    
+    if 'LANDSAT' in dataset or 'S2' in dataset:
+        collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+    else:
+        collection = collection.filter(ee.Filter.eq('system:index', '0'))
+        
+    image = collection.median().clip(roi)
+    
+    # Start Export Task
+    task = ee.batch.Export.image.toDrive(
+        image=image,
+        description=filename,
+        folder='GEE_Exports',
+        fileNamePrefix=filename,
+        scale=30 if 'LANDSAT' in dataset else 10,
+        region=roi,
+        maxPixels=1e13
+    )
+    task.start()
+    
+    return task.id
+
+def check_task_and_get_drive_link(task_id, filename):
+    init_gee()
+    task = ee.batch.Task(task_id, {})
+    status = task.status()
+    state = status.get('state')
+    
+    if state == 'COMPLETED':
+        # Find file in drive
+        service = get_drive_service()
+        if not service:
+            return 'COMPLETED', None, None
+            
+        results = service.files().list(
+            q=f"name='{filename}.tif' and trashed=false",
+            fields="files(id, webViewLink, webContentLink)",
+            spaces='drive'
+        ).execute()
+        
+        items = results.get('files', [])
+        if not items:
+            return 'COMPLETED', None, None
+            
+        file_id = items[0]['id']
+        link = items[0].get('webContentLink') or items[0].get('webViewLink')
+        
+        # Share to anyone
+        service.permissions().create(
+            fileId=file_id,
+            body={'type': 'anyone', 'role': 'reader'}
+        ).execute()
+        
+        return 'COMPLETED', link, file_id
+        
+    elif state in ['FAILED', 'CANCELLED']:
+        return 'FAILED', None, None
+    else:
+        # READY, RUNNING
+        return 'PROCESSING', None, None
+
+def delete_drive_file(file_id):
+    service = get_drive_service()
+    if service and file_id:
+        try:
+            service.files().delete(fileId=file_id).execute()
+            return True
+        except Exception as e:
+            print(f"Error deleting file {file_id}: {e}")
+    return False
