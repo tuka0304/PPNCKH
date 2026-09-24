@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: gee-portal
+    env: python
+    buildCommand: "./build.sh"
+    startCommand: "gunicorn gee_project.wsgi --workers 2 --threads 4 --worker-class gthread --max-requests 1000 --max-requests-jitter 50"
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.0
+      - key: DEBUG
+        value: "False"
+      - key: SECRET_KEY
+        generateValue: true
+      - key: DATABASE_URL
+        sync: false
+      - key: CONN_MAX_AGE
+        value: "600"

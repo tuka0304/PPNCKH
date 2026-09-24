@@ -3,8 +3,9 @@ from .models import Ward, GEEDataRequest
 from .gee_utils import start_drive_export, check_task_and_get_drive_link, delete_drive_file
 from django.contrib import messages
 import json
-
+import os
 import hashlib
+from django.http import FileResponse, Http404
 
 def home_view(request):
     datasets = GEEDataRequest.DATASET_CHOICES
@@ -120,3 +121,8 @@ def delete_file_view(request, req_id):
         except GEEDataRequest.DoesNotExist:
             pass
     return redirect('history')
+
+def download_shapefile_view(request):
+    # Offload bandwidth to Google Drive
+    drive_link = 'https://drive.google.com/drive/folders/1pvKAvOkqBSAcaVf0IBGAZhXXBAbcvxgt?usp=sharing'
+    return redirect(drive_link)

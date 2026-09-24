@@ -24,7 +24,8 @@ staticfiles/
 gee-*.json
 service-account*.json
 
-# Ignore large Shapefiles and GeoDatabases
+# Ignore large Shapefiles and GeoDatabases 
+# (Shapefile đã được đưa ra ngoài Google Drive để nhẹ server)
 Shapefile_Geodatabase/
 Shapefile_Geodatabase.zip
 *.shp
@@ -40,3 +41,7 @@ filebox-vault-*.json
 *.json
 !package.json
 !package-lock.json
+
+# Ignore Office docs
+*.docx
+~$*

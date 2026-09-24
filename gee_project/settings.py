@@ -88,6 +88,10 @@ DATABASES = {
     'default': env.db(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
 
+# Database connection optimization for Supabase / PostgreSQL
+DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=600)  # Keep connections open for 10 mins
+DATABASES['default']['CONN_HEALTH_CHECKS'] = True  # Check if connection is alive before reusing
+
 
 # Password validation
 # https://docs.djangoproject.com/en/6.1/ref/settings/#auth-password-validators
