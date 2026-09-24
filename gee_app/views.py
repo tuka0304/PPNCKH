@@ -52,11 +52,39 @@ def home_view(request):
                     geometry=combined_geom
                 )
         
-        # Prepare filename
+        # Prepare filename and folder name
         dataset_name = dataset.split('/')[-1]
         ward_slug = slugify_filename(combined_ward.ten_xa)
         filename = f"{dataset_name}_{ward_slug}_{start_date}_{end_date}"[:100]
+        folder_name = ward_slug
         
+        # 1. CHECK CACHE: See if we already downloaded this exact image
+        existing_req = GEEDataRequest.objects.filter(
+            ward=combined_ward,
+            dataset=dataset,
+            start_date=start_date,
+            end_date=end_date,
+            status='COMPLETED'
+        ).first()
+
+        if existing_req:
+            # Duplicate the record and reuse data instantly
+            GEEDataRequest.objects.create(
+                ward=combined_ward,
+                dataset=dataset,
+                start_date=start_date,
+                end_date=end_date,
+                task_id=existing_req.task_id, # Keep same task ID
+                status='COMPLETED',
+                download_url=existing_req.download_url,
+                drive_file_id=existing_req.drive_file_id,
+                ndvi_mean=existing_req.ndvi_mean,
+                ndwi_mean=existing_req.ndwi_mean,
+                ndbi_mean=existing_req.ndbi_mean
+            )
+            messages.success(request, f'Dữ liệu ({combined_ward.ten_xa}) đã có sẵn trong kho lưu trữ! Trích xuất ngay lập tức mà không cần tải lại từ Earth Engine.')
+            return redirect('history')
+            
         try:
             # Create Task in GEE and calculate indices
             task_id, ndvi, ndwi, ndbi = start_drive_export(
@@ -64,7 +92,8 @@ def home_view(request):
                 start_date=start_date,
                 end_date=end_date,
                 geometry_geojson=combined_ward.geometry,
-                filename=filename
+                filename=filename,
+                folder_name=folder_name
             )
             
             # Save request to database

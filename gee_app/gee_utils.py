@@ -32,7 +32,7 @@ def get_drive_service():
         return build('drive', 'v3', credentials=creds)
     return None
 
-def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename):
+def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename, folder_name):
     init_gee()
     
     # Convert GeoJSON geometry to ee.Geometry
@@ -54,7 +54,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     task = ee.batch.Export.image.toDrive(
         image=image,
         description=filename,
-        folder='GEE_Exports',
+        folder=folder_name,
         fileNamePrefix=filename,
         scale=30 if 'LANDSAT' in dataset else 10,
         region=roi,
@@ -94,9 +94,11 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
 
 def check_task_and_get_drive_link(task_id, filename):
     init_gee()
-    task = ee.batch.Task(task_id, {})
-    status = task.status()
-    state = status.get('state')
+    tasks = ee.data.getTaskStatus(task_id)
+    if not tasks:
+        return 'FAILED', None, None
+        
+    state = tasks[0].get('state')
     
     if state == 'COMPLETED':
         # Find file in drive
