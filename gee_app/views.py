@@ -50,8 +50,8 @@ def home_view(request):
         filename = f"{dataset_name}_{combined_ward.ten_xa}_{start_date}_{end_date}".replace(" ", "_")[:100]
         
         try:
-            # Create Task in GEE
-            task_id = start_drive_export(
+            # Create Task in GEE and calculate indices
+            task_id, ndvi, ndwi, ndbi = start_drive_export(
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
@@ -66,10 +66,13 @@ def home_view(request):
                 start_date=start_date,
                 end_date=end_date,
                 task_id=task_id,
-                status='PROCESSING'
+                status='PROCESSING',
+                ndvi_mean=ndvi,
+                ndwi_mean=ndwi,
+                ndbi_mean=ndbi
             )
             
-            messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được đưa vào hàng đợi xử lý.')
+            messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được đưa vào hàng đợi xử lý. (Lấy kèm Chỉ số phân tích)')
             return redirect('history')
             
         except Exception as e:

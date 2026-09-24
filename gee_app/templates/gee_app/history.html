@@ -23,6 +23,7 @@
                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Loại Dữ Liệu</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Khoảng Thời Gian</th>
                         <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Trạng Thái</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-500 uppercase tracking-wider">Chỉ Số (Mean)</th>
                         <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-500 uppercase tracking-wider">Hành Động</th>
                     </tr>
                 </thead>
@@ -50,6 +51,17 @@
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Đã Xóa Khỏi Drive</span>
                             {% else %}
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Lỗi</span>
+                            {% endif %}
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">
+                            {% if req.ndvi_mean or req.ndwi_mean or req.ndbi_mean %}
+                                <div class="flex flex-col gap-1">
+                                    {% if req.ndvi_mean %}<span><strong class="text-green-600">NDVI:</strong> {{ req.ndvi_mean|floatformat:3 }}</span>{% endif %}
+                                    {% if req.ndwi_mean %}<span><strong class="text-blue-600">NDWI:</strong> {{ req.ndwi_mean|floatformat:3 }}</span>{% endif %}
+                                    {% if req.ndbi_mean %}<span><strong class="text-orange-600">NDBI:</strong> {{ req.ndbi_mean|floatformat:3 }}</span>{% endif %}
+                                </div>
+                            {% else %}
+                                <span class="text-gray-400 italic">N/A</span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -85,7 +97,7 @@
                     </tr>
                     {% empty %}
                     <tr>
-                        <td colspan="6" class="px-6 py-12 text-center text-gray-500">
+                        <td colspan="7" class="px-6 py-12 text-center text-gray-500">
                             Chưa có dữ liệu nào được tải.
                         </td>
                     </tr>

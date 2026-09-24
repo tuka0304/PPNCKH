@@ -62,7 +62,35 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     )
     task.start()
     
-    return task.id
+    ndvi_mean = None
+    ndwi_mean = None
+    ndbi_mean = None
+    
+    try:
+        if 'LANDSAT' in dataset:
+            ndvi_img = image.normalizedDifference(['B5', 'B4']).rename('NDVI')
+            ndwi_img = image.normalizedDifference(['B3', 'B5']).rename('NDWI')
+            ndbi_img = image.normalizedDifference(['B6', 'B5']).rename('NDBI')
+        elif 'S2' in dataset:
+            ndvi_img = image.normalizedDifference(['B8', 'B4']).rename('NDVI')
+            ndwi_img = image.normalizedDifference(['B3', 'B8']).rename('NDWI')
+            ndbi_img = image.normalizedDifference(['B11', 'B8']).rename('NDBI')
+            
+        indices = ee.Image.cat([ndvi_img, ndwi_img, ndbi_img])
+        stats = indices.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            geometry=roi,
+            scale=100, # Using 100m scale for faster computation
+            maxPixels=1e13
+        ).getInfo()
+        
+        ndvi_mean = stats.get('NDVI')
+        ndwi_mean = stats.get('NDWI')
+        ndbi_mean = stats.get('NDBI')
+    except Exception as e:
+        print(f"Error calculating indices: {e}")
+    
+    return task.id, ndvi_mean, ndwi_mean, ndbi_mean
 
 def check_task_and_get_drive_link(task_id, filename):
     init_gee()
