@@ -64,6 +64,50 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     )
     task.start()
     
+    # ---------------------------------------------------------
+    # TIME SERIES EXTRACTION FOR CSV
+    # ---------------------------------------------------------
+    def extract_indices(img):
+        date = ee.Date(img.get('system:time_start')).format('YYYY-MM-DD')
+        
+        if 'LANDSAT' in dataset:
+            ndvi = img.normalizedDifference(['B5', 'B4']).rename('NDVI')
+            ndwi = img.normalizedDifference(['B3', 'B5']).rename('NDWI')
+            ndbi = img.normalizedDifference(['B6', 'B5']).rename('NDBI')
+        else:
+            ndvi = img.normalizedDifference(['B8', 'B4']).rename('NDVI')
+            ndwi = img.normalizedDifference(['B3', 'B8']).rename('NDWI')
+            ndbi = img.normalizedDifference(['B11', 'B8']).rename('NDBI')
+            
+        indices = ee.Image.cat([ndvi, ndwi, ndbi])
+        
+        stats = indices.reduceRegion(
+            reducer=ee.Reducer.mean(),
+            geometry=roi,
+            scale=100,
+            maxPixels=1e13
+        )
+        
+        return ee.Feature(None, {
+            'Date': date,
+            'NDVI': stats.get('NDVI'),
+            'NDWI': stats.get('NDWI'),
+            'NDBI': stats.get('NDBI')
+        })
+
+    try:
+        time_series_fc = collection.map(extract_indices)
+        csv_task = ee.batch.Export.table.toDrive(
+            collection=time_series_fc,
+            description=filename + "_CSV",
+            folder=folder_name,
+            fileNamePrefix=filename + "_Indices",
+            fileFormat='CSV'
+        )
+        csv_task.start()
+    except Exception as e:
+        print(f"Error starting CSV task: {e}")
+    
     ndvi_mean = None
     ndwi_mean = None
     ndbi_mean = None
