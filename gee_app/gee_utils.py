@@ -43,7 +43,9 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         .filterBounds(roi)\
         .filterDate(str(start_date), str(end_date))
     
-    if 'LANDSAT' in dataset or 'S2' in dataset:
+    if 'LANDSAT' in dataset:
+        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 20))
+    elif 'S2' in dataset:
         collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
     else:
         collection = collection.filter(ee.Filter.eq('system:index', '0'))
