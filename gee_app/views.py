@@ -6,6 +6,13 @@ import json
 import os
 import hashlib
 from django.http import FileResponse, Http404
+import unicodedata
+import re
+
+def slugify_filename(text):
+    text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
+    text = re.sub(r'[^a-zA-Z0-9.\-_]', '_', text)
+    return re.sub(r'_+', '_', text).strip('_')
 
 def home_view(request):
     datasets = GEEDataRequest.DATASET_CHOICES
@@ -47,7 +54,8 @@ def home_view(request):
         
         # Prepare filename
         dataset_name = dataset.split('/')[-1]
-        filename = f"{dataset_name}_{combined_ward.ten_xa}_{start_date}_{end_date}".replace(" ", "_")[:100]
+        ward_slug = slugify_filename(combined_ward.ten_xa)
+        filename = f"{dataset_name}_{ward_slug}_{start_date}_{end_date}"[:100]
         
         try:
             # Create Task in GEE and calculate indices
@@ -87,7 +95,8 @@ def history_view(request):
     processing_requests = GEEDataRequest.objects.filter(status='PROCESSING')
     for req in processing_requests:
         dataset_name = req.dataset.split('/')[-1]
-        filename = f"{dataset_name}_{req.ward.ten_xa}_{req.start_date}_{req.end_date}".replace(" ", "_")
+        ward_slug = slugify_filename(req.ward.ten_xa)
+        filename = f"{dataset_name}_{ward_slug}_{req.start_date}_{req.end_date}"[:100]
         
         try:
             status, link, file_id = check_task_and_get_drive_link(req.task_id, filename)
