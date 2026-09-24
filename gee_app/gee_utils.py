@@ -50,13 +50,20 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     else:
         collection = collection.filter(ee.Filter.eq('system:index', '0'))
         
+    # Check if collection is empty
+    if collection.size().getInfo() == 0:
+        raise Exception("Không có bức ảnh nào chụp khu vực này thỏa mãn điều kiện (không bị mây che) trong khoảng thời gian bạn chọn. Vui lòng chọn khoảng thời gian dài hơn!")
+        
     image = collection.median().clip(roi).float()
+    
+    # We MUST use a single shared folder because Service Accounts don't have Drive quota
+    SHARED_FOLDER = "PPNCKH_GEE"
     
     # Start Export Task
     task = ee.batch.Export.image.toDrive(
         image=image,
         description=filename,
-        folder=folder_name,
+        folder=SHARED_FOLDER,
         fileNamePrefix=filename,
         scale=30 if 'LANDSAT' in dataset else 10,
         region=roi,
@@ -100,7 +107,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         csv_task = ee.batch.Export.table.toDrive(
             collection=time_series_fc,
             description=filename + "_CSV",
-            folder=folder_name,
+            folder=SHARED_FOLDER,
             fileNamePrefix=filename + "_Indices",
             fileFormat='CSV'
         )
