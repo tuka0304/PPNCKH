@@ -113,8 +113,8 @@
     document.addEventListener("DOMContentLoaded", function() {
         // Initialize Map
         var map = L.map('map').setView([10.762622, 106.660172], 10);
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '© OpenStreetMap contributors © CARTO',
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri',
             maxZoom: 18
         }).addTo(map);
 
