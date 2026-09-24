@@ -50,7 +50,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     else:
         collection = collection.filter(ee.Filter.eq('system:index', '0'))
         
-    image = collection.median().clip(roi)
+    image = collection.median().clip(roi).float()
     
     # Start Export Task
     task = ee.batch.Export.image.toDrive(
