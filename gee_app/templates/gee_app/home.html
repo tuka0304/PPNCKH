@@ -113,8 +113,8 @@
     document.addEventListener("DOMContentLoaded", function() {
         // Initialize Map
         var map = L.map('map').setView([10.762622, 106.660172], 10);
-        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-            attribution: '© OpenStreetMap contributors',
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '© OpenStreetMap contributors © CARTO',
             maxZoom: 18
         }).addTo(map);
 
