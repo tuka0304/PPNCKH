@@ -56,23 +56,22 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         
     image = collection.median().clip(roi).float()
     
-    # We MUST use a single shared folder because Service Accounts don't have Drive quota
-    SHARED_FOLDER = "PPNCKH_GEE"
-    
-    # Start Export Task
-    task = ee.batch.Export.image.toDrive(
-        image=image,
-        description=filename,
-        folder=SHARED_FOLDER,
-        fileNamePrefix=filename,
-        scale=30 if 'LANDSAT' in dataset else 10,
-        region=roi,
-        maxPixels=1e13
-    )
-    task.start()
+    # ---------------------------------------------------------
+    # Generate direct download URL instead of Drive Task
+    # ---------------------------------------------------------
+    try:
+        download_url = image.getDownloadURL({
+            'name': filename,
+            'scale': 30 if 'LANDSAT' in dataset else 10,
+            'region': roi,
+            'format': 'GEO_TIFF'
+        })
+    except Exception as e:
+        print(f"Error generating download URL: {e}")
+        raise Exception("Không thể tạo link tải ảnh. Có thể kích thước ảnh quá lớn, hãy chọn khu vực nhỏ hơn.")
     
     # ---------------------------------------------------------
-    # TIME SERIES EXTRACTION FOR CSV
+    # TIME SERIES EXTRACTION FOR CSV & MEAN STATS
     # ---------------------------------------------------------
     def extract_indices(img):
         date = ee.Date(img.get('system:time_start')).format('YYYY-MM-DD')
@@ -86,9 +85,9 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
             ndwi = img.normalizedDifference(['B3', 'B8']).rename('NDWI')
             ndbi = img.normalizedDifference(['B11', 'B8']).rename('NDBI')
             
-        indices = ee.Image.cat([ndvi, ndwi, ndbi])
+        indices_img = ee.Image.cat([ndvi, ndwi, ndbi])
         
-        stats = indices.reduceRegion(
+        stats = indices_img.reduceRegion(
             reducer=ee.Reducer.mean(),
             geometry=roi,
             scale=100,
@@ -102,18 +101,12 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
             'NDBI': stats.get('NDBI')
         })
 
+    csv_url = None
     try:
-        time_series_fc = collection.map(extract_indices)
-        csv_task = ee.batch.Export.table.toDrive(
-            collection=time_series_fc,
-            description=filename + "_CSV",
-            folder=SHARED_FOLDER,
-            fileNamePrefix=filename + "_Indices",
-            fileFormat='CSV'
-        )
-        csv_task.start()
+        time_series_fc = ee.FeatureCollection(collection.map(extract_indices))
+        csv_url = time_series_fc.getDownloadURL(filetype='CSV', selectors=['Date', 'NDVI', 'NDWI', 'NDBI'], filename=filename + "_Indices")
     except Exception as e:
-        print(f"Error starting CSV task: {e}")
+        print(f"Error generating CSV URL: {e}")
     
     ndvi_mean = None
     ndwi_mean = None
@@ -143,7 +136,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     except Exception as e:
         print(f"Error calculating indices: {e}")
     
-    return task.id, ndvi_mean, ndwi_mean, ndbi_mean
+    return download_url, csv_url, ndvi_mean, ndwi_mean, ndbi_mean
 
 def check_task_and_get_drive_link(task_id, filename):
     init_gee()

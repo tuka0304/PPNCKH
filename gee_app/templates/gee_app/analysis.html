@@ -1,0 +1,402 @@
+{% extends 'gee_app/base.html' %}
+
+{% block content %}
+<div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 mb-8">
+    <div class="px-8 py-6 bg-gradient-to-r from-blue-600 to-indigo-700 text-white">
+        <h2 class="text-2xl font-bold">Phân Tích & Quy Đổi Số Liệu</h2>
+        <p class="text-blue-100 mt-1">Công cụ tải lên file CSV để tự động tính toán, vẽ biểu đồ và quy đổi đơn vị.</p>
+    </div>
+
+    <div class="p-8">
+        <div id="dropzone" class="border-2 border-dashed border-gray-300 rounded-xl p-12 text-center bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer mb-8" onclick="document.getElementById('fileInput').click()">
+            <svg class="mx-auto h-12 w-12 text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p class="text-gray-600 font-medium text-lg" id="dropzone-text">Kéo thả file CSV số liệu vào đây</p>
+            <p class="text-gray-500 text-sm mt-2">Hoặc click để chọn file từ máy tính</p>
+            <input type="file" id="fileInput" class="hidden" accept=".csv" />
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Vẽ Biểu Đồ Biến Động</h3>
+                <p class="text-sm text-gray-600">Tự động nhận diện chuỗi thời gian từ file CSV và vẽ biểu đồ đường biểu diễn sự thay đổi của các chỉ số (NDVI, NDWI, NDBI) qua từng mốc thời gian.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-emerald-100 text-emerald-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Tính Toán Thống Kê</h3>
+                <p class="text-sm text-gray-600">Tính toán các giá trị trung bình, lớn nhất, nhỏ nhất và độ lệch chuẩn của các chỉ số dựa trên tập dữ liệu được tải lên.</p>
+            </div>
+
+            <div class="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
+                <div class="w-12 h-12 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mb-4">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                </div>
+                <h3 class="text-lg font-bold text-gray-900 mb-2">Quy Đổi Đơn Vị Diện Tích</h3>
+                <p class="text-sm text-gray-600">Quy đổi giữa m², Hecta (ha) và km² cho các phân lớp diện tích. Ước tính diện tích lớp phủ dựa trên số lượng pixel (Scale 10m/30m).</p>
+            </div>
+        </div>
+        
+        <div id="chartContainer" class="mt-8 p-6 bg-white rounded-xl border border-gray-200 shadow-sm hidden">
+            <h3 class="text-xl font-bold text-gray-900 mb-4">Biểu Đồ Biến Động Chỉ Số</h3>
+            <div class="w-full h-96 relative">
+                <canvas id="myChart"></canvas>
+            </div>
+            
+            <div class="mt-8">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <svg class="w-6 h-6 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
+                    Bảng Thống Kê Chỉ Số
+                </h3>
+                <div class="overflow-x-auto rounded-xl border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200 text-sm">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Chỉ Số</th>
+                                <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nhỏ nhất (Min)</th>
+                                <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Lớn nhất (Max)</th>
+                                <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Trung bình (Mean)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="statsTableBody">
+                            <!-- Stats rows will be injected here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 p-6 bg-white rounded-xl border border-gray-200 shadow-sm">
+            <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                <svg class="w-6 h-6 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Công Cụ Quy Đổi Đơn Vị Diện Tích
+            </h3>
+            <div class="flex flex-col md:flex-row gap-6 items-end">
+                <div class="w-full md:w-1/3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Số lượng Pixel</label>
+                    <input type="number" id="pixelInput" class="w-full border-gray-300 rounded-lg shadow-sm px-4 py-2 border focus:ring-blue-500 focus:border-blue-500" placeholder="VD: 1500" oninput="calculateArea()">
+                </div>
+                <div class="w-full md:w-1/3">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Độ phân giải (Scale)</label>
+                    <select id="scaleSelect" class="w-full border-gray-300 rounded-lg shadow-sm px-4 py-2 border focus:ring-blue-500 focus:border-blue-500" onchange="calculateArea()">
+                        <option value="10">Sentinel-2 (10m x 10m)</option>
+                        <option value="30">Landsat 8/9 (30m x 30m)</option>
+                    </select>
+                </div>
+            </div>
+            <div class="mt-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <span class="text-sm text-gray-500">Mét vuông (m²)</span>
+                    <p class="text-xl font-bold text-gray-900" id="areaM2">0</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <span class="text-sm text-gray-500">Hecta (ha)</span>
+                    <p class="text-xl font-bold text-gray-900" id="areaHa">0</p>
+                </div>
+                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                    <span class="text-sm text-gray-500">Kilômét vuông (km²)</span>
+                    <p class="text-xl font-bold text-gray-900" id="areaKm2">0</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="mt-10 border-t border-gray-200 pt-8">
+            <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
+                <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                Từ Điển Các Chỉ Số Viễn Thám (Indices)
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                <!-- NDVI -->
+                <div class="bg-gradient-to-br from-green-50 to-green-100 p-6 rounded-xl border border-green-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-green-600 text-white text-xs font-bold px-2 py-1 rounded">NDVI</span>
+                        <h4 class="font-bold text-green-900">Chỉ số Thực Vật</h4>
+                    </div>
+                    <p class="text-sm text-green-800 mb-2 font-medium">Normalized Difference Vegetation Index</p>
+                    <p class="text-sm text-green-700">Dùng để đánh giá mức độ sinh trưởng và mật độ của thảm thực vật. Giá trị càng gần 1 biểu thị thảm thực vật càng dày đặc và khỏe mạnh (rừng, cây trồng). Giá trị âm thường là nước, giá trị gần 0 là đất trống hoặc đô thị.</p>
+                </div>
+                
+                <!-- NDWI -->
+                <div class="bg-gradient-to-br from-blue-50 to-blue-100 p-6 rounded-xl border border-blue-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-blue-600 text-white text-xs font-bold px-2 py-1 rounded">NDWI</span>
+                        <h4 class="font-bold text-blue-900">Chỉ số Nước Bề Mặt</h4>
+                    </div>
+                    <p class="text-sm text-blue-800 mb-2 font-medium">Normalized Difference Water Index</p>
+                    <p class="text-sm text-blue-700">Dùng để phân định ranh giới và theo dõi các khu vực có nước bề mặt (sông, hồ, ao, vùng ngập lụt). Giá trị dương (lớn hơn 0) thường là mặt nước, trong khi giá trị âm là đất hoặc thảm thực vật.</p>
+                </div>
+                
+                <!-- NDBI -->
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">NDBI</span>
+                        <h4 class="font-bold text-orange-900">Chỉ số Đất Xây Dựng</h4>
+                    </div>
+                    <p class="text-sm text-orange-800 mb-2 font-medium">Normalized Difference Built-up Index</p>
+                    <p class="text-sm text-orange-700">Dùng để chiết xuất và phân loại các khu vực đất xây dựng, đô thị, công trình nhân tạo. Giá trị dương thể hiện mật độ bê tông hóa cao, nhà cửa; giá trị âm thường là thảm thực vật hoặc mặt nước.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    const dropzone = document.getElementById('dropzone');
+    const fileInput = document.getElementById('fileInput');
+    const dropzoneText = document.getElementById('dropzone-text');
+    const chartContainer = document.getElementById('chartContainer');
+    let chartInstance = null;
+
+    // Prevent default drag behaviors
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, preventDefaults, false);
+        document.body.addEventListener(eventName, preventDefaults, false);
+    });
+
+    function preventDefaults (e) {
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    // Highlight dropzone when dragging over it
+    ['dragenter', 'dragover'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => {
+            dropzone.classList.add('bg-blue-50', 'border-blue-400');
+            dropzone.classList.remove('bg-gray-50', 'border-gray-300');
+        }, false);
+    });
+
+    ['dragleave', 'drop'].forEach(eventName => {
+        dropzone.addEventListener(eventName, () => {
+            dropzone.classList.remove('bg-blue-50', 'border-blue-400');
+            dropzone.classList.add('bg-gray-50', 'border-gray-300');
+        }, false);
+    });
+
+    // Handle dropped files
+    dropzone.addEventListener('drop', (e) => {
+        const dt = e.dataTransfer;
+        const files = dt.files;
+        handleFiles(files);
+    }, false);
+
+    // Handle file input change
+    fileInput.addEventListener('change', function(e) {
+        handleFiles(this.files);
+    });
+
+    function handleFiles(files) {
+        if (files.length === 0) return;
+        const file = files[0];
+        
+        if (!file.name.endsWith('.csv')) {
+            alert('Vui lòng chọn file CSV.');
+            return;
+        }
+
+        dropzoneText.textContent = `Đã tải lên: ${file.name}`;
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const text = e.target.result;
+            processData(text);
+        };
+        reader.readAsText(file);
+    }
+
+    function processData(csvData) {
+        // Parse CSV
+        const lines = csvData.trim().split('\n');
+        if (lines.length < 2) return;
+
+        const headers = lines[0].split(',').map(h => h.trim());
+        const dateIdx = headers.indexOf('Date');
+        const ndviIdx = headers.indexOf('NDVI');
+        const ndwiIdx = headers.indexOf('NDWI');
+        const ndbiIdx = headers.indexOf('NDBI');
+
+        if (dateIdx === -1) {
+            alert('File CSV không hợp lệ. Thiếu cột Date.');
+            return;
+        }
+
+        const dates = [];
+        const ndviData = [];
+        const ndwiData = [];
+        const ndbiData = [];
+
+        for (let i = 1; i < lines.length; i++) {
+            const currentline = lines[i].split(',');
+            if (currentline.length <= dateIdx) continue;
+            
+            dates.push(currentline[dateIdx].trim());
+            
+            if (ndviIdx !== -1) ndviData.push(parseFloat(currentline[ndviIdx]) || 0);
+            if (ndwiIdx !== -1) ndwiData.push(parseFloat(currentline[ndwiIdx]) || 0);
+            if (ndbiIdx !== -1) ndbiData.push(parseFloat(currentline[ndbiIdx]) || 0);
+        }
+
+        // Sort data by date
+        const sortedIndices = dates.map((val, ind) => {return {ind, val}}).sort((a, b) => {
+            return new Date(a.val) > new Date(b.val) ? 1 : a.val === b.val ? 0 : -1;
+        });
+
+        const sortedDates = sortedIndices.map(e => dates[e.ind]);
+        const sortedNdvi = ndviIdx !== -1 ? sortedIndices.map(e => ndviData[e.ind]) : [];
+        const sortedNdwi = ndwiIdx !== -1 ? sortedIndices.map(e => ndwiData[e.ind]) : [];
+        const sortedNdbi = ndbiIdx !== -1 ? sortedIndices.map(e => ndbiData[e.ind]) : [];
+
+        renderChart(sortedDates, sortedNdvi, sortedNdwi, sortedNdbi);
+        renderStats(sortedNdvi, sortedNdwi, sortedNdbi);
+    }
+
+    function renderStats(ndvi, ndwi, ndbi) {
+        const tbody = document.getElementById('statsTableBody');
+        tbody.innerHTML = ''; // clear
+
+        function getStats(dataArr, label, colorClass) {
+            if (!dataArr || dataArr.length === 0) return null;
+            const min = Math.min(...dataArr).toFixed(4);
+            const max = Math.max(...dataArr).toFixed(4);
+            const mean = (dataArr.reduce((a, b) => a + b, 0) / dataArr.length).toFixed(4);
+            return `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap font-bold ${colorClass}">${label}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${min}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${max}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${mean}</td>
+                </tr>
+            `;
+        }
+
+        const rows = [
+            getStats(ndvi, 'NDVI', 'text-green-600'),
+            getStats(ndwi, 'NDWI', 'text-blue-600'),
+            getStats(ndbi, 'NDBI', 'text-orange-600')
+        ].filter(r => r !== null);
+
+        tbody.innerHTML = rows.join('');
+    }
+
+    function calculateArea() {
+        const pixels = parseFloat(document.getElementById('pixelInput').value) || 0;
+        const scale = parseFloat(document.getElementById('scaleSelect').value);
+        
+        const areaM2 = pixels * scale * scale;
+        const areaHa = areaM2 / 10000;
+        const areaKm2 = areaM2 / 1000000;
+
+        document.getElementById('areaM2').textContent = areaM2.toLocaleString('en-US');
+        document.getElementById('areaHa').textContent = areaHa.toLocaleString('en-US', {maximumFractionDigits: 4});
+        document.getElementById('areaKm2').textContent = areaKm2.toLocaleString('en-US', {maximumFractionDigits: 4});
+    }
+
+    function renderChart(dates, ndvi, ndwi, ndbi) {
+        chartContainer.classList.remove('hidden');
+        
+        const datasets = [];
+        if (ndvi.length > 0) {
+            datasets.push({
+                label: 'NDVI (Thực vật)',
+                data: ndvi,
+                borderColor: '#16a34a', // green-600
+                backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            });
+        }
+        if (ndwi.length > 0) {
+            datasets.push({
+                label: 'NDWI (Nước)',
+                data: ndwi,
+                borderColor: '#2563eb', // blue-600
+                backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            });
+        }
+        if (ndbi.length > 0) {
+            datasets.push({
+                label: 'NDBI (Đất xây dựng)',
+                data: ndbi,
+                borderColor: '#ea580c', // orange-600
+                backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            });
+        }
+
+        const ctx = document.getElementById('myChart').getContext('2d');
+        
+        if (chartInstance) {
+            chartInstance.destroy();
+        }
+
+        chartInstance = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: dates,
+                datasets: datasets
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                interaction: {
+                    mode: 'index',
+                    intersect: false,
+                },
+                plugins: {
+                    title: {
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y.toFixed(4);
+                                }
+                                return label;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Thời Gian (YYYY-MM-DD)'
+                        }
+                    },
+                    y: {
+                        display: true,
+                        title: {
+                            display: true,
+                            text: 'Giá Trị Chỉ Số'
+                        },
+                        min: -1,
+                        max: 1
+                    }
+                }
+            }
+        });
+    }
+</script>
+{% endblock %}

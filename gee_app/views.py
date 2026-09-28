@@ -67,8 +67,8 @@ def home_view(request):
             status='COMPLETED'
         ).first()
 
-        if existing_req:
-            # Duplicate the record and reuse data instantly
+        if existing_req and existing_req.csv_download_url:
+            # Duplicate the record and reuse data instantly (Only if CSV is also cached)
             GEEDataRequest.objects.create(
                 ward=combined_ward,
                 dataset=dataset,
@@ -77,6 +77,7 @@ def home_view(request):
                 task_id=existing_req.task_id, # Keep same task ID
                 status='COMPLETED',
                 download_url=existing_req.download_url,
+                csv_download_url=existing_req.csv_download_url,
                 drive_file_id=existing_req.drive_file_id,
                 ndvi_mean=existing_req.ndvi_mean,
                 ndwi_mean=existing_req.ndwi_mean,
@@ -86,8 +87,8 @@ def home_view(request):
             return redirect('history')
             
         try:
-            # Create Task in GEE and calculate indices
-            task_id, ndvi, ndwi, ndbi = start_drive_export(
+            # Generate direct download URL in GEE and calculate indices
+            download_url, csv_url, ndvi, ndwi, ndbi = start_drive_export(
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
@@ -102,14 +103,16 @@ def home_view(request):
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
-                task_id=task_id,
-                status='PROCESSING',
+                task_id="DIRECT_DOWNLOAD",
+                status='COMPLETED',
+                download_url=download_url,
+                csv_download_url=csv_url,
                 ndvi_mean=ndvi,
                 ndwi_mean=ndwi,
                 ndbi_mean=ndbi
             )
             
-            messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được đưa vào hàng đợi xử lý. (Lấy kèm Chỉ số phân tích)')
+            messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được xử lý và có thể tải ngay lập tức! (Kèm Chỉ số phân tích)')
             return redirect('history')
             
         except Exception as e:
@@ -167,3 +170,6 @@ def download_shapefile_view(request):
     # Offload bandwidth to Google Drive
     drive_link = 'https://drive.google.com/drive/folders/1pvKAvOkqBSAcaVf0IBGAZhXXBAbcvxgt?usp=sharing'
     return redirect(drive_link)
+
+def analysis_view(request):
+    return render(request, 'gee_app/analysis.html')
