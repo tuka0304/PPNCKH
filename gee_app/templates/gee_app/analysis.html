@@ -142,6 +142,28 @@
                     <p class="text-sm text-orange-700">Dùng để chiết xuất và phân loại các khu vực đất xây dựng, đô thị, công trình nhân tạo. Giá trị dương thể hiện mật độ bê tông hóa cao, nhà cửa; giá trị âm thường là thảm thực vật hoặc mặt nước.</p>
                 </div>
             </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
+                <!-- LST -->
+                <div class="bg-gradient-to-br from-red-50 to-red-100 p-6 rounded-xl border border-red-200 shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-red-600 text-white text-xs font-bold px-2 py-1 rounded">LST</span>
+                        <h4 class="font-bold text-red-900">Nhiệt độ Bề mặt</h4>
+                    </div>
+                    <p class="text-sm text-red-800 mb-2 font-medium">Land Surface Temperature</p>
+                    <p class="text-sm text-red-700">Được trích xuất từ dải phổ nhiệt của vệ tinh. Dùng để đánh giá đảo nhiệt đô thị (UHI), theo dõi đợt nắng nóng hoặc nghiên cứu khí hậu. Giá trị biểu diễn theo độ C (°C).</p>
+                </div>
+
+                <!-- DEM -->
+                <div class="bg-gradient-to-br from-gray-50 to-gray-200 p-6 rounded-xl border border-gray-300 shadow-sm">
+                    <div class="flex items-center gap-3 mb-3">
+                        <span class="bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded">DEM</span>
+                        <h4 class="font-bold text-gray-900">Mô hình Độ cao</h4>
+                    </div>
+                    <p class="text-sm text-gray-800 mb-2 font-medium">Digital Elevation Model (SRTM 30m)</p>
+                    <p class="text-sm text-gray-700">Biểu diễn độ cao bề mặt địa hình so với mực nước biển (đơn vị: mét). Không thay đổi theo thời gian ngắn hạn, dùng để vẽ bản đồ địa hình, độ dốc và hướng dốc.</p>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -224,6 +246,7 @@
         const ndviIdx = headers.indexOf('NDVI');
         const ndwiIdx = headers.indexOf('NDWI');
         const ndbiIdx = headers.indexOf('NDBI');
+        const lstIdx = headers.indexOf('LST');
 
         if (dateIdx === -1) {
             alert('File CSV không hợp lệ. Thiếu cột Date.');
@@ -234,6 +257,7 @@
         const ndviData = [];
         const ndwiData = [];
         const ndbiData = [];
+        const lstData = [];
 
         for (let i = 1; i < lines.length; i++) {
             const currentline = lines[i].split(',');
@@ -244,6 +268,7 @@
             if (ndviIdx !== -1) ndviData.push(parseFloat(currentline[ndviIdx]) || 0);
             if (ndwiIdx !== -1) ndwiData.push(parseFloat(currentline[ndwiIdx]) || 0);
             if (ndbiIdx !== -1) ndbiData.push(parseFloat(currentline[ndbiIdx]) || 0);
+            if (lstIdx !== -1) lstData.push(parseFloat(currentline[lstIdx]) || 0);
         }
 
         // Sort data by date
@@ -255,12 +280,13 @@
         const sortedNdvi = ndviIdx !== -1 ? sortedIndices.map(e => ndviData[e.ind]) : [];
         const sortedNdwi = ndwiIdx !== -1 ? sortedIndices.map(e => ndwiData[e.ind]) : [];
         const sortedNdbi = ndbiIdx !== -1 ? sortedIndices.map(e => ndbiData[e.ind]) : [];
+        const sortedLst = lstIdx !== -1 ? sortedIndices.map(e => lstData[e.ind]) : [];
 
-        renderChart(sortedDates, sortedNdvi, sortedNdwi, sortedNdbi);
-        renderStats(sortedNdvi, sortedNdwi, sortedNdbi);
+        renderChart(sortedDates, sortedNdvi, sortedNdwi, sortedNdbi, sortedLst);
+        renderStats(sortedNdvi, sortedNdwi, sortedNdbi, sortedLst);
     }
 
-    function renderStats(ndvi, ndwi, ndbi) {
+    function renderStats(ndvi, ndwi, ndbi, lst) {
         const tbody = document.getElementById('statsTableBody');
         tbody.innerHTML = ''; // clear
 
@@ -282,7 +308,8 @@
         const rows = [
             getStats(ndvi, 'NDVI', 'text-green-600'),
             getStats(ndwi, 'NDWI', 'text-blue-600'),
-            getStats(ndbi, 'NDBI', 'text-orange-600')
+            getStats(ndbi, 'NDBI', 'text-orange-600'),
+            getStats(lst, 'LST (°C)', 'text-red-600')
         ].filter(r => r !== null);
 
         tbody.innerHTML = rows.join('');
@@ -301,10 +328,11 @@
         document.getElementById('areaKm2').textContent = areaKm2.toLocaleString('en-US', {maximumFractionDigits: 4});
     }
 
-    function renderChart(dates, ndvi, ndwi, ndbi) {
+    function renderChart(dates, ndvi, ndwi, ndbi, lst) {
         chartContainer.classList.remove('hidden');
         
         const datasets = [];
+        let isLstChart = false;
         if (ndvi.length > 0) {
             datasets.push({
                 label: 'NDVI (Thực vật)',
@@ -333,6 +361,18 @@
                 data: ndbi,
                 borderColor: '#ea580c', // orange-600
                 backgroundColor: 'rgba(234, 88, 12, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true
+            });
+        }
+        if (lst.length > 0) {
+            isLstChart = true;
+            datasets.push({
+                label: 'LST (°C)',
+                data: lst,
+                borderColor: '#dc2626', // red-600
+                backgroundColor: 'rgba(220, 38, 38, 0.1)',
                 borderWidth: 2,
                 tension: 0.3,
                 fill: true
@@ -389,10 +429,10 @@
                         display: true,
                         title: {
                             display: true,
-                            text: 'Giá Trị Chỉ Số'
+                            text: isLstChart ? 'Nhiệt độ (°C)' : 'Giá Trị Chỉ Số'
                         },
-                        min: -1,
-                        max: 1
+                        min: isLstChart ? undefined : -1,
+                        max: isLstChart ? undefined : 1
                     }
                 }
             }

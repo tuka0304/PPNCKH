@@ -13,6 +13,8 @@ class GEEDataRequest(models.Model):
     DATASET_CHOICES = [
         ('LANDSAT/LC08/C02/T1_TOA', 'Landsat 8 TOA'),
         ('COPERNICUS/S2_SR_HARMONIZED', 'Sentinel-2 SR'),
+        ('SRTM_DEM', 'Mô Hình Độ Cao (SRTM DEM 30m)'),
+        ('L8_LST', 'Nhiệt Độ Bề Mặt (Landsat 8 LST)'),
     ]
     
     ward = models.ForeignKey(Ward, on_delete=models.CASCADE, related_name="requests", verbose_name="Khu Vực")
@@ -30,6 +32,8 @@ class GEEDataRequest(models.Model):
     ndvi_mean = models.FloatField(blank=True, null=True, verbose_name="NDVI Trung bình")
     ndwi_mean = models.FloatField(blank=True, null=True, verbose_name="NDWI Trung bình")
     ndbi_mean = models.FloatField(blank=True, null=True, verbose_name="NDBI Trung bình")
+    lst_mean = models.FloatField(blank=True, null=True, verbose_name="Nhiệt Độ Trung bình (°C)")
+    dem_mean = models.FloatField(blank=True, null=True, verbose_name="Độ Cao Trung bình (m)")
 
     def __str__(self):
         return f"{self.dataset} - {self.ward.ten_xa} ({self.start_date} to {self.end_date})"

@@ -54,11 +54,13 @@
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">
-                            {% if req.ndvi_mean or req.ndwi_mean or req.ndbi_mean %}
+                            {% if req.ndvi_mean or req.ndwi_mean or req.ndbi_mean or req.lst_mean or req.dem_mean %}
                                 <div class="flex flex-col gap-1">
                                     {% if req.ndvi_mean %}<span><strong class="text-green-600">NDVI:</strong> {{ req.ndvi_mean|floatformat:3 }}</span>{% endif %}
                                     {% if req.ndwi_mean %}<span><strong class="text-blue-600">NDWI:</strong> {{ req.ndwi_mean|floatformat:3 }}</span>{% endif %}
                                     {% if req.ndbi_mean %}<span><strong class="text-orange-600">NDBI:</strong> {{ req.ndbi_mean|floatformat:3 }}</span>{% endif %}
+                                    {% if req.lst_mean %}<span><strong class="text-red-600">LST (°C):</strong> {{ req.lst_mean|floatformat:2 }}</span>{% endif %}
+                                    {% if req.dem_mean %}<span><strong class="text-gray-700">Độ cao (m):</strong> {{ req.dem_mean|floatformat:2 }}</span>{% endif %}
                                 </div>
                             {% else %}
                                 <span class="text-gray-400 italic">N/A</span>

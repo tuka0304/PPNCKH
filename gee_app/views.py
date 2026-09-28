@@ -81,14 +81,16 @@ def home_view(request):
                 drive_file_id=existing_req.drive_file_id,
                 ndvi_mean=existing_req.ndvi_mean,
                 ndwi_mean=existing_req.ndwi_mean,
-                ndbi_mean=existing_req.ndbi_mean
+                ndbi_mean=existing_req.ndbi_mean,
+                lst_mean=existing_req.lst_mean,
+                dem_mean=existing_req.dem_mean
             )
             messages.success(request, f'Dữ liệu ({combined_ward.ten_xa}) đã có sẵn trong kho lưu trữ! Trích xuất ngay lập tức mà không cần tải lại từ Earth Engine.')
             return redirect('history')
             
         try:
             # Generate direct download URL in GEE and calculate indices
-            download_url, csv_url, ndvi, ndwi, ndbi = start_drive_export(
+            download_url, csv_url, ndvi, ndwi, ndbi, lst, dem = start_drive_export(
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
@@ -109,7 +111,9 @@ def home_view(request):
                 csv_download_url=csv_url,
                 ndvi_mean=ndvi,
                 ndwi_mean=ndwi,
-                ndbi_mean=ndbi
+                ndbi_mean=ndbi,
+                lst_mean=lst,
+                dem_mean=dem
             )
             
             messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được xử lý và có thể tải ngay lập tức! (Kèm Chỉ số phân tích)')
