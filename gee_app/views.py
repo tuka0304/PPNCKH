@@ -253,7 +253,6 @@ def get_map_layer(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=400)
-d
 def export_db_csv(request):
     response = HttpResponse(content_type='text/csv')
     response['Content-Disposition'] = 'attachment; filename="data_warehouse_export.csv"'
