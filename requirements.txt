@@ -33,7 +33,7 @@ pycparser==3.0
 pyogrio==0.13.0
 pyparsing==3.3.2
 pyproj==3.8.0
-python-dateutil==2.9.0.post0
+python-dateutil>=2.9.0
 requests==2.34.2
 shapely==2.1.2
 six==1.17.0
