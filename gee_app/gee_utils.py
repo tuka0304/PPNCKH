@@ -73,11 +73,18 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
     # L8_LST doesn't have a standard CLOUD_COVER in C02 L2 in the same way, but we can filter by CLOUD_COVER if available or just use QA_PIXEL. For simplicity, we just filter by cloud cover if possible.
     elif dataset == 'L8_LST':
-        # Re-assign collection to correct ID
+        def mask_clouds(img):
+            qa = img.select('QA_PIXEL')
+            # Bit 3 is cloud, Bit 4 is cloud shadow
+            cloud = qa.bitwiseAnd(1 << 3).eq(0)
+            shadow = qa.bitwiseAnd(1 << 4).eq(0)
+            return img.updateMask(cloud.And(shadow))
+            
         collection = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")\
             .filterBounds(roi)\
             .filterDate(str(start_date), str(end_date))\
-            .filter(ee.Filter.lt('CLOUD_COVER', 20))
+            .filter(ee.Filter.lt('CLOUD_COVER', 20))\
+            .map(mask_clouds)
     else:
         collection = collection.filter(ee.Filter.eq('system:index', '0'))
         
