@@ -68,9 +68,9 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         .filterDate(str(start_date), str(end_date))
     
     if 'LANDSAT' in dataset and dataset != 'L8_LST':
-        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 20))
+        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 80))
     elif 'S2' in dataset:
-        collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+        collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80))
     # L8_LST doesn't have a standard CLOUD_COVER in C02 L2 in the same way, but we can filter by CLOUD_COVER if available or just use QA_PIXEL. For simplicity, we just filter by cloud cover if possible.
     elif dataset == 'L8_LST':
         def mask_clouds(img):
@@ -83,7 +83,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         collection = ee.ImageCollection("LANDSAT/LC08/C02/T1_L2")\
             .filterBounds(roi)\
             .filterDate(str(start_date), str(end_date))\
-            .filter(ee.Filter.lt('CLOUD_COVER', 20))\
+            .filter(ee.Filter.lt('CLOUD_COVER', 90))\
             .map(mask_clouds)
     else:
         collection = collection.filter(ee.Filter.eq('system:index', '0'))
@@ -275,16 +275,16 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
     collection = ee.ImageCollection(dataset).filterBounds(roi).filterDate(str(start_date), str(end_date))
     
     if 'LANDSAT' in dataset and dataset != 'L8_LST':
-        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 20))
+        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 80))
     elif 'S2' in dataset:
-        collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+        collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 80))
     elif dataset == 'L8_LST':
         def mask_clouds(img):
             qa = img.select('QA_PIXEL')
             cloud = qa.bitwiseAnd(1 << 3).eq(0)
             shadow = qa.bitwiseAnd(1 << 4).eq(0)
             return img.updateMask(cloud.And(shadow))
-        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 20)).map(mask_clouds)
+        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 90)).map(mask_clouds)
     else:
         collection = collection.filter(ee.Filter.eq('system:index', '0'))
         
