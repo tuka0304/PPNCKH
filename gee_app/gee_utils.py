@@ -271,8 +271,12 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
         vis_params = {'min': 0, 'max': 100, 'palette': ['006600', '002200', 'fff700', 'ab7634', 'c4d0ff', 'ffffff']}
         map_id_dict = image.getMapId(vis_params)
         return map_id_dict['tile_fetcher'].url_format
+    
+    gee_dataset_id = dataset
+    if dataset == 'L8_LST':
+        gee_dataset_id = 'LANDSAT/LC08/C02/T1_L2'
         
-    collection = ee.ImageCollection(dataset).filterBounds(roi).filterDate(str(start_date), str(end_date))
+    collection = ee.ImageCollection(gee_dataset_id).filterBounds(roi).filterDate(str(start_date), str(end_date))
     
     if 'LANDSAT' in dataset and dataset != 'L8_LST':
         collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 80))
