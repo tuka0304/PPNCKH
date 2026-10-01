@@ -258,6 +258,13 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
     init_gee()
     roi = ee.Geometry(geometry_geojson)
     
+    # Ensure correct dataset based on layer_type (Fixes black image when LST is selected with TOA dataset)
+    if layer_type == 'LST':
+        dataset = 'L8_LST'
+    elif layer_type in ['TRUE_COLOR', 'NDVI', 'NDWI', 'NDBI', 'CLASSIFICATION']:
+        if dataset in ['L8_LST', 'SRTM_DEM']:
+            dataset = 'LANDSAT/LC08/C02/T1_TOA'
+    
     if dataset == 'SRTM_DEM':
         image = ee.Image('USGS/SRTMGL1_003').clip(roi)
         # 0 to 100 meters elevation color ramp
@@ -296,7 +303,7 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
     display_img = None
     vis_params = {}
     
-    if dataset == 'L8_LST':
+    if layer_type == 'LST':
         display_img = image.select('LST')
         vis_params = {'min': 20, 'max': 45, 'palette': ['blue', 'cyan', 'green', 'yellow', 'red']}
         
