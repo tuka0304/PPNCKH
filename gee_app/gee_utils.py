@@ -322,6 +322,13 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
             display_img = image.normalizedDifference(['B8', 'B4'])
         vis_params = {'min': -0.2, 'max': 0.8, 'palette': ['blue', 'white', 'green']}
         
+    elif layer_type == 'NDWI':
+        if 'LANDSAT' in dataset:
+            display_img = image.normalizedDifference(['B3', 'B5'])
+        else:
+            display_img = image.normalizedDifference(['B3', 'B8'])
+        vis_params = {'min': -0.2, 'max': 0.5, 'palette': ['#f7f7f7', '#92c5de', '#0571b0']}
+        
     elif layer_type == 'CLASSIFICATION':
         # Ngưỡng phân loại cơ bản
         if 'LANDSAT' in dataset:

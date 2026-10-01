@@ -2,9 +2,9 @@
 {% load static %}
 {% block content %}
 <div class="max-w-7xl mx-auto">
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <div class="grid grid-cols-1 gap-6">
         <!-- Map Column -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[600px] lg:h-auto min-h-[600px] relative">
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[750px] relative">
             <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">Bản đồ Vệ Tinh (GEE)</h3>
@@ -262,8 +262,13 @@
                 geeLayer = L.tileLayer(data.tile_url, {
                     attribution: '&copy; Google Earth Engine',
                     maxZoom: 18,
-                    opacity: 0.8
+                    opacity: 1.0
                 }).addTo(map);
+                
+                // Hide geojson layer to clear map view for the image
+                if (geojsonLayer) {
+                    geojsonLayer.setStyle({ opacity: 0, fillOpacity: 0 });
+                }
                 
                 updateLegend(layerType);
                 document.getElementById('btnClearLayer').classList.remove('hidden');
@@ -279,6 +284,18 @@
                 map.removeLayer(geeLayer);
                 geeLayer = null;
             }
+            
+            // Restore geojson layer visibility
+            if (geojsonLayer) {
+                geojsonLayer.eachLayer(function(layer) {
+                    if (layer.feature.properties && selectedWards.has(layer.feature.properties.tenXa)) {
+                        layer.setStyle(highlightStyle);
+                    } else {
+                        layer.setStyle(defaultStyle);
+                    }
+                });
+            }
+            
             document.getElementById('mapLegend').classList.add('hidden');
             document.getElementById('btnClearLayer').classList.add('hidden');
         };
