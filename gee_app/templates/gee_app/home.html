@@ -8,7 +8,11 @@
             <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                 <div>
                     <h3 class="text-lg font-semibold text-gray-800">Bản đồ Vệ Tinh (GEE)</h3>
-                    <p class="text-sm text-gray-500">Click vào bản đồ để chọn xã, sau đó bấm Hiển thị</p>
+                    <p class="text-sm text-gray-500 mb-2">Click vào bản đồ để chọn xã, hoặc dùng công cụ chọn nhanh</p>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="selectAllWards()" class="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 py-1 px-3 rounded font-medium transition-colors shadow-sm">Chọn Toàn bộ TPHCM</button>
+                        <button type="button" onclick="clearSelection()" class="text-xs bg-red-100 text-red-700 hover:bg-red-200 py-1 px-3 rounded font-medium transition-colors shadow-sm">Xóa Chọn</button>
+                    </div>
                 </div>
                 <!-- Map Layer Controller -->
                 <div class="flex gap-2 items-center z-10 w-full sm:w-auto">
@@ -128,10 +132,11 @@
         };
 
         // Load GeoJSON
+        var geojsonLayer = null;
         fetch("{% static 'data/hcmc_wards.geojson' %}")
             .then(response => response.json())
             .then(data => {
-                var geojsonLayer = L.geoJSON(data, {
+                geojsonLayer = L.geoJSON(data, {
                     style: defaultStyle,
                     onEachFeature: function (feature, layer) {
                         // Add tooltip
@@ -181,6 +186,28 @@
         function updateInput() {
             wardNamesInput.value = Array.from(selectedWards).join(', ');
         }
+        
+        window.selectAllWards = function() {
+            if (!geojsonLayer) return;
+            geojsonLayer.eachLayer(function(layer) {
+                if (layer.feature.properties && layer.feature.properties.tenXa) {
+                    selectedWards.add(layer.feature.properties.tenXa);
+                    layer.setStyle(highlightStyle);
+                }
+            });
+            updateInput();
+        };
+
+        window.clearSelection = function() {
+            selectedWards.clear();
+            if (geojsonLayer) {
+                geojsonLayer.eachLayer(function(layer) {
+                    layer.setStyle(defaultStyle);
+                });
+            }
+            updateInput();
+            if(window.clearMapLayer) window.clearMapLayer();
+        };
         
         var geeLayer = null;
 
