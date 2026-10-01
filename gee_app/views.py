@@ -175,6 +175,9 @@ def download_shapefile_view(request):
     drive_link = 'https://drive.google.com/drive/folders/1pvKAvOkqBSAcaVf0IBGAZhXXBAbcvxgt?usp=sharing'
     return redirect(drive_link)
 
+def landing_view(request):
+    return render(request, 'gee_app/landing.html')
+
 def analysis_view(request):
     return render(request, 'gee_app/analysis.html')
 
