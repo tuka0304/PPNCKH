@@ -7,10 +7,16 @@
             <h2 class="text-2xl font-bold">Lịch Sử & Cơ Sở Dữ Liệu</h2>
             <p class="text-emerald-100 mt-1">Quản lý các yêu cầu tải dữ liệu GEE của bạn.</p>
         </div>
-        <a href="{% url 'home' %}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-            Tạo Yêu Cầu Mới
-        </a>
+        <div class="flex gap-3">
+            <a href="{% url 'export_db_csv' %}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2 shadow-sm">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Trích xuất CSDL (CSV)
+            </a>
+            <a href="{% url 'home' %}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tạo Yêu Cầu Mới
+            </a>
+        </div>
     </div>
 
     <div class="p-8">

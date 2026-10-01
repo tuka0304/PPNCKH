@@ -8,5 +8,6 @@ urlpatterns = [
     path('analysis/', views.analysis_view, name='analysis'),
     path('delete/<int:req_id>/', views.delete_file_view, name='delete_file'),
     path('api/get-map-layer/', views.get_map_layer, name='get_map_layer'),
+    path('api/export-db/', views.export_db_csv, name='export_db_csv'),
     path('download-shapefile/', views.download_shapefile_view, name='download_shapefile'),
 ]

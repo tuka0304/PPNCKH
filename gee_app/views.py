@@ -8,6 +8,8 @@ import os
 import hashlib
 import unicodedata
 import re
+import csv
+from django.http import HttpResponse
 
 def slugify_filename(text):
     text = unicodedata.normalize('NFKD', text).encode('ASCII', 'ignore').decode('utf-8')
@@ -251,3 +253,34 @@ def get_map_layer(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Invalid method'}, status=400)
+d e f   e x p o r t _ d b _ c s v ( r e q u e s t ) : 
+         r e s p o n s e   =   H t t p R e s p o n s e ( c o n t e n t _ t y p e = ' t e x t / c s v ' ) 
+         r e s p o n s e [ ' C o n t e n t - D i s p o s i t i o n ' ]   =   ' a t t a c h m e n t ;   f i l e n a m e = \  
+ d a t a _ w a r e h o u s e _ e x p o r t . c s v \ ' 
+         r e s p o n s e . w r i t e ( u ' \ u f e f f ' . e n c o d e ( ' u t f 8 ' ) ) 
+ 
+         w r i t e r   =   c s v . w r i t e r ( r e s p o n s e ) 
+         w r i t e r . w r i t e r o w ( [ 
+                 ' K h u   V u c ' ,   ' L o a i   D u   L i e u ' ,   ' T u   N g a y ' ,   ' D e n   N g a y ' ,   ' T h o i   G i a n   Y e u   C a u ' ,   
+                 ' T r a n g   T h a i ' ,   ' N D V I   T r u n g   B i n h ' ,   ' N D W I   T r u n g   B i n h ' ,   ' N D B I   T r u n g   B i n h ' ,   
+                 ' L S T   T r u n g   B i n h   ( C ) ' ,   ' D E M   T r u n g   B i n h   ( m ) ' 
+         ] ) 
+ 
+         r e q u e s t s   =   G E E D a t a R e q u e s t . o b j e c t s . a l l ( ) . o r d e r _ b y ( ' - r e q u e s t e d _ a t ' ) 
+         f o r   r e q   i n   r e q u e s t s : 
+                 w r i t e r . w r i t e r o w ( [ 
+                         r e q . w a r d . t e n _ x a , 
+                         r e q . g e t _ d a t a s e t _ d i s p l a y ( ) , 
+                         r e q . s t a r t _ d a t e . s t r f t i m e ( ' % Y - % m - % d ' ) , 
+                         r e q . e n d _ d a t e . s t r f t i m e ( ' % Y - % m - % d ' ) , 
+                         r e q . r e q u e s t e d _ a t . s t r f t i m e ( ' % Y - % m - % d   % H : % M : % S ' ) , 
+                         r e q . s t a t u s , 
+                         r e q . n d v i _ m e a n , 
+                         r e q . n d w i _ m e a n , 
+                         r e q . n d b i _ m e a n , 
+                         r e q . l s t _ m e a n , 
+                         r e q . d e m _ m e a n 
+                 ] ) 
+ 
+         r e t u r n   r e s p o n s e  
+ 
