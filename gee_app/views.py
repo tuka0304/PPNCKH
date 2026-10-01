@@ -1,11 +1,11 @@
 from django.shortcuts import render, redirect
 from .models import Ward, GEEDataRequest
-from .gee_utils import start_drive_export, check_task_and_get_drive_link, delete_drive_file
+from django.http import FileResponse, Http404, JsonResponse
+from .gee_utils import start_drive_export, check_task_and_get_drive_link, delete_drive_file, get_map_tile_url
 from django.contrib import messages
 import json
 import os
 import hashlib
-from django.http import FileResponse, Http404
 import unicodedata
 import re
 
@@ -177,3 +177,41 @@ def download_shapefile_view(request):
 
 def analysis_view(request):
     return render(request, 'gee_app/analysis.html')
+
+def get_map_layer(request):
+    if request.method == 'POST':
+        try:
+            data = json.loads(request.body)
+            ward_names_input = data.get('ward_names', '')
+            dataset = data.get('dataset')
+            start_date = data.get('start_date')
+            end_date = data.get('end_date')
+            layer_type = data.get('layer_type', 'NDVI')
+            
+            names = [n.strip() for n in ward_names_input.split(',') if n.strip()]
+            found_wards = list(Ward.objects.filter(ten_xa__in=names))
+            
+            if not found_wards:
+                return JsonResponse({'error': 'Không tìm thấy xã'}, status=400)
+                
+            if len(found_wards) == 1:
+                geometry = found_wards[0].geometry
+            else:
+                combined_name = ", ".join([w.ten_xa for w in found_wards])
+                geometry = {
+                    "type": "GeometryCollection",
+                    "geometries": [w.geometry for w in found_wards]
+                }
+                
+            tile_url = get_map_tile_url(
+                dataset=dataset,
+                start_date=start_date,
+                end_date=end_date,
+                geometry_geojson=geometry,
+                layer_type=layer_type
+            )
+            return JsonResponse({'tile_url': tile_url})
+            
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Invalid method'}, status=400)

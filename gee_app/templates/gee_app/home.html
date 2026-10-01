@@ -4,12 +4,40 @@
 <div class="max-w-7xl mx-auto">
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <!-- Map Column -->
-        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[500px] lg:h-auto min-h-[500px]">
-            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                <h3 class="text-lg font-semibold text-gray-800">Bản đồ Khu Vực</h3>
-                <p class="text-sm text-gray-500">Click vào các phường/xã trên bản đồ để chọn</p>
+        <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[600px] lg:h-auto min-h-[600px] relative">
+            <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+                <div>
+                    <h3 class="text-lg font-semibold text-gray-800">Bản đồ Vệ Tinh (GEE)</h3>
+                    <p class="text-sm text-gray-500">Click vào bản đồ để chọn xã, sau đó bấm Hiển thị</p>
+                </div>
+                <!-- Map Layer Controller -->
+                <div class="flex gap-2 items-center z-10 w-full sm:w-auto">
+                    <select id="mapLayerType" class="text-sm rounded-lg border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 px-3 py-2 flex-grow">
+                        <option value="TRUE_COLOR">Ảnh màu tự nhiên</option>
+                        <option value="NDVI">Chỉ số NDVI (Thực vật)</option>
+                        <option value="NDWI">Chỉ số NDWI (Nước)</option>
+                        <option value="LST">Chỉ số LST (Nhiệt độ)</option>
+                        <option value="CLASSIFICATION">Phân loại Tự động</option>
+                    </select>
+                    <button type="button" onclick="loadMapLayer()" id="btnLoadLayer" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm whitespace-nowrap flex items-center gap-1">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
+                        Hiển thị
+                    </button>
+                </div>
             </div>
+            
+            <!-- Legend Panel (Absolute Positioned) -->
+            <div id="mapLegend" class="absolute bottom-6 right-2 bg-white/95 backdrop-blur-sm p-4 rounded-xl shadow-xl border border-gray-200 z-[1000] hidden max-w-xs">
+            </div>
+            
             <div id="map" class="flex-grow w-full z-0"></div>
+            
+            <!-- Loading overlay -->
+            <div id="mapLoading" class="absolute inset-0 bg-white/70 backdrop-blur-sm z-[2000] hidden flex flex-col items-center justify-center">
+                <div class="animate-spin rounded-full h-12 w-12 border-4 border-blue-500 border-t-transparent"></div>
+                <p class="mt-4 text-blue-800 font-bold text-lg">Đang giao tiếp với GEE Server...</p>
+                <p class="text-sm text-gray-600 mt-1">Đang tính toán phân loại và kết xuất lớp ảnh</p>
+            </div>
         </div>
 
         <!-- Form Column -->
@@ -150,8 +178,99 @@
         function updateInput() {
             wardNamesInput.value = Array.from(selectedWards).join(', ');
         }
-    });
+        
+        var geeLayer = null;
 
+        window.loadMapLayer = function() {
+            var dataset = document.querySelector('select[name="dataset"]').value;
+            var startDate = document.querySelector('input[name="start_date"]').value;
+            var endDate = document.querySelector('input[name="end_date"]').value;
+            var wardNames = document.getElementById('wardNamesInput').value;
+            var layerType = document.getElementById('mapLayerType').value;
+            
+            if(!wardNames || !startDate || !endDate) {
+                alert("Vui lòng nhập Khu vực, Từ ngày, và Đến ngày ở Form bên phải trước khi yêu cầu GEE xử lý ảnh.");
+                return;
+            }
+            
+            document.getElementById('mapLoading').classList.remove('hidden');
+            
+            fetch("{% url 'get_map_layer' %}", {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+                },
+                body: JSON.stringify({
+                    ward_names: wardNames,
+                    dataset: dataset,
+                    start_date: startDate,
+                    end_date: endDate,
+                    layer_type: layerType
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                document.getElementById('mapLoading').classList.add('hidden');
+                
+                if (data.error) {
+                    alert("GEE Server Error: " + data.error);
+                    return;
+                }
+                
+                if (geeLayer) {
+                    map.removeLayer(geeLayer);
+                }
+                
+                geeLayer = L.tileLayer(data.tile_url, {
+                    attribution: '&copy; Google Earth Engine',
+                    maxZoom: 18,
+                    opacity: 0.8
+                }).addTo(map);
+                
+                updateLegend(layerType);
+            })
+            .catch(err => {
+                document.getElementById('mapLoading').classList.add('hidden');
+                alert("Lỗi kết nối Server: " + err);
+            });
+        };
+        
+        function updateLegend(type) {
+            var legend = document.getElementById('mapLegend');
+            legend.classList.remove('hidden');
+            
+            var html = '<h4 class="font-bold text-sm mb-3 text-gray-800 border-b pb-2 flex items-center gap-2"><svg class="w-4 h-4 text-indigo-600" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"></path></svg>Chú Giải Lớp Ảnh</h4>';
+            
+            if (type === 'TRUE_COLOR') {
+                html += '<p class="text-sm text-gray-600">Ảnh màu tự nhiên (RGB). Các đám mây đã được thuật toán GEE tự động lọc bỏ.</p>';
+            } else if (type === 'NDVI') {
+                html += '<div class="space-y-2">';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-green-600 rounded shadow-sm"></div><span class="text-sm font-medium">Thực vật dày đặc (Rừng/Lúa)</span></div>';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-white rounded border border-gray-300 shadow-sm"></div><span class="text-sm font-medium">Đất trống / Đô thị</span></div>';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-blue-600 rounded shadow-sm"></div><span class="text-sm font-medium">Mặt nước</span></div>';
+                html += '</div>';
+            } else if (type === 'NDWI') {
+                html += '<div class="space-y-2">';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-blue-600 rounded shadow-sm"></div><span class="text-sm font-medium">Khu vực có Nước</span></div>';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-white rounded border border-gray-300 shadow-sm"></div><span class="text-sm font-medium">Đất liền</span></div>';
+                html += '</div>';
+            } else if (type === 'LST') {
+                html += '<p class="text-xs text-gray-600 mb-2">Bản đồ nhiệt độ bề mặt đất (°C)</p>';
+                html += '<div class="w-full h-4 bg-gradient-to-r from-blue-500 via-green-500 to-red-500 rounded mb-1 shadow-sm"></div>';
+                html += '<div class="flex justify-between text-xs font-medium text-gray-600 mt-1"><span>Lạnh (20°C)</span><span>Nóng (45°C)</span></div>';
+            } else if (type === 'CLASSIFICATION') {
+                html += '<div class="space-y-2">';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-blue-600 rounded shadow-sm"></div><span class="text-sm font-medium">Lớp Mặt Nước</span></div>';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-green-600 rounded shadow-sm"></div><span class="text-sm font-medium">Lớp Thực Vật</span></div>';
+                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-red-600 rounded shadow-sm"></div><span class="text-sm font-medium">Lớp Đất trống / Đô thị</span></div>';
+                html += '</div>';
+                html += '<p class="text-[10px] text-gray-500 mt-3 italic">* Phân loại tự động theo thuật toán Thresholding từ GEE.</p>';
+            }
+            
+            legend.innerHTML = html;
+        }
+    });
 
 </script>
 {% endblock %}

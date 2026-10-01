@@ -253,3 +253,87 @@ def delete_drive_file(file_id):
         except Exception as e:
             print(f"Error deleting file {file_id}: {e}")
     return False
+
+def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type):
+    init_gee()
+    roi = ee.Geometry(geometry_geojson)
+    
+    if dataset == 'SRTM_DEM':
+        image = ee.Image('USGS/SRTMGL1_003').clip(roi)
+        # 0 to 100 meters elevation color ramp
+        vis_params = {'min': 0, 'max': 100, 'palette': ['006600', '002200', 'fff700', 'ab7634', 'c4d0ff', 'ffffff']}
+        map_id_dict = image.getMapId(vis_params)
+        return map_id_dict['tile_fetcher'].url_format
+        
+    collection = ee.ImageCollection(dataset).filterBounds(roi).filterDate(str(start_date), str(end_date))
+    
+    if 'LANDSAT' in dataset and dataset != 'L8_LST':
+        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 20))
+    elif 'S2' in dataset:
+        collection = collection.filter(ee.Filter.lt('CLOUDY_PIXEL_PERCENTAGE', 20))
+    elif dataset == 'L8_LST':
+        def mask_clouds(img):
+            qa = img.select('QA_PIXEL')
+            cloud = qa.bitwiseAnd(1 << 3).eq(0)
+            shadow = qa.bitwiseAnd(1 << 4).eq(0)
+            return img.updateMask(cloud.And(shadow))
+        collection = collection.filter(ee.Filter.lt('CLOUD_COVER', 20)).map(mask_clouds)
+    else:
+        collection = collection.filter(ee.Filter.eq('system:index', '0'))
+        
+    if collection.size().getInfo() == 0:
+        raise Exception("Không có bức ảnh nào thỏa mãn trong khoảng thời gian này.")
+        
+    if dataset == 'L8_LST':
+        def calculate_lst(img):
+            lst = img.select('ST_B10').multiply(0.00341802).add(149.0).subtract(273.15).rename('LST')
+            return img.addBands(lst)
+        collection = collection.map(calculate_lst)
+        image = collection.select(['LST']).median().clip(roi)
+    else:
+        image = collection.median().clip(roi)
+
+    display_img = None
+    vis_params = {}
+    
+    if dataset == 'L8_LST':
+        display_img = image.select('LST')
+        vis_params = {'min': 20, 'max': 45, 'palette': ['blue', 'cyan', 'green', 'yellow', 'red']}
+        
+    elif layer_type == 'TRUE_COLOR':
+        if 'LANDSAT' in dataset:
+            display_img = image.select(['B4', 'B3', 'B2'])
+            vis_params = {'min': 0, 'max': 0.3, 'gamma': 1.4}
+        else:
+            display_img = image.select(['B4', 'B3', 'B2'])
+            vis_params = {'min': 0, 'max': 3000, 'gamma': 1.4}
+            
+    elif layer_type == 'NDVI':
+        if 'LANDSAT' in dataset:
+            display_img = image.normalizedDifference(['B5', 'B4'])
+        else:
+            display_img = image.normalizedDifference(['B8', 'B4'])
+        vis_params = {'min': -0.2, 'max': 0.8, 'palette': ['blue', 'white', 'green']}
+        
+    elif layer_type == 'CLASSIFICATION':
+        # Ngưỡng phân loại cơ bản
+        if 'LANDSAT' in dataset:
+            ndvi = image.normalizedDifference(['B5', 'B4'])
+            ndwi = image.normalizedDifference(['B3', 'B5'])
+        else:
+            ndvi = image.normalizedDifference(['B8', 'B4'])
+            ndwi = image.normalizedDifference(['B3', 'B8'])
+            
+        water = ndwi.gt(0)
+        veg = ndvi.gt(0.2)
+        builtup = water.Not().And(veg.Not())
+        
+        display_img = ee.Image(0).where(water, 1).where(veg, 2).where(builtup, 3).clip(roi)
+        # 1: Water (Blue), 2: Veg (Green), 3: Builtup (Red)
+        vis_params = {'min': 1, 'max': 3, 'palette': ['blue', 'green', 'red']}
+
+    if display_img is None:
+        display_img = image
+        
+    map_id_dict = ee.Image(display_img).getMapId(vis_params)
+    return map_id_dict['tile_fetcher'].url_format
