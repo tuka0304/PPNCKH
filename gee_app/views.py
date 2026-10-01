@@ -14,6 +14,38 @@ def slugify_filename(text):
     text = re.sub(r'[^a-zA-Z0-9.\-_]', '_', text)
     return re.sub(r'_+', '_', text).strip('_')
 
+def get_bounds_for_geometries(geometries):
+    min_lon, min_lat, max_lon, max_lat = float('inf'), float('inf'), float('-inf'), float('-inf')
+    
+    def extract_coords(coords):
+        nonlocal min_lon, min_lat, max_lon, max_lat
+        if isinstance(coords[0], (int, float)):
+            lon, lat = coords[0], coords[1]
+            if lon < min_lon: min_lon = lon
+            if lat < min_lat: min_lat = lat
+            if lon > max_lon: max_lon = lon
+            if lat > max_lat: max_lat = lat
+        else:
+            for item in coords:
+                extract_coords(item)
+                
+    for geom in geometries:
+        if 'coordinates' in geom:
+            extract_coords(geom['coordinates'])
+            
+    if min_lon == float('inf'):
+        return None
+    return {
+        "type": "Polygon",
+        "coordinates": [[
+            [min_lon, min_lat],
+            [max_lon, min_lat],
+            [max_lon, max_lat],
+            [min_lon, max_lat],
+            [min_lon, min_lat]
+        ]]
+    }
+
 def home_view(request):
     datasets = GEEDataRequest.DATASET_CHOICES
     
@@ -199,12 +231,13 @@ def get_map_layer(request):
                 
             if len(found_wards) == 1:
                 geometry = found_wards[0].geometry
-            else:
-                combined_name = ", ".join([w.ten_xa for w in found_wards])
+            elif len(found_wards) <= 5:
                 geometry = {
                     "type": "GeometryCollection",
                     "geometries": [w.geometry for w in found_wards]
                 }
+            else:
+                geometry = get_bounds_for_geometries([w.geometry for w in found_wards])
                 
             tile_url = get_map_tile_url(
                 dataset=dataset,
