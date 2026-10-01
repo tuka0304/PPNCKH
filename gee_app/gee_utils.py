@@ -113,7 +113,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     # TIME SERIES EXTRACTION FOR CSV & MEAN STATS
     # ---------------------------------------------------------
     def extract_indices(img):
-        date = ee.Date(img.get('system:time_start')).format('YYYY-MM-DD')
+        date = ee.Date(img.get('system:time_start')).format('yyyy-MM-dd')
         
         if 'LANDSAT' in dataset and dataset != 'L8_LST':
             ndvi = img.normalizedDifference(['B5', 'B4']).rename('NDVI')
