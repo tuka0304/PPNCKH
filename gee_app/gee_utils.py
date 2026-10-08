@@ -155,21 +155,41 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     time_series_data = []
     try:
         time_series_fc = ee.FeatureCollection(collection.map(extract_indices))
-        # Get data synchronously to save to database directly
-        features = time_series_fc.getInfo().get('features', [])
-        for f in features:
-            props = f.get('properties', {})
-            date_str = props.get('Date')
-            if date_str:
+        
+        # Determine selectors based on dataset
+        if dataset == 'L8_LST':
+            selectors = ['Date', 'LST']
+        else:
+            selectors = ['Date', 'NDVI', 'NDWI', 'NDBI']
+            
+        # Get CSV URL to bypass .getInfo() 10MB payload limit for Big Data
+        url = time_series_fc.getDownloadURL(filetype='csv', selectors=selectors, filename='time_series')
+        
+        import requests
+        import csv
+        from io import StringIO
+        
+        response = requests.get(url)
+        if response.status_code == 200:
+            csv_data = response.content.decode('utf-8')
+            reader = csv.DictReader(StringIO(csv_data))
+            for row in reader:
+                date_str = row.get('Date')
+                if not date_str:
+                    continue
+                    
                 if dataset == 'L8_LST':
-                    val = props.get('LST')
-                    if val is not None:
-                        time_series_data.append({'Date': date_str, 'Index': 'LST', 'Value': val})
+                    val_str = row.get('LST')
+                    if val_str:
+                        time_series_data.append({'Date': date_str, 'Index': 'LST', 'Value': float(val_str)})
                 else:
                     for idx_name in ['NDVI', 'NDWI', 'NDBI']:
-                        val = props.get(idx_name)
-                        if val is not None:
-                            time_series_data.append({'Date': date_str, 'Index': idx_name, 'Value': val})
+                        val_str = row.get(idx_name)
+                        if val_str:
+                            time_series_data.append({'Date': date_str, 'Index': idx_name, 'Value': float(val_str)})
+        else:
+            print(f"Failed to download CSV from GEE: {response.status_code}")
+            
     except Exception as e:
         print(f"Error extracting time series data: {e}")
 
