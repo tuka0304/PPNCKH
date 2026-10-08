@@ -44,4 +44,6 @@ filebox-vault-*.json
 
 # Ignore Office docs
 *.docx
-~$*Desktop/
+~$*.docx
+
+Desktop/

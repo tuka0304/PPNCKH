@@ -109,8 +109,19 @@
 {% block scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
+        // Define bounds for Ho Chi Minh City
+        var hcmcBounds = L.latLngBounds(
+            [10.3, 106.3], // South West corner
+            [11.2, 107.1]  // North East corner
+        );
+
         // Initialize Map
-        var map = L.map('map').setView([10.762622, 106.660172], 10);
+        var map = L.map('map', {
+            maxBounds: hcmcBounds,
+            maxBoundsViscosity: 1.0,
+            minZoom: 9
+        }).setView([10.762622, 106.660172], 10);
+        
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri',
             maxZoom: 18
