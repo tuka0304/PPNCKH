@@ -9,5 +9,6 @@ urlpatterns = [
     path('delete/<int:req_id>/', views.delete_file_view, name='delete_file'),
     path('api/get-map-layer/', views.get_map_layer, name='get_map_layer'),
     path('api/export-db/', views.export_db_csv, name='export_db_csv'),
+    path('api/time-series/<int:req_id>/', views.api_get_time_series, name='api_get_time_series'),
     path('download-shapefile/', views.download_shapefile_view, name='download_shapefile'),
 ]

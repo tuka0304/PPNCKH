@@ -152,15 +152,27 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
             
         return ee.Feature(None, feature_dict)
 
-    csv_url = None
+    time_series_data = []
     try:
         time_series_fc = ee.FeatureCollection(collection.map(extract_indices))
-        if dataset == 'L8_LST':
-            csv_url = time_series_fc.getDownloadURL(filetype='CSV', selectors=['Date', 'LST'], filename=filename + "_LST")
-        else:
-            csv_url = time_series_fc.getDownloadURL(filetype='CSV', selectors=['Date', 'NDVI', 'NDWI', 'NDBI'], filename=filename + "_Indices")
+        # Get data synchronously to save to database directly
+        features = time_series_fc.getInfo().get('features', [])
+        for f in features:
+            props = f.get('properties', {})
+            date_str = props.get('Date')
+            if date_str:
+                if dataset == 'L8_LST':
+                    val = props.get('LST')
+                    if val is not None:
+                        time_series_data.append({'Date': date_str, 'Index': 'LST', 'Value': val})
+                else:
+                    for idx_name in ['NDVI', 'NDWI', 'NDBI']:
+                        val = props.get(idx_name)
+                        if val is not None:
+                            time_series_data.append({'Date': date_str, 'Index': idx_name, 'Value': val})
     except Exception as e:
-        print(f"Error generating CSV URL: {e}")
+        print(f"Error extracting time series data: {e}")
+
     
     ndvi_mean = None
     ndwi_mean = None
@@ -201,7 +213,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
     except Exception as e:
         print(f"Error calculating indices: {e}")
     
-    return download_url, csv_url, ndvi_mean, ndwi_mean, ndbi_mean, lst_mean, dem_mean
+    return download_url, time_series_data, ndvi_mean, ndwi_mean, ndbi_mean, lst_mean, dem_mean
 
 def check_task_and_get_drive_link(task_id, filename):
     init_gee()

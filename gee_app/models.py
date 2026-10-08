@@ -37,3 +37,33 @@ class GEEDataRequest(models.Model):
 
     def __str__(self):
         return f"{self.dataset} - {self.ward.ten_xa} ({self.start_date} to {self.end_date})"
+
+class IndexType(models.Model):
+    code = models.CharField(max_length=50, unique=True, verbose_name="Mã Chỉ Số")
+    name = models.CharField(max_length=100, verbose_name="Tên Chỉ Số")
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.code
+
+class DataOrigin(models.Model):
+    code = models.CharField(max_length=50, unique=True, verbose_name="Mã Nguồn")
+    name = models.CharField(max_length=100, verbose_name="Tên Nguồn")
+    description = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return self.code
+
+class ObservationData(models.Model):
+    request_ref = models.ForeignKey(GEEDataRequest, on_delete=models.CASCADE, related_name="observations", null=True, blank=True)
+    ward = models.ForeignKey(Ward, on_delete=models.CASCADE, related_name="observations")
+    index_type = models.ForeignKey(IndexType, on_delete=models.CASCADE)
+    origin = models.ForeignKey(DataOrigin, on_delete=models.CASCADE)
+    observation_time = models.DateField(verbose_name="Thời Gian")
+    value = models.FloatField(verbose_name="Giá Trị", null=True, blank=True)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['observation_time']),
+            models.Index(fields=['index_type', 'origin', 'ward']),
+        ]

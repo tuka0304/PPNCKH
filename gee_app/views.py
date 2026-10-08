@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from .models import Ward, GEEDataRequest
+from .models import Ward, GEEDataRequest, IndexType, DataOrigin, ObservationData
+from datetime import datetime
 from django.http import FileResponse, Http404, JsonResponse
 from .gee_utils import start_drive_export, check_task_and_get_drive_link, delete_drive_file, get_map_tile_url
 from django.contrib import messages
@@ -124,7 +125,7 @@ def home_view(request):
             
         try:
             # Generate direct download URL in GEE and calculate indices
-            download_url, csv_url, ndvi, ndwi, ndbi, lst, dem = start_drive_export(
+            download_url, time_series_data, ndvi, ndwi, ndbi, lst, dem = start_drive_export(
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
@@ -142,13 +143,40 @@ def home_view(request):
                 task_id="DIRECT_DOWNLOAD",
                 status='COMPLETED',
                 download_url=download_url,
-                csv_download_url=csv_url,
+                csv_download_url=None, # Removed CSV dependency
                 ndvi_mean=ndvi,
                 ndwi_mean=ndwi,
                 ndbi_mean=ndbi,
                 lst_mean=lst,
                 dem_mean=dem
             )
+            
+            # -------------------------------------------------------------
+            # Save Time Series Data to Database directly (Big Data Architecture)
+            # -------------------------------------------------------------
+            if time_series_data:
+                origin, _ = DataOrigin.objects.get_or_create(code='GEE_CURRENT', defaults={'name': 'Dữ liệu Hiện Trạng GEE'})
+                
+                # Bulk create to optimize DB writes
+                observations = []
+                for dp in time_series_data:
+                    idx_type, _ = IndexType.objects.get_or_create(code=dp['Index'], defaults={'name': dp['Index']})
+                    
+                    try:
+                        obs_time = datetime.strptime(dp['Date'], '%Y-%m-%d').date()
+                        observations.append(ObservationData(
+                            request_ref=req,
+                            ward=combined_ward,
+                            index_type=idx_type,
+                            origin=origin,
+                            observation_time=obs_time,
+                            value=dp['Value']
+                        ))
+                    except Exception as e:
+                        print(f"Error parsing date {dp['Date']}: {e}")
+                
+                if observations:
+                    ObservationData.objects.bulk_create(observations)
             
             messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được xử lý và có thể tải ngay lập tức! (Kèm Chỉ số phân tích)')
             return redirect('history')
@@ -281,4 +309,24 @@ def export_db_csv(request):
             req.dem_mean
         ])
 
-    return response
+
+def api_get_time_series(request, req_id):
+    try:
+        req = GEEDataRequest.objects.get(id=req_id)
+        
+        # Lấy dữ liệu time series đã lưu trong database
+        observations = ObservationData.objects.filter(request_ref=req).order_by('observation_time')
+        
+        data = []
+        for obs in observations:
+            data.append({
+                'Date': obs.observation_time.strftime('%Y-%m-%d'),
+                'Index': obs.index_type.code,
+                'Value': obs.value
+            })
+            
+        return JsonResponse({'status': 'success', 'data': data})
+    except GEEDataRequest.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Không tìm thấy yêu cầu!'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
