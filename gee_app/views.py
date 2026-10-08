@@ -124,65 +124,85 @@ def home_view(request):
             return redirect('history')
             
         try:
-            # Generate direct download URL in GEE and calculate indices
-            download_url, time_series_data, ndvi, ndwi, ndbi, lst, dem = start_drive_export(
-                dataset=dataset,
-                start_date=start_date,
-                end_date=end_date,
-                geometry_geojson=combined_ward.geometry,
-                filename=filename,
-                folder_name=folder_name
-            )
-            
-            # Save request to database
+            # Create a pending request
             req = GEEDataRequest.objects.create(
                 ward=combined_ward,
                 dataset=dataset,
                 start_date=start_date,
                 end_date=end_date,
                 task_id="DIRECT_DOWNLOAD",
-                status='COMPLETED',
-                download_url=download_url,
-                csv_download_url=None, # Removed CSV dependency
-                ndvi_mean=ndvi,
-                ndwi_mean=ndwi,
-                ndbi_mean=ndbi,
-                lst_mean=lst,
-                dem_mean=dem
+                status='PROCESSING'
             )
             
-            # -------------------------------------------------------------
-            # Save Time Series Data to Database directly (Big Data Architecture)
-            # -------------------------------------------------------------
-            if time_series_data:
-                origin, _ = DataOrigin.objects.get_or_create(code='GEE_CURRENT', defaults={'name': 'Dữ liệu Hiện Trạng GEE'})
-                
-                # Bulk create to optimize DB writes
-                observations = []
-                for dp in time_series_data:
-                    idx_type, _ = IndexType.objects.get_or_create(code=dp['Index'], defaults={'name': dp['Index']})
+            # Define a background task function
+            def background_gee_task(request_id, ds, s_date, e_date, geom, fname, folder, ward_id):
+                try:
+                    # Execute long-running GEE call
+                    download_url, time_series_data, ndvi, ndwi, ndbi, lst, dem = start_drive_export(
+                        dataset=ds,
+                        start_date=s_date,
+                        end_date=e_date,
+                        geometry_geojson=geom,
+                        filename=fname,
+                        folder_name=folder
+                    )
                     
-                    try:
-                        obs_time = datetime.strptime(dp['Date'], '%Y-%m-%d').date()
-                        observations.append(ObservationData(
-                            request_ref=req,
-                            ward=combined_ward,
-                            index_type=idx_type,
-                            origin=origin,
-                            observation_time=obs_time,
-                            value=dp['Value']
-                        ))
-                    except Exception as e:
-                        print(f"Error parsing date {dp['Date']}: {e}")
-                
-                if observations:
-                    ObservationData.objects.bulk_create(observations)
+                    # Update request
+                    req_obj = GEEDataRequest.objects.get(id=request_id)
+                    req_obj.download_url = download_url
+                    req_obj.ndvi_mean = ndvi
+                    req_obj.ndwi_mean = ndwi
+                    req_obj.ndbi_mean = ndbi
+                    req_obj.lst_mean = lst
+                    req_obj.dem_mean = dem
+                    
+                    # Save Time Series Data
+                    if time_series_data:
+                        origin, _ = DataOrigin.objects.get_or_create(code='GEE_CURRENT', defaults={'name': 'Dữ liệu Hiện Trạng GEE'})
+                        observations = []
+                        
+                        # Fetch the ward again to get a fresh connection in this thread
+                        ward_obj = Ward.objects.get(id=ward_id)
+                        
+                        for dp in time_series_data:
+                            idx_type, _ = IndexType.objects.get_or_create(code=dp['Index'], defaults={'name': dp['Index']})
+                            try:
+                                obs_time = datetime.strptime(dp['Date'], '%Y-%m-%d').date()
+                                observations.append(ObservationData(
+                                    request_ref=req_obj,
+                                    ward=ward_obj,
+                                    index_type=idx_type,
+                                    origin=origin,
+                                    observation_time=obs_time,
+                                    value=dp['Value']
+                                ))
+                            except Exception:
+                                pass
+                        if observations:
+                            ObservationData.objects.bulk_create(observations)
+                    
+                    req_obj.status = 'COMPLETED'
+                    req_obj.save()
+                    
+                except Exception as e:
+                    print(f"Background GEE Task Error: {e}")
+                    req_obj = GEEDataRequest.objects.get(id=request_id)
+                    req_obj.status = 'FAILED'
+                    req_obj.save()
+
+            # Start thread
+            import threading
+            thread = threading.Thread(target=background_gee_task, args=(
+                req.id, dataset, start_date, end_date, combined_ward.geometry, filename, folder_name, combined_ward.id
+            ))
+            thread.daemon = True
+            thread.start()
             
-            messages.success(request, f'Yêu cầu tải dữ liệu cho ({combined_ward.ten_xa}) đã được xử lý và có thể tải ngay lập tức! (Kèm Chỉ số phân tích)')
+            messages.success(request, f'Yêu cầu tải dữ liệu cho khu vực đã được đưa vào hàng đợi xử lý ngầm (để tránh quá tải Server). Vui lòng đợi vài phút và tải lại trang Lịch sử để xem kết quả.')
             return redirect('history')
             
         except Exception as e:
-            messages.error(request, f'Lỗi khi gọi GEE API: {e}')
+            messages.error(request, f'Lỗi khởi tạo yêu cầu: {e}')
     
     return render(request, 'gee_app/home.html', {
         'datasets': datasets
