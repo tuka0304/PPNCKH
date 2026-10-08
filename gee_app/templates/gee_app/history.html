@@ -52,9 +52,9 @@
                             {% if req.status == 'COMPLETED' %}
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hoàn Thành</span>
                             {% elif req.status == 'PROCESSING' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 animate-pulse">Đang Xử Lý (Google Drive)</span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 animate-pulse">Đang Xử Lý (Big Data)</span>
                             {% elif req.status == 'DELETED' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Đã Xóa Khỏi Drive</span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Đã Xóa</span>
                             {% else %}
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Lỗi</span>
                             {% endif %}
@@ -87,13 +87,6 @@
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                                         + Tải Shapefile kèm theo
                                     </a>
-                                    <form action="{% url 'delete_file' req.id %}" method="POST" class="inline block" onsubmit="return confirm('Bạn có chắc chắn muốn xóa file này khỏi Google Drive để tối ưu dung lượng không?');">
-                                        {% csrf_token %}
-                                        <button type="submit" class="text-red-600 hover:text-red-900 flex items-center gap-1 text-xs">
-                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
-                                            Xóa khỏi Drive
-                                        </button>
-                                    </form>
                                 </div>
                             {% elif req.status == 'PROCESSING' %}
                                 <span class="text-gray-400 flex items-center gap-1">
