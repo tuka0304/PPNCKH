@@ -145,7 +145,7 @@
 
         // Load GeoJSON
         var geojsonLayer = null;
-        fetch("{% static 'data/hcmc_wards.geojson' %}")
+        fetch("{% url 'api_get_all_wards' %}")
             .then(response => response.json())
             .then(data => {
                 geojsonLayer = L.geoJSON(data, {

@@ -359,3 +359,25 @@ def api_get_time_series(request, req_id):
         return JsonResponse({'status': 'error', 'message': 'Không tìm thấy yêu cầu!'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
+
+def api_get_all_wards(request):
+    wards = Ward.objects.all()
+    features = []
+    for ward in wards:
+        # Ignore pseudo-wards (CTM_) that are combinations of multiple wards
+        if ward.ma_xa.startswith('CTM_'):
+            continue
+        features.append({
+            "type": "Feature",
+            "properties": {
+                "maXa": ward.ma_xa,
+                "tenXa": ward.ten_xa
+            },
+            "geometry": ward.geometry
+        })
+    
+    geojson = {
+        "type": "FeatureCollection",
+        "features": features
+    }
+    return JsonResponse(geojson)
