@@ -222,6 +222,10 @@ def history_view(request):
         filename = f"{dataset_name}_{ward_slug}_{req.start_date}_{req.end_date}"[:100]
         
         try:
+            if req.task_id == "DIRECT_DOWNLOAD":
+                # Background thread is processing this, no need to check GEE Task API
+                continue
+                
             status, link, file_id = check_task_and_get_drive_link(req.task_id, filename)
             if status == 'COMPLETED' and link:
                 req.status = 'COMPLETED'
