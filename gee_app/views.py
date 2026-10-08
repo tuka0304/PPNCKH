@@ -72,7 +72,12 @@ def home_view(request):
         if len(found_wards) == 1:
             combined_ward = found_wards[0]
         else:
-            combined_name = ", ".join([w.ten_xa for w in found_wards])
+            combined_name_full = ", ".join([w.ten_xa for w in found_wards])
+            if len(combined_name_full) > 250:
+                combined_name = f"Nhiều khu vực ({len(found_wards)} phường/xã)"
+            else:
+                combined_name = combined_name_full
+                
             combined_ward = Ward.objects.filter(ten_xa=combined_name).first()
             if not combined_ward:
                 combined_geom = {
@@ -80,7 +85,7 @@ def home_view(request):
                     "geometries": [w.geometry for w in found_wards]
                 }
                 # Create a pseudo-ward to link to GEEDataRequest
-                ma_xa_hash = "CTM_" + hashlib.md5(combined_name.encode()).hexdigest()[:8]
+                ma_xa_hash = "CTM_" + hashlib.md5(combined_name_full.encode()).hexdigest()[:8]
                 combined_ward = Ward.objects.create(
                     ma_xa=ma_xa_hash,
                     ten_xa=combined_name,
