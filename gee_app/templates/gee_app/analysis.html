@@ -94,12 +94,23 @@
                                 <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">NDWI</th>
                                 <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">NDBI</th>
                                 <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">LST (°C)</th>
+                                <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">TVDI</th>
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200" id="rawDataTableBody">
                             <!-- Raw data rows will be injected here -->
                         </tbody>
                     </table>
+                </div>
+            </div>
+            
+            <div class="mt-8 hidden" id="scatterChartContainer">
+                <h3 class="text-xl font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    Biểu Đồ Phân Tán (Scatter Plot: LST vs NDVI)
+                </h3>
+                <p class="text-sm text-gray-600 mb-4">Phân tích mối quan hệ giữa Nhiệt độ bề mặt (LST) và Độ che phủ thực vật (NDVI).</p>
+                <div class="w-full h-96 relative">
+                    <canvas id="scatterChart"></canvas>
                 </div>
             </div>
         </div>
@@ -164,14 +175,14 @@
                     <p class="text-sm text-blue-700">Dùng để phân định ranh giới và theo dõi các khu vực có nước bề mặt (sông, hồ, ao, vùng ngập lụt). Giá trị dương (lớn hơn 0) thường là mặt nước, trong khi giá trị âm là đất hoặc thảm thực vật.</p>
                 </div>
                 
-                <!-- NDBI -->
-                <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 shadow-sm">
+                <!-- TVDI -->
+                <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 p-6 rounded-xl border border-yellow-200 shadow-sm">
                     <div class="flex items-center gap-3 mb-3">
-                        <span class="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">NDBI</span>
-                        <h4 class="font-bold text-orange-900">Chỉ số Đất Xây Dựng</h4>
+                        <span class="bg-yellow-600 text-white text-xs font-bold px-2 py-1 rounded">TVDI</span>
+                        <h4 class="font-bold text-yellow-900">Chỉ số Khô Hạn</h4>
                     </div>
-                    <p class="text-sm text-orange-800 mb-2 font-medium">Normalized Difference Built-up Index</p>
-                    <p class="text-sm text-orange-700">Dùng để chiết xuất và phân loại các khu vực đất xây dựng, đô thị, công trình nhân tạo. Giá trị dương thể hiện mật độ bê tông hóa cao, nhà cửa; giá trị âm thường là thảm thực vật hoặc mặt nước.</p>
+                    <p class="text-sm text-yellow-800 mb-2 font-medium">Temperature Vegetation Dryness Index</p>
+                    <p class="text-sm text-yellow-700">Đánh giá mức độ khô hạn dựa trên quan hệ giữa nhiệt độ bề mặt và thảm thực vật. Giá trị từ 0 (rất ẩm) đến 1 (rất khô hạn).</p>
                 </div>
             </div>
             
@@ -186,14 +197,14 @@
                     <p class="text-sm text-red-700">Được trích xuất từ dải phổ nhiệt của vệ tinh. Dùng để đánh giá đảo nhiệt đô thị (UHI), theo dõi đợt nắng nóng hoặc nghiên cứu khí hậu. Giá trị biểu diễn theo độ C (°C).</p>
                 </div>
 
-                <!-- DEM -->
-                <div class="bg-gradient-to-br from-gray-50 to-gray-200 p-6 rounded-xl border border-gray-300 shadow-sm">
+                <!-- NDBI -->
+                <div class="bg-gradient-to-br from-orange-50 to-orange-100 p-6 rounded-xl border border-orange-200 shadow-sm">
                     <div class="flex items-center gap-3 mb-3">
-                        <span class="bg-gray-600 text-white text-xs font-bold px-2 py-1 rounded">DEM</span>
-                        <h4 class="font-bold text-gray-900">Mô hình Độ cao</h4>
+                        <span class="bg-orange-600 text-white text-xs font-bold px-2 py-1 rounded">NDBI</span>
+                        <h4 class="font-bold text-orange-900">Chỉ số Đất Xây Dựng</h4>
                     </div>
-                    <p class="text-sm text-gray-800 mb-2 font-medium">Digital Elevation Model (SRTM 30m)</p>
-                    <p class="text-sm text-gray-700">Biểu diễn độ cao bề mặt địa hình so với mực nước biển (đơn vị: mét). Không thay đổi theo thời gian ngắn hạn, dùng để vẽ bản đồ địa hình, độ dốc và hướng dốc.</p>
+                    <p class="text-sm text-orange-800 mb-2 font-medium">Normalized Difference Built-up Index</p>
+                    <p class="text-sm text-orange-700">Dùng để chiết xuất và phân loại các khu vực đất xây dựng, đô thị, công trình nhân tạo. Giá trị dương thể hiện mật độ bê tông hóa cao, nhà cửa; giá trị âm thường là thảm thực vật hoặc mặt nước.</p>
                 </div>
             </div>
         </div>
@@ -205,11 +216,9 @@
 {% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script>
-    const dropzone = document.getElementById('dropzone');
-    const fileInput = document.getElementById('fileInput');
-    const dropzoneText = document.getElementById('dropzone-text');
     const chartContainer = document.getElementById('chartContainer');
     let chartInstance = null;
+    let scatterChartInstance = null;
 
     // Fetch from API
     document.addEventListener('DOMContentLoaded', function() {
@@ -254,7 +263,7 @@
             return;
         }
 
-        const dateMap = {}; // { '2024-01-01': { NDVI: 0.5, NDWI: 0.2 } }
+        const dateMap = {}; // { '2024-01-01': { NDVI: 0.5, NDWI: 0.2, TVDI: 0.1 } }
         
         apiData.forEach(item => {
             if (!dateMap[item.Date]) dateMap[item.Date] = {};
@@ -267,8 +276,9 @@
         const sortedNdwi = [];
         const sortedNdbi = [];
         const sortedLst = [];
+        const sortedTvdi = [];
         
-        let hasNdvi = false, hasNdwi = false, hasNdbi = false, hasLst = false;
+        let hasNdvi = false, hasNdwi = false, hasNdbi = false, hasLst = false, hasTvdi = false;
 
         sortedDates.forEach(date => {
             const dataObj = dateMap[date];
@@ -276,6 +286,7 @@
             if (dataObj.NDWI !== undefined) { hasNdwi = true; sortedNdwi.push(dataObj.NDWI); }
             if (dataObj.NDBI !== undefined) { hasNdbi = true; sortedNdbi.push(dataObj.NDBI); }
             if (dataObj.LST !== undefined) { hasLst = true; sortedLst.push(dataObj.LST); }
+            if (dataObj.TVDI !== undefined) { hasTvdi = true; sortedTvdi.push(dataObj.TVDI); }
         });
 
         renderChart(
@@ -283,13 +294,20 @@
             hasNdvi ? sortedNdvi : [], 
             hasNdwi ? sortedNdwi : [], 
             hasNdbi ? sortedNdbi : [], 
-            hasLst ? sortedLst : []
+            hasLst ? sortedLst : [],
+            hasTvdi ? sortedTvdi : []
         );
+        
+        if (hasLst && hasNdvi) {
+            renderScatterChart(sortedDates, dateMap);
+        }
+        
         renderStats(
             hasNdvi ? sortedNdvi : [], 
             hasNdwi ? sortedNdwi : [], 
             hasNdbi ? sortedNdbi : [], 
-            hasLst ? sortedLst : []
+            hasLst ? sortedLst : [],
+            hasTvdi ? sortedTvdi : []
         );
         renderRawDataTable(sortedDates, dateMap);
     }
@@ -304,6 +322,7 @@
             const ndwi = dataObj.NDWI !== undefined ? dataObj.NDWI.toFixed(4) : '-';
             const ndbi = dataObj.NDBI !== undefined ? dataObj.NDBI.toFixed(4) : '-';
             const lst = dataObj.LST !== undefined ? dataObj.LST.toFixed(4) : '-';
+            const tvdi = dataObj.TVDI !== undefined ? dataObj.TVDI.toFixed(4) : '-';
             
             return `
                 <tr class="hover:bg-blue-50 transition-colors">
@@ -312,6 +331,7 @@
                     <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold border-b border-gray-100">${ndwi}</td>
                     <td class="px-6 py-3 whitespace-nowrap text-orange-700 font-semibold border-b border-gray-100">${ndbi}</td>
                     <td class="px-6 py-3 whitespace-nowrap text-red-700 font-semibold border-b border-gray-100">${lst}</td>
+                    <td class="px-6 py-3 whitespace-nowrap text-yellow-700 font-semibold border-b border-gray-100">${tvdi}</td>
                 </tr>
             `;
         });
@@ -320,15 +340,17 @@
     }
 
 
-    function renderStats(ndvi, ndwi, ndbi, lst) {
+    function renderStats(ndvi, ndwi, ndbi, lst, tvdi) {
         const tbody = document.getElementById('statsTableBody');
         tbody.innerHTML = ''; // clear
 
         function getStats(dataArr, label, colorClass) {
             if (!dataArr || dataArr.length === 0) return null;
-            const min = Math.min(...dataArr).toFixed(4);
-            const max = Math.max(...dataArr).toFixed(4);
-            const mean = (dataArr.reduce((a, b) => a + b, 0) / dataArr.length).toFixed(4);
+            
+            const arr = dataArr.map(Number);
+            const min = Math.min(...arr).toFixed(4);
+            const max = Math.max(...arr).toFixed(4);
+            const mean = (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(4);
             return `
                 <tr>
                     <td class="px-6 py-4 whitespace-nowrap font-bold ${colorClass}">${label}</td>
@@ -343,7 +365,8 @@
             getStats(ndvi, 'NDVI', 'text-green-600'),
             getStats(ndwi, 'NDWI', 'text-blue-600'),
             getStats(ndbi, 'NDBI', 'text-orange-600'),
-            getStats(lst, 'LST (°C)', 'text-red-600')
+            getStats(lst, 'LST (°C)', 'text-red-600'),
+            getStats(tvdi, 'TVDI', 'text-yellow-600')
         ].filter(r => r !== null);
 
         tbody.innerHTML = rows.join('');
@@ -362,11 +385,76 @@
         document.getElementById('areaKm2').textContent = areaKm2.toLocaleString('en-US', {maximumFractionDigits: 4});
     }
 
-    function renderChart(dates, ndvi, ndwi, ndbi, lst) {
+    function renderScatterChart(dates, dateMap) {
+        document.getElementById('scatterChartContainer').classList.remove('hidden');
+        
+        const scatterData = [];
+        dates.forEach(date => {
+            const obj = dateMap[date];
+            if (obj.NDVI !== undefined && obj.LST !== undefined) {
+                scatterData.push({
+                    x: obj.NDVI,
+                    y: obj.LST,
+                    tvdi: obj.TVDI,
+                    date: date
+                });
+            }
+        });
+        
+        const ctx = document.getElementById('scatterChart').getContext('2d');
+        if (scatterChartInstance) scatterChartInstance.destroy();
+        
+        scatterChartInstance = new Chart(ctx, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'NDVI vs LST',
+                    data: scatterData,
+                    backgroundColor: function(context) {
+                        const val = context.raw?.tvdi;
+                        if (val === undefined) return '#3b82f6';
+                        // Map TVDI to color scale roughly
+                        if (val > 0.8) return '#ff0000';
+                        if (val > 0.6) return '#ff6600';
+                        if (val > 0.4) return '#ffcc00';
+                        if (val > 0.2) return '#0ce100';
+                        return '#066b00';
+                    },
+                    pointRadius: 6,
+                    pointHoverRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const pt = context.raw;
+                                return `Ngày: ${pt.date} | NDVI: ${pt.x.toFixed(3)} | LST: ${pt.y.toFixed(2)}°C | TVDI: ${pt.tvdi?.toFixed(3)}`;
+                            }
+                        }
+                    }
+                },
+                scales: {
+                    x: {
+                        title: { display: true, text: 'Chỉ số Thực vật (NDVI)' }
+                    },
+                    y: {
+                        title: { display: true, text: 'Nhiệt độ Bề mặt (LST °C)' }
+                    }
+                }
+            }
+        });
+    }
+
+    function renderChart(dates, ndvi, ndwi, ndbi, lst, tvdi) {
         chartContainer.classList.remove('hidden');
         
         const datasets = [];
         let isLstChart = false;
+        
         if (ndvi.length > 0) {
             datasets.push({
                 label: 'NDVI (Thực vật)',
@@ -375,7 +463,8 @@
                 backgroundColor: 'rgba(22, 163, 74, 0.1)',
                 borderWidth: 2,
                 tension: 0.3,
-                fill: true
+                fill: true,
+                yAxisID: 'y'
             });
         }
         if (ndwi.length > 0) {
@@ -386,7 +475,8 @@
                 backgroundColor: 'rgba(37, 99, 235, 0.1)',
                 borderWidth: 2,
                 tension: 0.3,
-                fill: true
+                fill: true,
+                yAxisID: 'y'
             });
         }
         if (ndbi.length > 0) {
@@ -397,7 +487,8 @@
                 backgroundColor: 'rgba(234, 88, 12, 0.1)',
                 borderWidth: 2,
                 tension: 0.3,
-                fill: true
+                fill: true,
+                yAxisID: 'y'
             });
         }
         if (lst.length > 0) {
@@ -409,7 +500,20 @@
                 backgroundColor: 'rgba(220, 38, 38, 0.1)',
                 borderWidth: 2,
                 tension: 0.3,
-                fill: true
+                fill: true,
+                yAxisID: 'yLst'
+            });
+        }
+        if (tvdi.length > 0) {
+            datasets.push({
+                label: 'TVDI (Khô hạn)',
+                data: tvdi,
+                borderColor: '#ca8a04', // yellow-600
+                backgroundColor: 'rgba(202, 138, 4, 0.1)',
+                borderWidth: 2,
+                tension: 0.3,
+                fill: true,
+                yAxisID: 'y'
             });
         }
 
@@ -432,41 +536,23 @@
                     mode: 'index',
                     intersect: false,
                 },
-                plugins: {
-                    title: {
-                        display: false
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                let label = context.dataset.label || '';
-                                if (label) {
-                                    label += ': ';
-                                }
-                                if (context.parsed.y !== null) {
-                                    label += context.parsed.y.toFixed(4);
-                                }
-                                return label;
-                            }
-                        }
-                    }
-                },
                 scales: {
                     x: {
                         display: true,
-                        title: {
-                            display: true,
-                            text: 'Thời Gian (YYYY-MM-DD)'
-                        }
+                        title: { display: true, text: 'Thời Gian (YYYY-MM-DD)' }
                     },
                     y: {
-                        display: true,
-                        title: {
-                            display: true,
-                            text: isLstChart ? 'Nhiệt độ (°C)' : 'Giá Trị Chỉ Số'
-                        },
-                        min: isLstChart ? undefined : -1,
-                        max: isLstChart ? undefined : 1
+                        display: !isLstChart || datasets.length > 1,
+                        position: 'left',
+                        title: { display: true, text: 'Giá Trị Chỉ Số' },
+                        min: -1,
+                        max: 1
+                    },
+                    yLst: {
+                        display: isLstChart,
+                        position: 'right',
+                        title: { display: true, text: 'Nhiệt độ (°C)' },
+                        grid: { drawOnChartArea: false }
                     }
                 }
             }

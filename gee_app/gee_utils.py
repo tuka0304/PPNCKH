@@ -145,6 +145,20 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         feature_dict = {'Date': date}
         if dataset == 'L8_LST':
             feature_dict['LST'] = stats.get('LST')
+            
+            # Approximate TVDI for LST dataset if we also calculate NDVI
+            # Wait, L8_LST dataset maps to calculating only LST in extract_indices right now.
+            # We can calculate NDVI and TVDI here too.
+            ndvi = img.normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI')
+            stats_ndvi = ndvi.reduceRegion(reducer=ee.Reducer.mean(), geometry=roi, scale=100, maxPixels=1e13)
+            feature_dict['NDVI'] = stats_ndvi.get('NDVI')
+            
+            # TVDI approximation: TVDI = (LST - LST_min) / (LST_max - LST_min)
+            # using fixed min=22 max=40
+            tvdi = img.select('LST').subtract(22.0).divide(18.0).clamp(0, 1).rename('TVDI')
+            stats_tvdi = tvdi.reduceRegion(reducer=ee.Reducer.mean(), geometry=roi, scale=100, maxPixels=1e13)
+            feature_dict['TVDI'] = stats_tvdi.get('TVDI')
+            
         else:
             feature_dict['NDVI'] = stats.get('NDVI')
             feature_dict['NDWI'] = stats.get('NDWI')
@@ -158,7 +172,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
         
         # Determine selectors based on dataset
         if dataset == 'L8_LST':
-            selectors = ['Date', 'LST']
+            selectors = ['Date', 'LST', 'NDVI', 'TVDI']
         else:
             selectors = ['Date', 'NDVI', 'NDWI', 'NDBI']
             
@@ -179,9 +193,10 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
                     continue
                     
                 if dataset == 'L8_LST':
-                    val_str = row.get('LST')
-                    if val_str:
-                        time_series_data.append({'Date': date_str, 'Index': 'LST', 'Value': float(val_str)})
+                    for idx_name in ['LST', 'NDVI', 'TVDI']:
+                        val_str = row.get(idx_name)
+                        if val_str:
+                            time_series_data.append({'Date': date_str, 'Index': idx_name, 'Value': float(val_str)})
                 else:
                     for idx_name in ['NDVI', 'NDWI', 'NDBI']:
                         val_str = row.get(idx_name)
@@ -291,7 +306,7 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
     roi = ee.Geometry(geometry_geojson)
     
     # Ensure correct dataset based on layer_type (Fixes black image when LST is selected with TOA dataset)
-    if layer_type == 'LST':
+    if layer_type in ['LST', 'TVDI']:
         dataset = 'L8_LST'
     elif layer_type in ['TRUE_COLOR', 'NDVI', 'NDWI', 'NDBI', 'CLASSIFICATION']:
         if dataset in ['L8_LST', 'SRTM_DEM']:
@@ -341,7 +356,7 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
     
     if layer_type == 'LST':
         display_img = image.select('LST')
-        vis_params = {'min': 20, 'max': 45, 'palette': ['blue', 'cyan', 'green', 'yellow', 'red']}
+        vis_params = {'min': 20, 'max': 45, 'palette': ["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"]}
         
     elif layer_type == 'TRUE_COLOR':
         if 'LANDSAT' in dataset:
@@ -356,7 +371,7 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
             display_img = image.normalizedDifference(['B5', 'B4'])
         else:
             display_img = image.normalizedDifference(['B8', 'B4'])
-        vis_params = {'min': -0.2, 'max': 0.8, 'palette': ['blue', 'white', 'green']}
+        vis_params = {'min': -0.2, 'max': 1.0, 'palette': ['#FF0000', '#FF7F00', '#FFFF00', '#ADFF2F', '#00FF00', '#00FFFF', '#007FFF', '#0000FF']}
         
     elif layer_type == 'NDWI':
         if 'LANDSAT' in dataset:
@@ -381,6 +396,30 @@ def get_map_tile_url(dataset, start_date, end_date, geometry_geojson, layer_type
         display_img = ee.Image(0).where(water, 1).where(veg, 2).where(builtup, 3).clip(roi)
         # 1: Water (Blue), 2: Veg (Green), 3: Builtup (Red)
         vis_params = {'min': 1, 'max': 3, 'palette': ['blue', 'green', 'red']}
+
+    elif layer_type == 'TVDI':
+        # TVDI requires both LST and NDVI. In L2 data, NDVI uses SR_B5 and SR_B4
+        ndvi = image.normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI')
+        lst = image.select('LST')
+        
+        # Calculate min/max LST for approximation of TVDI dry/wet edges
+        # Note: True TVDI requires linear regression of dry/wet edges over NDVI bins.
+        # For visualization purposes, we use a simplified approximation based on min/max LST in the scene.
+        stats = image.reduceRegion(
+            reducer=ee.Reducer.minMax(),
+            geometry=roi,
+            scale=100,
+            maxPixels=1e13
+        )
+        # We need ee.Number(stats.get('LST_min')) but it might fail if region is empty. Using fixed approximation if fails.
+        # A simple empirical formula for TVDI visualization:
+        # TVDI = (LST - LST_min) / (LST_max - LST_min)
+        # We'll use fixed min=22, max=40 to avoid expensive reducer for map tiles.
+        lst_min = 22.0
+        lst_max = 40.0
+        tvdi = lst.subtract(lst_min).divide(lst_max - lst_min).clamp(0, 1).rename('TVDI')
+        display_img = tvdi
+        vis_params = {'min': 0, 'max': 1, 'palette': ['#066b00', '#0bc400', '#0ce100', '#00ff00', '#ffff00', '#ffcc00', '#ff6600', '#ff0000']}
 
     if display_img is None:
         display_img = image

@@ -22,6 +22,7 @@
                         <option value="NDVI">Chỉ số NDVI (Thực vật)</option>
                         <option value="NDWI">Chỉ số NDWI (Nước)</option>
                         <option value="LST">Chỉ số LST (Nhiệt độ)</option>
+                        <option value="TVDI">Chỉ số TVDI (Khô hạn)</option>
                         <option value="CLASSIFICATION">Phân loại Tự động</option>
                     </select>
                     <button type="button" onclick="loadMapLayer()" id="btnLoadLayer" class="bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-lg shadow-sm transition-colors text-sm whitespace-nowrap flex items-center gap-1">
@@ -312,6 +313,16 @@
             document.getElementById('btnClearLayer').classList.add('hidden');
         };
         
+        function generateColorScale(palette, minVal, maxVal) {
+            let html = '<div class="flex h-4 rounded mb-1 shadow-sm w-full">';
+            palette.forEach(color => {
+                html += `<div style="background-color: ${color}; flex: 1;"></div>`;
+            });
+            html += '</div>';
+            html += `<div class="flex justify-between text-xs font-medium text-gray-600 mt-1"><span>${minVal}</span><span>${maxVal}</span></div>`;
+            return html;
+        }
+
         function updateLegend(type) {
             var legend = document.getElementById('mapLegend');
             legend.classList.remove('hidden');
@@ -321,11 +332,8 @@
             if (type === 'TRUE_COLOR') {
                 html += '<p class="text-sm text-gray-600">Ảnh màu tự nhiên (RGB). Các đám mây đã được thuật toán GEE tự động lọc bỏ.</p>';
             } else if (type === 'NDVI') {
-                html += '<div class="space-y-2">';
-                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-green-600 rounded shadow-sm"></div><span class="text-sm font-medium">Thực vật dày đặc (Rừng/Lúa)</span></div>';
-                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-white rounded border border-gray-300 shadow-sm"></div><span class="text-sm font-medium">Đất trống / Đô thị</span></div>';
-                html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-blue-600 rounded shadow-sm"></div><span class="text-sm font-medium">Mặt nước</span></div>';
-                html += '</div>';
+                html += '<p class="text-xs text-gray-600 mb-2">Chỉ số thực vật NDVI (-0.2 đến 1.0)</p>';
+                html += generateColorScale(['#FF0000', '#FF7F00', '#FFFF00', '#ADFF2F', '#00FF00', '#00FFFF', '#007FFF', '#0000FF'], -0.2, 1.0);
             } else if (type === 'NDWI') {
                 html += '<div class="space-y-2">';
                 html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-blue-600 rounded shadow-sm"></div><span class="text-sm font-medium">Khu vực có Nước</span></div>';
@@ -333,8 +341,10 @@
                 html += '</div>';
             } else if (type === 'LST') {
                 html += '<p class="text-xs text-gray-600 mb-2">Bản đồ nhiệt độ bề mặt đất (°C)</p>';
-                html += '<div class="w-full h-4 bg-gradient-to-r from-blue-500 via-green-500 to-red-500 rounded mb-1 shadow-sm"></div>';
-                html += '<div class="flex justify-between text-xs font-medium text-gray-600 mt-1"><span>Lạnh (20°C)</span><span>Nóng (45°C)</span></div>';
+                html += generateColorScale(["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"], 20, 45);
+            } else if (type === 'TVDI') {
+                html += '<p class="text-xs text-gray-600 mb-2">Chỉ số khô hạn TVDI (0 đến 1)</p>';
+                html += generateColorScale(['#066b00', '#0bc400', '#0ce100', '#00ff00', '#ffff00', '#ffcc00', '#ff6600', '#ff0000'], 0, 1);
             } else if (type === 'CLASSIFICATION') {
                 html += '<div class="space-y-2">';
                 html += '<div class="flex items-center gap-3"><div class="w-5 h-5 bg-blue-600 rounded shadow-sm"></div><span class="text-sm font-medium">Lớp Mặt Nước</span></div>';

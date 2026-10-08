@@ -1,0 +1,567 @@
+--- Thống kê dl VT.docx ---
+CÁC LOẠI THỐNG KÊ DỮ LIỆU NHIỆT ĐỘ TRÊN ẢNH VIỄN THÁM
+
+1. Thống kê mô tả cơ bản (Descriptive Statistics)
+
+Loại thống kê
+
+Ý nghĩa
+
+Gợi ý trình bày
+
+Giá trị tối đa (Max)
+
+Nhiệt độ cao nhất trong khu vực nghiên cứu (vùng đô thị, khu công nghiệp)
+
+Biểu đồ cột hoặc bản đồ hotspot
+
+Giá trị tối thiểu (Min)
+
+Nhiệt độ thấp nhất (vùng cây xanh, mặt nước, rừng ngập mặn)
+
+Bản đồ gradient nhiệt
+
+Giá trị trung bình (Mean)
+
+Nhiệt độ đại diện cho toàn khu vực
+
+Bảng thống kê theo quận/huyện
+
+Độ lệch chuẩn (SD)
+
+Mức độ phân tán nhiệt độ giữa các vùng
+
+Dạng biểu đồ hộp (Boxplot)
+
+Trung vị (Median)
+
+Nhiệt độ phổ biến nhất, giảm ảnh hưởng điểm cực trị
+
+
+
+Ứng dụng: Xác định mức độ đồng nhất/khác biệt nhiệt trong các vùng đô thị – nông thôn.
+
+
+
+2. Thống kê theo không gian (Spatial Statistics)
+
+Phương pháp
+
+Mục đích
+
+Kết quả
+
+Zonal Statistics
+
+Tính giá trị nhiệt độ trung bình, cực trị trong từng vùng hành chính (phường, quận, huyện)
+
+Bản đồ phân vùng nhiệt độ
+
+Spatial Autocorrelation (Moran’s I)
+
+Đánh giá mức độ tụ tập không gian của nhiệt độ cao/thấp
+
+Giá trị Moran’s I > 0 cho thấy xu hướng tụ tập điểm nóng
+
+Hotspot Analysis (Getis-Ord Gi*)
+
+Xác định vùng “nóng” (hotspots) và “lạnh” (coldspots)
+
+Bản đồ vùng đảo nhiệt đô thị
+
+Kernel Density
+
+Tạo bản đồ mật độ nhiệt (heat density map)
+
+Biểu đồ gradient nhiệt đô thị
+
+Ứng dụng: Phân tích đảo nhiệt đô thị, xác định khu vực rủi ro cao do bê tông hóa.
+
+3. Thống kê theo thời gian (Temporal Statistics)
+
+Loại phân tích
+
+Ý nghĩa
+
+Ví dụ
+
+So sánh theo năm (Year-to-year)
+
+Đánh giá biến động nhiệt độ theo thời gian (ví dụ 2015–2025)
+
+Biểu đồ xu hướng LST
+
+Thống kê theo mùa (Seasonal)
+
+So sánh nhiệt độ mùa khô – mùa mưa
+
+Biểu đồ đường theo tháng
+
+Phân tích chuỗi thời gian (Time-series analysis)
+
+Phát hiện xu hướng tăng/giảm dài hạn
+
+Dùng ảnh MODIS hoặc GEE
+
+Ứng dụng: Dự báo xu hướng tăng nhiệt đô thị hoặc biến động do biến đổi khí hậu.
+
+
+
+4. Thống kê tương quan (Correlation & Regression)
+
+Mối quan hệ
+
+Mục đích
+
+Công cụ tính
+
+LST – NDVI
+
+Đánh giá tác động của thảm thực vật đến nhiệt độ bề mặt
+
+Hệ số tương quan Pearson (r) hoặc hồi quy tuyến tính
+
+LST – TVDI
+
+Phân tích mối liên hệ giữa khô hạn và nhiệt độ
+
+Scatter Plot, R²
+
+LST – Mật độ xây dựng (NDBI)
+
+Xác định mức ảnh hưởng của đô thị hóa
+
+Phân tích hồi quy đa biến
+
+Ứng dụng: Giải thích nguyên nhân không gian của hiện tượng nhiệt cao.
+
+
+
+5. Thống kê phân loại (Class-based Statistics)
+
+Nhóm lớp phủ
+
+Mô tả
+
+Ví dụ kết quả (°C)
+
+Rừng, cây xanh
+
+Nhiệt độ thấp, ổn định
+
+27–30°C
+
+Khu dân cư
+
+Trung bình – dao động lớn
+
+33–36°C
+
+KCN, trung tâm đô thị
+
+Nhiệt độ cao nhất
+
+38–41°C
+
+Mặt nước
+
+Thấp nhất, điều hòa nhiệt
+
+26–28°C
+
+
+
+Ứng dụng: Tính LST trung bình theo lớp sử dụng đất (LULC) hoặc vùng chức năng.
+
+
+
+
+6. Thống kê sai số và đánh giá độ chính xác
+
+Chỉ tiêu
+
+Ý nghĩa
+
+Cách tính
+
+RMSE (Root Mean Square Error)
+
+Sai số trung bình giữa giá trị tính toán và đo thực địa
+
+So sánh với dữ liệu trạm khí tượng
+
+MAE (Mean Absolute Error)
+
+Sai số tuyệt đối trung bình
+
+
+
+Bias
+
+Độ lệch hệ thống (tăng/giảm so với thực tế)
+
+
+
+Ứng dụng: Kiểm định độ tin cậy của bản đồ LST sau giải đoán.
+
+--- Các loại Bieu_do_LST_NDVI_TVDI.docx ---
+PHÂN TÍCH VÀ BIỂU DIỄN DỮ LIỆU LST, NDVI, TVDI
+
+1. BIỂU ĐỒ CỘT (COLUMN/BAR CHART)
+
+Mô tả:
+Hiển thị giá trị trung bình hoặc cực trị (max/min) của chỉ số theo khu vực hoặc loại hình sử dụng đất.
+
+Mục đích sử dụng:
+
+So sánh giá trị LST, NDVI, TVDI giữa các vùng.
+
+Phân tích khu vực có xu hướng nóng, khô, hoặc xanh hơn.
+
+Ứng dụng:
+
+So sánh NDVI trung bình giữa các khu vực nội thành TP.HCM.
+
+LST trung bình giữa các loại đất (đất đô thị, nông nghiệp, mặt nước...).
+
+
+
+2. BIỂU ĐỒ ĐƯỜNG (LINE CHART)
+
+Mô tả:
+Biểu diễn sự thay đổi của chỉ số LST, NDVI, hoặc TVDI theo thời gian (tháng, năm) hoặc theo chuỗi ảnh Landsat.
+
+Mục đích sử dụng:
+
+Phân tích xu hướng biến động (tăng/giảm) nhiệt độ bề mặt (LST) hay độ xanh của thực vật (NDVI).
+
+Theo dõi tác động của mùa vụ, biến đổi khí hậu.
+
+Ứng dụng:
+
+LST theo tháng ở TP.HCM giai đoạn 2015–2025.
+
+NDVI trung bình theo mùa vụ trồng trọt.
+
+
+
+
+
+3. BIỂU ĐỒ PHÂN TÁN (SCATTER PLOT)
+
+Phân tích mối quan hệ NDVI–LST với màu thể hiện TVDI.
+
+Mô tả:
+Biểu diễn mối tương quan giữa hai chỉ số, ví dụ LST–NDVI, LST–TVDI.
+
+Mục đích sử dụng:
+
+Xác định mối quan hệ nghịch hoặc thuận giữa nhiệt độ và độ che phủ thực vật.
+
+Phân tích xu hướng khô hạn, mất cân bằng sinh thái.
+
+Ứng dụng:
+
+Xây dựng mô hình hồi quy LST–NDVI.
+
+Phân tích ảnh hưởng của thực vật đến nhiệt đô thị.
+
+
+
+
+
+4. BIỂU ĐỒ HỘP (BOX PLOT)
+
+Mô tả:
+Thể hiện phân bố giá trị (min, max, trung vị, phần tư) của LST, NDVI, hoặc TVDI trong từng nhóm khu vực hoặc thời gian.
+
+Mục đích sử dụng:
+
+Đánh giá mức độ dao động, phân tán dữ liệu.
+
+Phát hiện các giá trị bất thường (outliers).
+
+Ứng dụng:
+
+Biểu đồ hộp LST của các quận TP.HCM trong năm 2024.
+
+So sánh biến thiên NDVI theo mùa khô – mùa mưa.
+
+
+
+
+
+5. Biểu đồ bong bóng (Bubble chart)
+
+Thể hiện mối quan hệ 3 biến NDVI, LST, TVDI.
+
+1. Mô tả:
+
+Biểu đồ bong bóng là một biến thể của biểu đồ phân tán (scatter plot), trong đó mỗi điểm dữ liệu được biểu diễn bằng một “bong bóng” có kích thước thay đổi.
+
+Trục X và trục Y thể hiện hai biến số chính (ví dụ: NDVI và LST), còn kích thước bong bóng thể hiện biến thứ ba (ví dụ: TVDI, lượng mưa, hoặc diện tích vùng).
+
+Màu sắc bong bóng cũng có thể biểu thị một biến khác (chẳng hạn mức đô thị hoá hoặc loại đất).
+
+Ví dụ minh họa:
+
+Trục X: NDVI
+
+Trục Y: LST
+
+Kích thước bong bóng: TVDI (mức khô hạn)
+→ Mỗi bong bóng biểu thị một khu vực (TP.HCM, Vũng Tàu, Bình Dương).
+
+2. Mục đích sử dụng:
+
+Phân tích đồng thời mối quan hệ giữa ba biến (ví dụ: LST–NDVI–TVDI).
+
+Phát hiện các mẫu không gian hoặc xu hướng ẩn mà biểu đồ 2 chiều không thể hiện được.
+
+So sánh mức độ ảnh hưởng hoặc quy mô của các khu vực khác nhau.
+
+Minh họa trực quan cho các mô hình khô hạn, nhiệt đô thị hoặc biến động thảm thực vật.
+
+3. Ứng dụng trong nghiên cứu viễn thám:
+
+Thể hiện mối quan hệ giữa nhiệt độ bề mặt (LST), độ xanh thực vật (NDVI) và độ khô hạn (TVDI) trong cùng một biểu đồ.
+
+Phân tích các vùng có nguy cơ khô hạn cao (bong bóng lớn, NDVI thấp, LST cao).
+
+So sánh các vùng đô thị, nông nghiệp, ven biển để nhận biết sự khác biệt sinh thái.
+
+Gợi ý hiển thị:
+
+Trục X: NDVI
+
+Trục Y: LST (°C)
+
+Kích thước bong bóng: TVDI
+
+Màu sắc: Khu vực (TP.HCM, Vũng Tàu, Bình Dương)
+
+
+
+6. BIỂU ĐỒ KẾT HỢP (COMBINATION CHART)
+
+So sánh dữ liệu có đơn vị khác nhau (LST và NDVI).
+
+Mô tả:
+Kết hợp hai loại biểu đồ (ví dụ: cột + đường) để thể hiện đồng thời LST và NDVI trên cùng trục thời gian hoặc khu vực.
+
+Mục đích sử dụng:
+
+So sánh mối quan hệ động giữa hai chỉ số.
+
+Tăng tính trực quan cho phân tích đa biến.
+
+Ứng dụng:
+
+So sánh LST (đường) và NDVI (cột) trong giai đoạn 2015–2025.
+
+
+
+7. BIỂU ĐỒ RADAR (RADAR CHART / SPIDER CHART)
+
+So sánh tổng hợp 3 chỉ số giữa các quận.
+
+1. Mô tả:
+
+Biểu đồ radar (hay còn gọi là biểu đồ mạng nhện) thể hiện nhiều biến số trên cùng một mặt phẳng cực.
+
+Mỗi trục (tia) xuất phát từ tâm thể hiện một chỉ số hoặc biến (ví dụ: LST, NDVI, TVDI).
+
+Giá trị của từng biến được biểu diễn bằng khoảng cách từ tâm đến điểm trên trục tương ứng.
+
+Các điểm của cùng một nhóm (ví dụ: một khu vực) được nối lại tạo thành hình đa giác.
+
+Khi có nhiều nhóm, ta sẽ có nhiều hình đa giác chồng lên nhau, giúp so sánh tổng thể đặc điểm giữa các vùng.
+
+Ví dụ:
+
+Các trục: LST, NDVI, TVDI, Albedo, NDWI
+
+Mỗi vùng (TP.HCM, Vũng Tàu, Bình Dương) có một đa giác riêng, thể hiện đặc trưng môi trường tổng hợp.
+
+2. Mục đích sử dụng:
+
+So sánh đa chỉ số giữa nhiều khu vực hoặc nhiều thời điểm trong cùng một biểu đồ.
+
+Đánh giá tổng hợp đặc tính môi trường, ví dụ mức độ đô thị hóa, thảm thực vật, khô hạn.
+
+Phát hiện vùng nổi trội hoặc yếu hơn về một chỉ số cụ thể (ví dụ TP.HCM có LST cao, NDVI thấp).
+
+Minh họa sự cân bằng hoặc mất cân bằng sinh thái giữa các yếu tố.
+
+3. Ứng dụng trong nghiên cứu viễn thám:
+
+Tổng hợp và so sánh bộ chỉ số môi trường (LST, NDVI, TVDI, NDWI, Albedo...) giữa các tỉnh/thành.
+
+Đánh giá đa tiêu chí về điều kiện bề mặt, phục vụ quy hoạch hoặc theo dõi biến đổi khí hậu.
+
+Trực quan hóa mức độ khác biệt giữa đô thị và nông thôn trong nghiên cứu nhiệt đô thị.
+
+📊 Gợi ý hiển thị:
+
+Các trục: LST, NDVI, TVDI, NDWI, Albedo
+
+Mỗi đường đa giác: một khu vực (TP.HCM, Vũng Tàu, Bình Dương)
+
+Dễ nhận thấy khu vực nào có cấu trúc môi trường “đều” hơn hoặc lệch rõ về một chỉ số.
+
+
+
+5. BIỂU ĐỒ MẬT ĐỘ HOẶC HISTOGRAM (DENSITY / HISTOGRAM)
+
+Mô tả:
+Thể hiện phân bố tần suất giá trị LST, NDVI, hoặc TVDI.
+
+Mục đích sử dụng:
+
+Xác định dạng phân bố (chuẩn, lệch trái, lệch phải).
+
+Tìm ngưỡng phân loại (ví dụ: NDVI > 0.3 là thực vật).
+
+Ứng dụng:
+
+Histogram NDVI để phân loại vùng có thảm thực vật dày đặc.
+
+Mật độ LST để xác định vùng “đảo nhiệt đô thị”.
+
+
+
+
+
+🗺️ 6. BIỂU ĐỒ BẢN ĐỒ NHIỆT (HEAT MAP)
+
+Mô tả:
+Hiển thị phân bố không gian của LST, NDVI, TVDI dưới dạng màu (từ thấp đến cao).
+
+Mục đích sử dụng:
+
+Trực quan hoá sự thay đổi không gian của các chỉ số.
+
+Xác định vùng nóng, vùng khô hạn, hoặc vùng có thảm thực vật tốt.
+
+Ứng dụng:
+
+Bản đồ nhiệt LST toàn TP.HCM.
+
+Heat map NDVI theo quận.
+
+🔺 7. BIỂU ĐỒ TAM GIÁC (TVDI TRIANGLE / SCATTER TRIANGULAR PLOT)
+
+Mô tả:
+Dạng biểu đồ đặc trưng của TVDI, thể hiện mối quan hệ LST – NDVI trong một tam giác khô–ẩm.
+
+Mục đích sử dụng:
+
+Xác định vùng khô hạn và mức độ ẩm của đất.
+
+Mô hình hoá chỉ số khô hạn từ ảnh vệ tinh.
+
+Ứng dụng:
+
+Phân tích khô hạn ở vùng Đồng Tháp Mười hoặc khu vực nông nghiệp.
+
+9. BIỂU ĐỒ TƯƠNG QUAN MA TRẬN (CORRELATION MATRIX / HEATMAP MATRIX)
+
+Mô tả:
+Hiển thị mức độ tương quan (r) giữa các chỉ số LST, NDVI, TVDI và các biến môi trường khác (độ ẩm, mưa, nhiệt độ khí quyển...).
+
+Mục đích sử dụng:
+
+Đánh giá mối liên hệ tổng quát giữa các chỉ số.
+
+Lựa chọn biến đầu vào cho mô hình học máy.
+
+Ứng dụng:
+
+Phân tích tương quan LST–NDVI–TVDI–Rainfall ở TP.HCM.
+
+
+
+
+BẢNG TÓM TẮT CÁC LOẠI BIỂU ĐỒ BIỂU DIỄN LST, NDVI, TVDI
+
+STT
+
+Loại biểu đồ
+
+Mô tả ngắn gọn
+
+Mục đích / Ứng dụng
+
+1
+
+Biểu đồ đường (Line chart)
+
+Thể hiện sự thay đổi của chỉ số theo thời gian hoặc khu vực.
+
+Phân tích xu hướng biến động LST, NDVI, TVDI.
+
+2
+
+Biểu đồ cột (Bar chart)
+
+So sánh giá trị giữa các khu vực hoặc loại đất.
+
+Đánh giá khác biệt LST, NDVI, TVDI giữa quận/huyện.
+
+3
+
+Biểu đồ phân tán (Scatter plot)
+
+Thể hiện mối tương quan giữa hai chỉ số.
+
+Phân tích quan hệ LST–NDVI, LST–TVDI.
+
+4
+
+Biểu đồ hộp (Box plot)
+
+Hiển thị phân bố, trung vị, phần tư của dữ liệu.
+
+Đánh giá dao động chỉ số giữa các vùng hoặc thời gian.
+
+5
+
+Biểu đồ tần suất (Histogram)
+
+Biểu diễn phân bố tần suất giá trị.
+
+Xác định ngưỡng phân loại hoặc dạng phân bố chỉ số.
+
+6
+
+Bản đồ nhiệt (Heat map)
+
+Thể hiện giá trị chỉ số bằng dải màu trên không gian.
+
+Trực quan hóa vùng nóng, vùng khô hoặc có thảm thực vật dày.
+
+7
+
+Biểu đồ tam giác TVDI
+
+Mô tả quan hệ NDVI–LST để xác định khô hạn.
+
+Đánh giá tình trạng khô hạn và độ ẩm đất.
+
+8
+
+Biểu đồ kết hợp (Combination chart)
+
+Kết hợp 2 loại biểu đồ để so sánh chỉ số.
+
+Phân tích đồng thời xu hướng LST và NDVI.
+
+9
+
+Biểu đồ tương quan ma trận (Correlation matrix)
+
+Hiển thị hệ số tương quan giữa nhiều chỉ số.
+
+Đánh giá mối liên hệ tổng quát giữa LST, NDVI, TVDI và các biến khác.
+
+Bảng tổng hợp giúp chọn loại biểu đồ phù hợp trong từng giai đoạn phân tích dữ liệu viễn thám.
