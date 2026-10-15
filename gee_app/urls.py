@@ -13,5 +13,6 @@ urlpatterns = [
     path('api/wards/geojson/', views.api_get_all_wards, name='api_get_all_wards'),
     path('thematic-map/', views.thematic_map_view, name='thematic_map'),
     path('api/thematic-map-data/', views.api_thematic_map_data, name='api_thematic_map_data'),
+    path('api/analysis-data/', views.api_analysis_data, name='api_analysis_data'),
     path('download-shapefile/', views.download_shapefile_view, name='download_shapefile'),
 ]

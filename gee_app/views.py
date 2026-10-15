@@ -313,7 +313,57 @@ def landing_view(request):
     return render(request, 'gee_app/landing.html')
 
 def analysis_view(request):
-    return render(request, 'gee_app/analysis.html')
+    wards = Ward.objects.exclude(ma_xa__startswith='CTM_').order_by('ten_xa')
+    return render(request, 'gee_app/analysis.html', {
+        'wards': wards
+    })
+
+def api_analysis_data(request):
+    ward_names_input = request.GET.get('wards', '')
+    start_year = request.GET.get('start_year', '2017')
+    end_year = request.GET.get('end_year', '2026')
+    index_code = request.GET.get('index', 'ALL')
+
+    names = [n.strip() for n in ward_names_input.split(',') if n.strip()]
+
+    qs = ObservationData.objects.all()
+    if names:
+        qs = qs.filter(ward__ten_xa__in=names)
+    else:
+        # Default to a representative comparison
+        default_wards = Ward.objects.filter(ten_xa__in=['Phường Bến Nghé', 'Xã Cần Thạnh', 'Xã Nhuận Đức'])
+        if default_wards.exists():
+            qs = qs.filter(ward__in=default_wards)
+        else:
+            first_ward = Ward.objects.first()
+            if first_ward:
+                qs = qs.filter(ward=first_ward)
+
+    if start_year:
+        try:
+            qs = qs.filter(observation_time__year__gte=int(start_year))
+        except ValueError:
+            pass
+    if end_year:
+        try:
+            qs = qs.filter(observation_time__year__lte=int(end_year))
+        except ValueError:
+            pass
+    if index_code and index_code != 'ALL':
+        qs = qs.filter(index_code=index_code)
+
+    qs = qs.order_by('observation_time', 'ward__ten_xa')
+
+    data = []
+    for obs in qs:
+        data.append({
+            'Date': obs.observation_time.strftime('%Y-%m-%d'),
+            'Ward': obs.ward.ten_xa,
+            'Index': obs.index_code,
+            'Value': obs.value
+        })
+
+    return JsonResponse({'status': 'success', 'data': data})
 
 def get_map_layer(request):
     if request.method == 'POST':
