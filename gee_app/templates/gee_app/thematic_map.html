@@ -1,12 +1,12 @@
 {% extends 'gee_app/base.html' %}
 {% load static %}
 
-{% block main_classes %}max-w-[98%]{% endblock %}
+{% block main_classes %}max-w-6xl mx-auto px-2 sm:px-4{% endblock %}
 
 {% block content %}
-<div class="w-full flex flex-col gap-5">
+<div class="w-full flex flex-col gap-5 items-center">
     <!-- Header & Map Controls Card -->
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-[960px]">
         <div class="px-8 py-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <div class="flex items-center gap-2 mb-1">
@@ -96,8 +96,8 @@
         </div>
     </div>
 
-    <!-- Map Canvas Container (Used for interactive viewing and high-res export) -->
-    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-xl border-2 border-gray-200 overflow-hidden relative flex flex-col h-[500px] lg:h-[560px]">
+    <!-- Map Canvas Container (Tỉ lệ chuẩn trắc địa vừa vặn trọn vẹn TP.HCM) -->
+    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-2xl border-2 border-gray-300 overflow-hidden relative flex flex-col h-[640px] lg:h-[720px] w-full max-w-[960px]">
         <!-- Export Overlay Headers (Shown on exported PNG) -->
         <div id="exportHeaderOverlay" class="hidden px-6 py-4 bg-white border-b-2 border-gray-800 text-center">
             <div class="text-[11px] font-bold uppercase tracking-widest text-gray-600 mb-0.5">
@@ -118,6 +118,14 @@
 
         <!-- Interactive Map Element -->
         <div id="thematicMap" class="w-full flex-grow z-0"></div>
+
+        <!-- Nút Căn Khung Vừa Khít TP.HCM -->
+        <div id="btnFitHcmc" class="absolute top-3 left-14 z-[1000]">
+            <button type="button" onclick="fitHcmcBounds()" title="Thu phóng vừa khít trọn vẹn TP.HCM" class="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-md border border-gray-200 text-xs font-bold text-gray-700 hover:text-indigo-600 hover:bg-white flex items-center gap-1.5 transition-all">
+                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                <span>Vừa Khít TP.HCM</span>
+            </button>
+        </div>
 
         <!-- Hover Info Card (Góc trên bên phải) -->
         <div id="wardHoverCard" class="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-2xl border border-gray-200 z-[1000] w-64 transition-all pointer-events-none">
@@ -511,8 +519,15 @@
 
         // Canh chỉnh khung nhìn vừa vặn toàn bộ 172 xã/phường TP.HCM
         if (!window.hasFittedBounds && thematicLayer) {
-            map.fitBounds(thematicLayer.getBounds(), { padding: [15, 15] });
+            fitHcmcBounds();
             window.hasFittedBounds = true;
+        }
+    }
+
+    function fitHcmcBounds() {
+        if (thematicLayer && map) {
+            map.invalidateSize();
+            map.fitBounds(thematicLayer.getBounds(), { padding: [15, 15] });
             setTimeout(updateDynamicScale, 300);
         }
     }
@@ -653,8 +668,9 @@
             Đang xuất ảnh bản đồ...
         `;
 
-        // Đồng bộ dữ liệu tiêu đề và tỉ lệ bản đồ
+        // Đồng bộ dữ liệu tiêu đề và tỉ lệ bản đồ, căn chuẩn khung TP.HCM
         updateHeaderTitles();
+        fitHcmcBounds();
         updateDynamicScale();
 
         const captureTarget = document.getElementById('mapCaptureContainer');
@@ -673,12 +689,15 @@
                     clonedHeader.style.display = 'block';
                 }
 
-                // Ẩn bảng hover chuột và nút zoom trên bản chụp
+                // Ẩn bảng hover chuột, nút zoom và nút căn khung trên bản chụp
                 const clonedHover = clonedDoc.getElementById('wardHoverCard');
                 if (clonedHover) clonedHover.style.display = 'none';
 
                 const clonedZoom = clonedDoc.querySelector('.leaflet-control-zoom');
                 if (clonedZoom) clonedZoom.style.display = 'none';
+
+                const clonedFitBtn = clonedDoc.getElementById('btnFitHcmc');
+                if (clonedFitBtn) clonedFitBtn.style.display = 'none';
 
                 const clonedLoader = clonedDoc.getElementById('mapLoader');
                 if (clonedLoader) clonedLoader.style.display = 'none';
