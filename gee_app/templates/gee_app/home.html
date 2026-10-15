@@ -11,21 +11,21 @@
             <div class="flex items-center gap-2 mb-1">
                 <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 backdrop-blur-sm">
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                    Kho Dữ Liệu Sẵn Sàng (2017 - 2026)
+                    Dữ Liệu Sẵn Sàng (2017 - 2026)
                 </span>
-                <span class="text-xs text-blue-200">172 Xã/Phường TP.HCM</span>
+                <span class="text-xs text-blue-200">Đầy đủ 172 Xã/Phường TP.HCM</span>
             </div>
-            <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight">Hệ Thống Trích Xuất Dữ Liệu Viễn Thám GEE & CSDL Lớn</h1>
-            <p class="text-blue-100 text-sm mt-1">Chọn khu vực trực tiếp trên bản đồ hoặc tìm kiếm nhanh để trích xuất chỉ số & tải ảnh vệ tinh.</p>
+            <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight">Tra Cứu & Tải Ảnh Vệ Tinh TP. Hồ Chí Minh</h1>
+            <p class="text-blue-100 text-sm mt-1">Chọn xã/phường trên bản đồ hoặc gõ tên tìm kiếm để xem mức độ nóng, cây xanh và tải ảnh về máy tính.</p>
         </div>
         <div class="flex items-center gap-3">
             <a href="{% url 'thematic_map' %}" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                Xem Bản Đồ Chuyên Đề
+                Xem Bản Đồ Màu Toàn TP
             </a>
             <a href="{% url 'history' %}" class="bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                Lịch Sử Trích Xuất
+                Lịch Sử Đã Tra Cứu
             </a>
         </div>
     </div>
@@ -43,7 +43,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                     </span>
                     <div>
-                        <h3 class="text-sm font-bold text-gray-800">Không Gian Địa Giới TP. Hồ Chí Minh</h3>
+                        <h3 class="text-sm font-bold text-gray-800">Bản Đồ 172 Xã/Phường TP.HCM</h3>
                         <p class="text-xs text-gray-500">
                             Đã chọn: <span id="mapSelectedCount" class="font-extrabold text-indigo-600">0</span> xã/phường
                         </p>
@@ -54,15 +54,15 @@
                 <div class="flex items-center gap-2">
                     <!-- Basemap Selector -->
                     <div class="flex rounded-lg border border-gray-200 bg-white p-0.5 shadow-sm text-xs font-semibold">
-                        <button type="button" onclick="setBasemap('light')" id="btnBaseLight" class="px-2.5 py-1 rounded bg-indigo-600 text-white transition-all">🗺️ Sáng</button>
-                        <button type="button" onclick="setBasemap('satellite')" id="btnBaseSat" class="px-2.5 py-1 rounded text-gray-600 hover:text-indigo-600 transition-all">🛰️ Vệ Tinh</button>
-                        <button type="button" onclick="setBasemap('dark')" id="btnBaseDark" class="px-2.5 py-1 rounded text-gray-600 hover:text-indigo-600 transition-all">🌙 Tối</button>
+                        <button type="button" onclick="setBasemap('light')" id="btnBaseLight" class="px-2.5 py-1 rounded bg-indigo-600 text-white transition-all">🗺️ Bản đồ nền</button>
+                        <button type="button" onclick="setBasemap('satellite')" id="btnBaseSat" class="px-2.5 py-1 rounded text-gray-600 hover:text-indigo-600 transition-all">🛰️ Vệ tinh thật</button>
+                        <button type="button" onclick="setBasemap('dark')" id="btnBaseDark" class="px-2.5 py-1 rounded text-gray-600 hover:text-indigo-600 transition-all">🌙 Nền tối</button>
                     </div>
 
                     <!-- Reset Center Button -->
-                    <button type="button" onclick="resetMapCenter()" title="Căn giữa TP.HCM" class="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 shadow-sm transition-colors text-xs flex items-center gap-1">
+                    <button type="button" onclick="resetMapCenter()" title="Quay về trung tâm TP.HCM" class="p-1.5 rounded-lg border border-gray-200 bg-white hover:bg-gray-100 text-gray-600 shadow-sm transition-colors text-xs flex items-center gap-1">
                         <svg class="w-4 h-4 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                        <span>Căn Giữa</span>
+                        <span>Về Giữa TP</span>
                     </button>
                 </div>
             </div>
@@ -72,24 +72,24 @@
                 <div class="flex items-center gap-2 text-xs font-medium text-gray-600">
                     <span class="font-bold text-indigo-700 flex items-center gap-1">
                         <span class="w-2 h-2 rounded-full bg-emerald-500 animate-ping"></span>
-                        Xem Ảnh Vệ Tinh GEE:
+                        Xem ảnh trực tiếp:
                     </span>
                     <select id="mapLayerType" class="text-xs rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 bg-gray-50 border">
-                        <option value="TRUE_COLOR">Ảnh màu tự nhiên (RGB)</option>
-                        <option value="NDVI">Chỉ số NDVI (Thực vật)</option>
-                        <option value="NDWI">Chỉ số NDWI (Mặt nước)</option>
-                        <option value="LST">Chỉ số LST (Nhiệt độ bề mặt)</option>
-                        <option value="TVDI">Chỉ số TVDI (Khô hạn)</option>
-                        <option value="CLASSIFICATION">Phân loại Đất tự động</option>
+                        <option value="TRUE_COLOR">Ảnh màu thực tế (Như mắt nhìn)</option>
+                        <option value="NDVI">Mảng xanh cây cối (Nơi nào nhiều cây xanh)</option>
+                        <option value="NDWI">Sông ngòi & Kênh rạch (Mặt nước)</option>
+                        <option value="LST">Nhiệt độ mặt đất (Nơi nào nóng / mát)</option>
+                        <option value="TVDI">Độ khô hạn của đất (Ẩm ướt hay khô cằn)</option>
+                        <option value="CLASSIFICATION">Tự động nhận diện: Nước - Cây - Nhà</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
                     <button type="button" onclick="loadMapLayer()" id="btnLoadLayer" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-1.5 px-3 rounded-lg shadow-sm transition-colors text-xs flex items-center gap-1">
                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path></svg>
-                        Tải Lớp Ảnh
+                        Xem Ngay
                     </button>
                     <button type="button" onclick="clearMapLayer()" id="btnClearLayer" class="bg-gray-100 hover:bg-gray-200 text-gray-700 font-medium py-1.5 px-2.5 rounded-lg transition-colors text-xs hidden">
-                        Tắt Lớp
+                        Tắt Lớp Ảnh
                     </button>
                 </div>
             </div>
@@ -103,20 +103,20 @@
             <!-- Loading Overlay -->
             <div id="mapLoading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[2000] hidden flex flex-col items-center justify-center">
                 <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
-                <p class="mt-4 text-indigo-900 font-extrabold text-base">Đang kết xuất lớp ảnh vệ tinh từ Google Earth Engine...</p>
-                <p class="text-xs text-gray-500 mt-1">Đang xử lý phân giải pixel không gian và thuật toán viễn thám</p>
+                <p class="mt-4 text-indigo-900 font-extrabold text-base">Đang tải ảnh vệ tinh... Vui lòng đợi trong giây lát!</p>
+                <p class="text-xs text-gray-500 mt-1">Hệ thống đang kết nối vệ tinh để vẽ lớp ảnh cho khu vực bạn chọn</p>
             </div>
         </div>
 
         <!-- Form & Selection Hub Column (5 Cols on xl) -->
         <div class="xl:col-span-5 flex flex-col gap-5">
             
-            <!-- Step Card 1: Chọn Khu Vực (Interactive Smart Selector) -->
+            <!-- Step Card 1: Chọn Khu Vực -->
             <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 bg-gradient-to-r from-blue-600 to-indigo-600 text-white flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold border border-white/30">1</span>
-                        <h3 class="font-bold text-base">Chọn Khu Vực Nghiên Cứu</h3>
+                        <h3 class="font-bold text-base">Chọn Xã / Phường Bạn Muốn Xem</h3>
                     </div>
                     <span id="badgeWardTotal" class="text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold">172 xã/phường</span>
                 </div>
@@ -124,7 +124,7 @@
                 <div class="p-6 space-y-4">
                     <!-- Quick Presets Buttons -->
                     <div>
-                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Chọn nhanh theo vùng trọng điểm:</span>
+                        <span class="text-xs font-bold text-gray-500 uppercase tracking-wider block mb-2">Bấm chọn nhanh theo khu vực:</span>
                         <div class="flex flex-wrap gap-2">
                             <button type="button" onclick="selectAllWards()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-blue-50 text-blue-700 hover:bg-blue-100 border border-blue-200 transition-all flex items-center gap-1 shadow-sm">
                                 🌟 Toàn TP.HCM
@@ -139,19 +139,19 @@
                                 🚜 Củ Chi & Hóc Môn
                             </button>
                             <button type="button" onclick="clearSelection()" class="px-3 py-1.5 rounded-lg text-xs font-bold bg-gray-100 text-gray-600 hover:bg-red-50 hover:text-red-600 border border-gray-200 transition-all flex items-center gap-1">
-                                ❌ Xóa Hết
+                                ❌ Xóa Chọn
                             </button>
                         </div>
                     </div>
 
                     <!-- Search Input with Live Autocomplete -->
                     <div class="relative">
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Tìm kiếm Xã/Phường:</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Hoặc gõ tên Xã / Phường:</label>
                         <div class="relative">
                             <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
                             </div>
-                            <input type="text" id="wardSearchInput" oninput="onSearchWard(this.value)" placeholder="Gõ tên xã (VD: Bến Nghé, Tân Phong, Cần Thạnh...)" class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-50 focus:bg-white transition-all">
+                            <input type="text" id="wardSearchInput" oninput="onSearchWard(this.value)" placeholder="Ví dụ: Bến Nghé, Tân Phong, Cần Thạnh, Củ Chi..." class="w-full pl-9 pr-4 py-2.5 text-sm rounded-xl border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm bg-gray-50 focus:bg-white transition-all">
                         </div>
                         
                         <!-- Search Autocomplete Suggestions Dropdown -->
@@ -163,24 +163,24 @@
                     <!-- Selected Wards Tags Area -->
                     <div class="border border-gray-200 rounded-xl p-3 bg-gray-50/50 min-h-[90px] max-h-40 overflow-y-auto">
                         <div class="flex items-center justify-between mb-2 pb-1 border-b border-gray-200/60">
-                            <span class="text-xs font-bold text-gray-600">Danh sách đã chọn (<span id="tagCountText" class="text-indigo-600 font-extrabold">0</span>):</span>
-                            <span class="text-[11px] text-gray-400">Click vào thẻ để bỏ chọn</span>
+                            <span class="text-xs font-bold text-gray-600">Các phường/xã bạn đã chọn (<span id="tagCountText" class="text-indigo-600 font-extrabold">0</span>):</span>
+                            <span class="text-[11px] text-gray-400">Bấm dấu × trên thẻ để bỏ chọn</span>
                         </div>
                         <div id="selectedTagsContainer" class="flex flex-wrap gap-1.5">
-                            <span id="emptyTagPlaceholder" class="text-xs text-gray-400 italic py-2">Chưa chọn khu vực nào. Hãy click vào bản đồ hoặc tìm kiếm ở trên.</span>
+                            <span id="emptyTagPlaceholder" class="text-xs text-gray-400 italic py-2">Bạn chưa chọn khu vực nào. Hãy bấm vào bản đồ hoặc tìm ở ô phía trên.</span>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Step Card 2: Cấu Hình Yêu Cầu & Gửi (Form Submission) -->
+            <!-- Step Card 2: Cấu Hình Yêu Cầu & Gửi -->
             <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
                 <div class="px-6 py-4 bg-gradient-to-r from-indigo-700 to-purple-700 text-white flex items-center justify-between">
                     <div class="flex items-center gap-2.5">
                         <span class="w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold border border-white/30">2</span>
-                        <h3 class="font-bold text-base">Cấu Hình Dữ Liệu & Thời Gian</h3>
+                        <h3 class="font-bold text-base">Chọn Loại Ảnh & Thời Gian</h3>
                     </div>
-                    <span class="text-xs bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">Tốc độ tức thì</span>
+                    <span class="text-xs bg-emerald-400/20 text-emerald-200 border border-emerald-400/30 px-2 py-0.5 rounded-full font-bold">Tải ngay trong 1 giây</span>
                 </div>
 
                 <form id="downloadForm" method="POST" class="p-6 space-y-5">
@@ -191,10 +191,22 @@
 
                     <!-- Dataset Selector -->
                     <div>
-                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Loại Cảm Biến / Dữ Liệu:</label>
+                        <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider mb-1.5">Bạn muốn xem thông tin gì?</label>
                         <select name="dataset" required class="w-full text-sm rounded-xl border border-gray-300 py-2.5 px-3.5 bg-gray-50 hover:bg-white focus:bg-white focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 shadow-sm transition-all font-medium text-gray-800">
                             {% for val, text in datasets %}
-                                <option value="{{ val }}" {% if val == 'L8_LST' %}selected{% endif %}>{{ text }}</option>
+                                <option value="{{ val }}" {% if val == 'L8_LST' %}selected{% endif %}>
+                                    {% if val == 'L8_LST' %}
+                                        🌡️ Nhiệt Độ Mặt Đất (Landsat 8 - Xem mức độ nóng mát)
+                                    {% elif val == 'COPERNICUS/S2_SR_HARMONIZED' %}
+                                        🛰️ Ảnh Vệ Tinh Rõ Nét (Sentinel-2 - Xem cây xanh & sông ngòi)
+                                    {% elif val == 'LANDSAT/LC08/C02/T1_TOA' %}
+                                        📊 Bộ Chỉ Số Đầy Đủ (Landsat 8 - Xem cây, nước, nhà cửa)
+                                    {% elif val == 'SRTM_DEM' %}
+                                        ⛰️ Bản Đồ Độ Cao Địa Hình (SRTM DEM - Xem vùng cao/trũng)
+                                    {% else %}
+                                        {{ text }}
+                                    {% endif %}
+                                </option>
                             {% endfor %}
                         </select>
                     </div>
@@ -202,8 +214,8 @@
                     <!-- Date Presets & Date Pickers -->
                     <div>
                         <div class="flex items-center justify-between mb-1.5">
-                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Khoảng Thời Gian:</label>
-                            <span class="text-[11px] text-indigo-600 font-semibold">Chọn nhanh:</span>
+                            <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Thời Gian Cần Xem:</label>
+                            <span class="text-[11px] text-indigo-600 font-semibold">Chọn nhanh theo năm:</span>
                         </div>
                         
                         <!-- Quick Date Presets -->
@@ -215,7 +227,7 @@
                                 📅 Năm 2023
                             </button>
                             <button type="button" onclick="setDateRange('2024-01-01', '2024-05-31')" class="py-1 px-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 font-semibold text-gray-600 transition-all text-center">
-                                ☀️ Mùa Khô 2024
+                                ☀️ Mùa Nắng 2024
                             </button>
                             <button type="button" onclick="setDateRange('2020-01-01', '2024-12-31')" class="py-1 px-2 rounded-lg border border-gray-200 bg-gray-50 hover:bg-indigo-50 hover:text-indigo-700 hover:border-indigo-200 font-semibold text-gray-600 transition-all text-center">
                                 📊 5 Năm (2020-2024)
@@ -242,12 +254,12 @@
                     <div class="pt-3 border-t border-gray-100 flex items-center justify-between gap-4">
                         <a href="https://drive.google.com/drive/folders/1pvKAvOkqBSAcaVf0IBGAZhXXBAbcvxgt?usp=sharing" target="_blank" class="text-xs text-indigo-600 hover:text-indigo-800 font-semibold flex items-center gap-1 transition-colors">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                            Tải Shapefile TP.HCM
+                            Tải Ranh Giới (Shapefile)
                         </a>
                         
                         <button type="submit" id="btnSubmitForm" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 text-sm">
                             <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            <span>Trích Xuất Dữ Liệu</span>
+                            <span>Tải Dữ Liệu Về Máy</span>
                         </button>
                     </div>
                 </form>

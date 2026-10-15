@@ -4,17 +4,17 @@
 <div class="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
     <div class="px-8 py-6 bg-gradient-to-r from-emerald-500 to-teal-600 text-white flex justify-between items-center">
         <div>
-            <h2 class="text-2xl font-bold">Lịch Sử & Cơ Sở Dữ Liệu</h2>
-            <p class="text-emerald-100 mt-1">Quản lý các yêu cầu tải dữ liệu GEE của bạn.</p>
+            <h2 class="text-2xl font-bold">Lịch Sử Tra Cứu & Tải Ảnh</h2>
+            <p class="text-emerald-100 mt-1">Xem lại danh sách các khu vực bạn đã tra cứu và tải ảnh vệ tinh về máy.</p>
         </div>
         <div class="flex gap-3">
             <a href="{% url 'export_db_csv' %}" class="bg-indigo-500 hover:bg-indigo-600 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2 shadow-sm">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Trích xuất CSDL (CSV)
+                Tải Danh Sách Về Máy (CSV)
             </a>
             <a href="{% url 'home' %}" class="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-lg font-medium transition-colors text-sm flex items-center gap-2">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
-                Tạo Yêu Cầu Mới
+                Tra Cứu Khu Vực Khác
             </a>
         </div>
     </div>
@@ -24,13 +24,13 @@
             <table class="min-w-full divide-y divide-gray-200">
                 <thead class="bg-gray-100 sticky top-0 z-10 shadow-sm">
                     <tr>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Thời Gian Yêu Cầu</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Khu Vực</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Loại Dữ Liệu</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Khoảng Thời Gian</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Trạng Thái</th>
-                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Chỉ Số (Mean)</th>
-                        <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Hành Động</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Thời Gian Tra Cứu</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Xã / Phường</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Loại Ảnh / Vệ Tinh</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Giai Đoạn Xem</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Tình Trạng</th>
+                        <th scope="col" class="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider">Kết Quả Đo Được (TB)</th>
+                        <th scope="col" class="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">Tải Về & Xem Thêm</th>
                     </tr>
                 </thead>
                 <tbody class="bg-white divide-y divide-gray-200">
@@ -50,26 +50,26 @@
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap">
                             {% if req.status == 'COMPLETED' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hoàn Thành</span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Hoàn Thành (Sẵn sàng)</span>
                             {% elif req.status == 'PROCESSING' %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 animate-pulse">Đang Xử Lý (Big Data)</span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800 animate-pulse">Đang Xử Lý...</span>
                             {% elif req.status == 'DELETED' %}
                                 <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-gray-100 text-gray-800">Đã Xóa</span>
                             {% else %}
-                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Lỗi</span>
+                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Lỗi kết nối</span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-xs text-gray-600">
                             {% if req.ndvi_mean or req.ndwi_mean or req.ndbi_mean or req.lst_mean or req.dem_mean %}
                                 <div class="flex flex-col gap-1">
-                                    {% if req.ndvi_mean %}<span><strong class="text-green-600">NDVI:</strong> {{ req.ndvi_mean|floatformat:3 }}</span>{% endif %}
-                                    {% if req.ndwi_mean %}<span><strong class="text-blue-600">NDWI:</strong> {{ req.ndwi_mean|floatformat:3 }}</span>{% endif %}
-                                    {% if req.ndbi_mean %}<span><strong class="text-orange-600">NDBI:</strong> {{ req.ndbi_mean|floatformat:3 }}</span>{% endif %}
-                                    {% if req.lst_mean %}<span><strong class="text-red-600">LST (°C):</strong> {{ req.lst_mean|floatformat:2 }}</span>{% endif %}
+                                    {% if req.lst_mean %}<span><strong class="text-red-600">Nhiệt độ (LST):</strong> {{ req.lst_mean|floatformat:2 }} °C</span>{% endif %}
+                                    {% if req.ndvi_mean %}<span><strong class="text-green-600">Cây xanh (NDVI):</strong> {{ req.ndvi_mean|floatformat:3 }}</span>{% endif %}
+                                    {% if req.ndwi_mean %}<span><strong class="text-blue-600">Mặt nước (NDWI):</strong> {{ req.ndwi_mean|floatformat:3 }}</span>{% endif %}
+                                    {% if req.ndbi_mean %}<span><strong class="text-orange-600">Nhà cửa (NDBI):</strong> {{ req.ndbi_mean|floatformat:3 }}</span>{% endif %}
                                     {% if req.dem_mean %}<span><strong class="text-gray-700">Độ cao (m):</strong> {{ req.dem_mean|floatformat:2 }}</span>{% endif %}
                                 </div>
                             {% else %}
-                                <span class="text-gray-400 italic">N/A</span>
+                                <span class="text-gray-400 italic">Chưa có số liệu</span>
                             {% endif %}
                         </td>
                         <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
@@ -77,15 +77,15 @@
                                 <div class="flex flex-col gap-2">
                                     <a href="{{ req.download_url }}" target="_blank" class="text-blue-600 hover:text-blue-900 flex items-center gap-1 font-semibold">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                                        Tải Ảnh (.tif)
+                                        Tải File Ảnh (.tif)
                                     </a>
                                     <a href="{% url 'analysis' %}?req_id={{ req.id }}" class="text-emerald-600 hover:text-emerald-900 flex items-center gap-1 font-semibold text-xs">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
-                                        Phân Tích Biểu Đồ (API)
+                                        Xem Biểu Đồ Khu Vực Này
                                     </a>
                                     <a href="https://drive.google.com/drive/folders/1pvKAvOkqBSAcaVf0IBGAZhXXBAbcvxgt?usp=sharing" target="_blank" class="text-indigo-600 hover:text-indigo-900 flex items-center gap-1 text-xs font-medium">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
-                                        + Tải Shapefile kèm theo
+                                        + Tải Ranh Giới (Shapefile)
                                     </a>
                                 </div>
                             {% elif req.status == 'PROCESSING' %}
@@ -103,7 +103,7 @@
                     {% empty %}
                     <tr>
                         <td colspan="7" class="px-6 py-12 text-center text-gray-500">
-                            Chưa có dữ liệu nào được tải.
+                            Bạn chưa tra cứu khu vực nào. Hãy bấm "Tra Cứu Khu Vực Khác" để bắt đầu!
                         </td>
                     </tr>
                     {% endfor %}

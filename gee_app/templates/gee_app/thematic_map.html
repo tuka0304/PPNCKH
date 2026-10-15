@@ -10,16 +10,16 @@
         <div class="px-8 py-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
             <div>
                 <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-sm">GIS Thematic Studio</span>
-                    <span class="text-xs text-blue-200">172 Xã/Phường sau sáp nhập • 10 Năm (2017 - 2026)</span>
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-sm">Bản Đồ Màu Trực Quan</span>
+                    <span class="text-xs text-blue-200">172 Xã/Phường TP.HCM • Theo dõi 10 Năm (2017 - 2026)</span>
                 </div>
-                <h1 id="mapMainTitle" class="text-2xl font-bold tracking-tight">BẢN ĐỒ CHUYÊN ĐỀ NHIỆT ĐỘ BỀ MẶT (LST) - TP. HỒ CHÍ MINH</h1>
-                <p id="mapSubtitle" class="text-sm text-blue-100 mt-0.5">Phân tích đảo nhiệt đô thị (UHI) và xu thế biến đổi nhiệt độ</p>
+                <h1 id="mapMainTitle" class="text-2xl font-bold tracking-tight">BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG TP. HỒ CHÍ MINH</h1>
+                <p id="mapSubtitle" class="text-sm text-blue-100 mt-0.5">Xem nhanh khu vực nào nóng, nhiều cây xanh hay khô hạn qua các năm</p>
             </div>
             <div class="flex items-center gap-3">
                 <button type="button" onclick="exportThematicMap()" id="btnExportMap" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
                     <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Xuất Bản Đồ (PNG Báo Cáo)
+                    Tải Ảnh Bản Đồ (PNG)
                 </button>
             </div>
         </div>
@@ -28,31 +28,31 @@
         <div class="p-5 bg-gray-50 border-b border-gray-200 flex flex-col lg:flex-row gap-5 items-stretch lg:items-center justify-between">
             <!-- Metric Chips -->
             <div class="flex flex-wrap gap-2 items-center">
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Chỉ số:</span>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Xem theo:</span>
                 <button type="button" onclick="changeMetric('LST')" data-metric="LST" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-red-600 text-white border-red-600 shadow-red-200">
-                    🌡️ LST (Nhiệt độ)
+                    🌡️ Nhiệt Độ Mặt Đất (°C)
                 </button>
                 <button type="button" onclick="changeMetric('NDVI')" data-metric="NDVI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    🌿 NDVI (Thực vật)
+                    🌿 Mảng Xanh Cây Cối
                 </button>
                 <button type="button" onclick="changeMetric('TVDI')" data-metric="TVDI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    ☀️ TVDI (Khô hạn)
+                    ☀️ Độ Khô Hạn Đất
                 </button>
                 <button type="button" onclick="changeMetric('NDBI')" data-metric="NDBI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    🏙️ NDBI (Đô thị)
+                    🏙️ Nhà Cửa & Bê Tông
                 </button>
                 <button type="button" onclick="changeMetric('NDWI')" data-metric="NDWI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    💧 NDWI (Mặt nước)
+                    💧 Sông Ngòi & Kênh Rạch
                 </button>
             </div>
 
             <!-- Season Selector -->
             <div class="flex items-center gap-3">
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Chu kỳ:</span>
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Thời điểm:</span>
                 <select id="seasonSelect" onchange="onSeasonChange()" class="text-sm font-medium rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 bg-white border">
-                    <option value="all">Toàn năm (Trung bình)</option>
-                    <option value="dry">Mùa khô (Tháng 1 - Tháng 5)</option>
-                    <option value="rain">Mùa mưa (Tháng 6 - Tháng 11)</option>
+                    <option value="all">Cả năm (Tính trung bình)</option>
+                    <option value="dry">Mùa nắng nóng (Tháng 1 - Tháng 5)</option>
+                    <option value="rain">Mùa mưa mát mẻ (Tháng 6 - Tháng 11)</option>
                 </select>
             </div>
         </div>
@@ -60,12 +60,12 @@
         <!-- 10-Year Timeline Animation Slider -->
         <div class="px-6 py-4 bg-white flex flex-col md:flex-row items-center gap-4 border-b border-gray-100">
             <div class="flex items-center gap-2">
-                <button type="button" id="btnPlayTimeline" onclick="togglePlayTimeline()" class="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md hover:scale-105 transition-all">
+                <button type="button" id="btnPlayTimeline" onclick="togglePlayTimeline()" title="Bấm để phát tự động qua các năm" class="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md hover:scale-105 transition-all">
                     <svg id="playIcon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
                     <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
                 </button>
                 <div class="text-left">
-                    <span class="text-xs text-gray-500 font-medium block">Năm quan trắc:</span>
+                    <span class="text-xs text-gray-500 font-medium block">Năm đang xem:</span>
                     <span id="currentYearBadge" class="text-xl font-extrabold text-indigo-700 leading-none">2024</span>
                 </div>
             </div>
@@ -89,9 +89,9 @@
 
             <!-- Stats Overview Badge -->
             <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 text-xs text-gray-600 whitespace-nowrap">
-                <div>Min: <strong id="lblStatMin" class="text-gray-900">-</strong></div>
-                <div>Max: <strong id="lblStatMax" class="text-gray-900">-</strong></div>
-                <div>TB: <strong id="lblStatAvg" class="text-indigo-600">-</strong></div>
+                <div>Thấp nhất: <strong id="lblStatMin" class="text-gray-900">-</strong></div>
+                <div>Cao nhất: <strong id="lblStatMax" class="text-gray-900">-</strong></div>
+                <div>Trung bình: <strong id="lblStatAvg" class="text-indigo-600">-</strong></div>
             </div>
         </div>
     </div>
@@ -100,8 +100,8 @@
     <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden relative flex flex-col h-[750px] lg:h-[820px]">
         <!-- Export Overlay Headers (Shown on exported PNG) -->
         <div id="exportHeaderOverlay" class="hidden p-4 bg-white border-b border-gray-200 text-center">
-            <h2 id="exportTitle" class="text-xl font-bold text-gray-900 uppercase tracking-wide">BẢN ĐỒ CHUYÊN ĐỀ NHIỆT ĐỘ BỀ MẶT (LST) - TP. HỒ CHÍ MINH</h2>
-            <p id="exportSub" class="text-xs text-gray-600 mt-0.5">Dữ liệu viễn thám Landsat 8 / Sentinel-2 • Chuỗi thời gian 10 năm (2017 - 2026)</p>
+            <h2 id="exportTitle" class="text-xl font-bold text-gray-900 uppercase tracking-wide">BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG - TP. HỒ CHÍ MINH</h2>
+            <p id="exportSub" class="text-xs text-gray-600 mt-0.5">Dữ liệu quan sát qua ảnh vệ tinh • Chuỗi 10 năm (2017 - 2026)</p>
         </div>
 
         <!-- Interactive Map Element -->
@@ -113,13 +113,13 @@
                 <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Thông tin khu vực</span>
                 <span id="hoverWardCode" class="text-[10px] text-gray-400 font-mono"></span>
             </div>
-            <h4 id="hoverWardName" class="text-base font-bold text-gray-900 leading-tight">Rê chuột lên bản đồ...</h4>
+            <h4 id="hoverWardName" class="text-base font-bold text-gray-900 leading-tight">Chỉ chuột vào phường/xã trên bản đồ...</h4>
             <div class="mt-2.5 flex items-baseline justify-between">
-                <span id="hoverMetricLabel" class="text-xs font-medium text-gray-500">Giá trị chỉ số:</span>
+                <span id="hoverMetricLabel" class="text-xs font-medium text-gray-500">Mức đo được:</span>
                 <span id="hoverMetricVal" class="text-xl font-extrabold text-indigo-700">--</span>
             </div>
             <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
-                <span>Phân loại:</span>
+                <span>Mức độ:</span>
                 <span id="hoverCategory" class="font-bold text-gray-800">--</span>
             </div>
         </div>
@@ -128,7 +128,7 @@
         <div id="legendPanel" class="absolute bottom-6 left-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-gray-200 z-[1000] max-w-xs transition-all">
             <h5 id="legendTitle" class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-                Thang Màu Chú Giải
+                Ý Nghĩa Các Màu Sắc
             </h5>
             <div id="legendItems" class="space-y-1.5 text-xs text-gray-700 font-medium">
                 <!-- Injected via JavaScript -->
@@ -142,15 +142,15 @@
                 <span class="text-xs font-extrabold tracking-tighter">BẮC</span>
             </div>
             <div class="border-l border-gray-300 pl-3 leading-tight">
-                <p class="font-bold text-gray-800">Hệ Thống PPN-CKH TP.HCM</p>
-                <p class="text-[10px] text-gray-400">Tọa độ WGS84 • Ranh giới 172 Xã/Phường</p>
+                <p class="font-bold text-gray-800">Giám Sát Môi Trường TP.HCM</p>
+                <p class="text-[10px] text-gray-400">Đầy đủ 172 Xã/Phường sau sáp nhập</p>
             </div>
         </div>
 
         <!-- Loading Spinner -->
         <div id="mapLoader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[2000] flex flex-col items-center justify-center hidden">
             <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
-            <p class="mt-3 text-indigo-900 font-bold text-base">Đang tải và đồng bộ ma trận dữ liệu...</p>
+            <p class="mt-3 text-indigo-900 font-bold text-base">Đang tải dữ liệu bản đồ...</p>
         </div>
     </div>
 </div>
@@ -198,68 +198,68 @@
     const PALETTES = {
         'LST': {
             unit: '°C',
-            title: 'Nhiệt độ bề mặt (LST)',
+            title: 'Nhiệt độ mặt đất',
             range: [20, 45],
             breaks: [23.0, 26.0, 29.0, 32.0, 35.0, 38.0, 41.0],
             colors: ["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"],
             labels: [
-                '< 23°C (Rất mát)', 
-                '23 - 26°C (Mát mẻ)', 
-                '26 - 29°C (Dịu nhẹ)', 
-                '29 - 32°C (Trung bình)', 
-                '32 - 35°C (Ấm áp)', 
-                '35 - 38°C (Nóng đô thị)', 
-                '38 - 41°C (Rất nóng UHI)', 
-                '> 41°C (Cực nóng)'
+                '< 23°C (Rất mát mẻ)', 
+                '23 - 26°C (Mát mẻ, dễ chịu)', 
+                '26 - 29°C (Dịu nhẹ bình thường)', 
+                '29 - 32°C (Ấm áp)', 
+                '32 - 35°C (Bắt đầu nóng)', 
+                '35 - 38°C (Nóng bức đô thị)', 
+                '38 - 41°C (Rất nóng)', 
+                '> 41°C (Cực kỳ gay gắt)'
             ]
         },
         'NDVI': {
             unit: '',
-            title: 'Chỉ số thực vật (NDVI)',
+            title: 'Mảng xanh cây cối',
             range: [-0.2, 1.0],
             breaks: [-0.05, 0.10, 0.25, 0.40, 0.55, 0.70, 0.85],
             colors: ['#FF0000', '#FF7F00', '#FFFF00', '#ADFF2F', '#00FF00', '#00FFFF', '#007FFF', '#0000FF'],
             labels: [
                 '< -0.05 (Mặt nước / Đất trống)', 
-                '-0.05 - 0.10 (Đô thị / Rất ít cây)', 
-                '0.10 - 0.25 (Thực vật thưa)', 
-                '0.25 - 0.40 (Thực vật trung bình)', 
-                '0.40 - 0.55 (Thảm xanh tốt)', 
-                '0.55 - 0.70 (Thực vật dày)', 
-                '0.70 - 0.85 (Rừng phát triển tốt)', 
-                '> 0.85 (Rừng rậm tối đa)'
+                '-0.05 - 0.10 (Nhà cửa / Rất ít cây)', 
+                '0.10 - 0.25 (Cây xanh thưa thớt)', 
+                '0.25 - 0.40 (Mảng xanh trung bình)', 
+                '0.40 - 0.55 (Mảng xanh tươi tốt)', 
+                '0.55 - 0.70 (Nhiều cây xanh)', 
+                '0.70 - 0.85 (Rừng cây rậm rạp)', 
+                '> 0.85 (Rừng rậm rạp tối đa)'
             ]
         },
         'TVDI': {
             unit: '',
-            title: 'Chỉ số khô hạn (TVDI)',
+            title: 'Mức độ khô hạn của đất',
             range: [0.0, 1.0],
             breaks: [0.15, 0.30, 0.45, 0.60, 0.75, 0.85, 0.95],
             colors: ['#066b00', '#0bc400', '#0ce100', '#00ff00', '#ffff00', '#ffcc00', '#ff6600', '#ff0000'],
             labels: [
-                '< 0.15 (Rất ẩm ướt / Ngập nước)', 
-                '0.15 - 0.30 (Ẩm ướt cao)', 
-                '0.30 - 0.45 (Ẩm ướt vừa)', 
+                '< 0.15 (Rất ẩm ướt / Đủ nước)', 
+                '0.15 - 0.30 (Đất ẩm ướt tốt)', 
+                '0.30 - 0.45 (Độ ẩm vừa phải)', 
                 '0.45 - 0.60 (Bình thường)', 
-                '0.60 - 0.75 (Khô hạn nhẹ)', 
-                '0.75 - 0.85 (Khô hạn trung bình)', 
-                '0.85 - 0.95 (Khô hạn nặng)', 
-                '> 0.95 (Khô hạn cực độ)'
+                '0.60 - 0.75 (Hơi khô ráo)', 
+                '0.75 - 0.85 (Khô hạn vừa)', 
+                '0.85 - 0.95 (Khô hạn nhiều)', 
+                '> 0.95 (Cực kỳ khô hạn)'
             ]
         },
         'NDBI': {
             unit: '',
-            title: 'Chỉ số đất xây dựng (NDBI)',
+            title: 'Mật độ nhà cửa & bê tông',
             breaks: [-0.05, 0.10, 0.22, 0.32],
             colors: ['#a7f3d0', '#cbd5e1', '#fdba74', '#ea580c', '#7f1d1d'],
-            labels: ['Cây xanh/Mặt nước (< -0.05)', 'Ven đô ít công trình (-0.05 - 0.10)', 'Đang phát triển (0.10 - 0.22)', 'Mật độ xây dựng cao (0.22 - 0.32)', 'Lõi đô thị hóa dày (> 0.32)']
+            labels: ['Nhiều cây / Mặt nước (< -0.05)', 'Ven đô ít nhà (-0.05 - 0.10)', 'Đang xây dựng nhiều (0.10 - 0.22)', 'Mật độ nhà cửa cao (0.22 - 0.32)', 'Khu vực trung tâm đông đúc (> 0.32)']
         },
         'NDWI': {
             unit: '',
-            title: 'Chỉ số nước bề mặt (NDWI)',
+            title: 'Sông ngòi & kênh rạch',
             breaks: [-0.15, 0.0, 0.15, 0.30],
             colors: ['#fed7aa', '#fde047', '#38bdf8', '#2563eb', '#1e3a8a'],
-            labels: ['Đất khô ráo (< -0.15)', 'Đất ẩm ( -0.15 - 0.0)', 'Mặt nước nông (0.0 - 0.15)', 'Sông ngòi / Kênh rạch (0.15 - 0.30)', 'Vùng nước sâu (> 0.30)']
+            labels: ['Đất khô ráo (< -0.15)', 'Đất ẩm ( -0.15 - 0.0)', 'Mặt nước nông (0.0 - 0.15)', 'Sông ngòi / Kênh rạch (0.15 - 0.30)', 'Vùng nước sâu / Cửa biển (> 0.30)']
         }
     };
 
@@ -424,16 +424,16 @@
 
     function updateHeaderTitles() {
         const cfg = PALETTES[currentMetric];
-        const titleText = `BẢN ĐỒ CHUYÊN ĐỀ ${cfg.title.toUpperCase()} - NĂM ${currentYear} - TP. HỒ CHÍ MINH`;
+        const titleText = `BẢN ĐỒ ${cfg.title.toUpperCase()} - NĂM ${currentYear} - TP. HỒ CHÍ MINH`;
         document.getElementById('mapMainTitle').textContent = titleText;
         document.getElementById('exportTitle').textContent = titleText;
         document.getElementById('currentYearBadge').textContent = currentYear;
 
-        let seasonText = "Toàn năm (Giá trị trung bình)";
-        if (currentSeason === 'dry') seasonText = "Mùa khô (Tháng 1 - Tháng 5)";
-        if (currentSeason === 'rain') seasonText = "Mùa mưa (Tháng 6 - Tháng 11)";
+        let seasonText = "Cả năm (Tính trung bình)";
+        if (currentSeason === 'dry') seasonText = "Mùa nắng nóng (Tháng 1 - Tháng 5)";
+        if (currentSeason === 'rain') seasonText = "Mùa mưa mát mẻ (Tháng 6 - Tháng 11)";
         
-        const subText = `${seasonText} • 172 Xã/Phường sau sáp nhập • Nguồn: Landsat 8 / Sentinel-2`;
+        const subText = `${seasonText} • Đầy đủ 172 Xã/Phường TP.HCM`;
         document.getElementById('mapSubtitle').textContent = subText;
         document.getElementById('exportSub').textContent = subText;
     }

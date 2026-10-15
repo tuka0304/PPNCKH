@@ -9,21 +9,21 @@
         <div>
             <div class="flex items-center gap-2 mb-1">
                 <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-sm">
-                    Time-Series Analytics
+                    So Sánh & Xem Biểu Đồ
                 </span>
-                <span class="text-xs text-blue-200">Kho Dữ Liệu 10 Năm (2017 - 2026) • 172 Xã/Phường TP.HCM</span>
+                <span class="text-xs text-blue-200">Đầy đủ 172 Xã/Phường TP.HCM • Chuỗi 10 Năm (2017 - 2026)</span>
             </div>
-            <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight">Phân Tích & So Sánh Số Liệu Viễn Thám</h1>
-            <p class="text-blue-100 text-sm mt-1">Lựa chọn trực tiếp các xã/phường để so sánh biến động nhiệt độ, thực vật, độ khô hạn và đô thị hóa.</p>
+            <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight">So Sánh Mức Độ Nóng, Cây Xanh & Khô Hạn</h1>
+            <p class="text-blue-100 text-sm mt-1">Chọn các xã/phường bạn muốn để so sánh xem nơi nào nóng hơn, nơi nào nhiều cây xanh hoặc khô ráo hơn.</p>
         </div>
         <div class="flex items-center gap-3">
             <a href="{% url 'thematic_map' %}" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                Xem Bản Đồ Chuyên Đề
+                Xem Bản Đồ Màu TP.HCM
             </a>
             <button type="button" onclick="exportAnalysisCsv()" class="bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Xuất File CSV
+                Tải Bảng Số Liệu (CSV)
             </button>
         </div>
     </div>
@@ -36,22 +36,22 @@
                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z"></path></svg>
                 </span>
                 <div>
-                    <h2 class="text-base font-bold text-gray-800">Bộ Điều Khiển Phân Tích & So Sánh Khu Vực</h2>
-                    <p class="text-xs text-gray-500">Chọn 1 hoặc nhiều xã/phường để so sánh trực quan đa chiều</p>
+                    <h2 class="text-base font-bold text-gray-800">Chọn Khu Vực Cần So Sánh</h2>
+                    <p class="text-xs text-gray-500">Bạn có thể chọn cùng lúc nhiều xã/phường để so sánh trực tiếp</p>
                 </div>
             </div>
 
             <!-- Quick Comparison Presets -->
             <div class="flex flex-wrap items-center gap-1.5 text-xs">
-                <span class="font-bold text-gray-400 mr-1">Kịch bản mẫu:</span>
+                <span class="font-bold text-gray-400 mr-1">Chọn mẫu nhanh:</span>
                 <button type="button" onclick="loadComparisonPreset('URBAN_VS_NATURE')" class="px-3 py-1.5 rounded-lg font-bold bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 transition-all shadow-sm">
-                    🔥 Đô Thị vs Ngoại Thành
+                    🔥 Trung Tâm vs Ngoại Thành
                 </button>
                 <button type="button" onclick="loadComparisonPreset('CORE_WARDS')" class="px-3 py-1.5 rounded-lg font-bold bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 transition-all shadow-sm">
                     🏙️ Các Phường Trung Tâm
                 </button>
                 <button type="button" onclick="loadComparisonPreset('ECOLOGICAL')" class="px-3 py-1.5 rounded-lg font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200 transition-all shadow-sm">
-                    🌿 Sinh Thái Cần Giờ
+                    🌿 Rừng Sinh Thái Cần Giờ
                 </button>
             </div>
         </div>
@@ -60,7 +60,7 @@
             <!-- Ward Search & Multi-select (7 Cols) -->
             <div class="lg:col-span-6 space-y-2">
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">
-                    Xã/Phường Phân Tích (Chọn một hoặc nhiều):
+                    Chọn thêm Xã/Phường muốn so sánh:
                 </label>
                 
                 <div class="relative">
@@ -88,20 +88,20 @@
 
             <!-- Metric Filter (3 Cols) -->
             <div class="lg:col-span-3 space-y-2">
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Chỉ Số Hiển Thị:</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Bạn muốn so sánh điều gì?</label>
                 <select id="metricFilterSelect" class="w-full text-sm rounded-xl border border-gray-300 py-2.5 px-3.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 shadow-sm font-semibold text-gray-800">
-                    <option value="ALL">Tất Cả 5 Chỉ Số (Tổng hợp)</option>
-                    <option value="LST">Nhiệt Độ Bề Mặt (LST °C)</option>
-                    <option value="NDVI">Chỉ Số Thực Vật (NDVI)</option>
-                    <option value="TVDI">Chỉ Số Khô Hạn (TVDI)</option>
-                    <option value="NDBI">Chỉ Số Đất Xây Dựng (NDBI)</option>
-                    <option value="NDWI">Chỉ Số Nước Bề Mặt (NDWI)</option>
+                    <option value="ALL">Tất cả thông tin (Xem tổng hợp)</option>
+                    <option value="LST">Nhiệt độ mặt đất (°C - Xem nơi nào nóng hơn)</option>
+                    <option value="NDVI">Mảng xanh cây cối (Xem nơi nào nhiều cây hơn)</option>
+                    <option value="TVDI">Độ khô hạn đất (Xem nơi nào khô cằn hơn)</option>
+                    <option value="NDBI">Mật độ nhà cửa (Xem nơi nào đông đúc hơn)</option>
+                    <option value="NDWI">Sông ngòi & Kênh rạch (Mặt nước)</option>
                 </select>
             </div>
 
             <!-- Time Range & Submit (3 Cols) -->
             <div class="lg:col-span-3 space-y-2">
-                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Giai Đoạn (Năm):</label>
+                <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Giai đoạn năm:</label>
                 <div class="flex items-center gap-2">
                     <select id="startYearSelect" class="w-1/2 text-sm rounded-xl border border-gray-300 py-2.5 px-2 bg-gray-50 font-semibold text-gray-800">
                         <option value="2017">Từ 2017</option>
@@ -126,7 +126,7 @@
         <div class="px-6 py-3 bg-gray-50 border-t border-gray-200 flex justify-end">
             <button type="button" onclick="fetchAndRenderAnalysis()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-6 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                <span>Cập Nhật Biểu Đồ & Thống Kê</span>
+                <span>Xem Biểu Đồ So Sánh Ngay</span>
             </button>
         </div>
     </div>
@@ -134,8 +134,8 @@
     <!-- Loading Indicator -->
     <div id="analysisLoader" class="border-2 border-dashed border-gray-200 rounded-2xl p-12 text-center bg-white shadow-sm hidden">
         <div class="animate-spin mx-auto h-12 w-12 text-indigo-600 mb-4 border-4 border-indigo-600 border-t-transparent rounded-full"></div>
-        <p class="text-indigo-800 font-extrabold text-lg">Đang truy vấn kho dữ liệu lớn viễn thám...</p>
-        <p class="text-xs text-gray-500 mt-1">Đang trích xuất chuỗi thời gian và tính toán thống kê</p>
+        <p class="text-indigo-800 font-extrabold text-lg">Đang tổng hợp số liệu...</p>
+        <p class="text-xs text-gray-500 mt-1">Hệ thống đang trích xuất dữ liệu và vẽ biểu đồ so sánh cho bạn</p>
     </div>
 
     <!-- Chart 1: Time Series Multi-Ward / Multi-Index Chart -->
@@ -144,16 +144,16 @@
             <div>
                 <h3 class="text-xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-indigo-600"></span>
-                    Biểu Đồ Chuỗi Thời Gian Biến Động Chỉ Số
+                    Biểu Đồ Thay Đổi Qua Từng Năm (2017 - 2026)
                 </h3>
-                <p id="chartSubTitle" class="text-xs text-gray-500 mt-0.5">So sánh diễn biến qua các mốc quan trắc viễn thám</p>
+                <p id="chartSubTitle" class="text-xs text-gray-500 mt-0.5">So sánh đường diễn biến nhiệt độ và môi trường giữa các phường/xã</p>
             </div>
             <div class="flex items-center gap-2 text-xs">
-                <span class="px-2.5 py-1 rounded-lg bg-green-50 text-green-700 font-bold border border-green-200">NDVI</span>
-                <span class="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 font-bold border border-red-200">LST (°C)</span>
-                <span class="px-2.5 py-1 rounded-lg bg-yellow-50 text-yellow-700 font-bold border border-yellow-200">TVDI</span>
-                <span class="px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 font-bold border border-orange-200">NDBI</span>
-                <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold border border-blue-200">NDWI</span>
+                <span class="px-2.5 py-1 rounded-lg bg-green-50 text-green-700 font-bold border border-green-200">🌿 Cây Xanh (NDVI)</span>
+                <span class="px-2.5 py-1 rounded-lg bg-red-50 text-red-700 font-bold border border-red-200">🌡️ Nhiệt Độ (LST °C)</span>
+                <span class="px-2.5 py-1 rounded-lg bg-yellow-50 text-yellow-700 font-bold border border-yellow-200">☀️ Khô Hạn (TVDI)</span>
+                <span class="px-2.5 py-1 rounded-lg bg-orange-50 text-orange-700 font-bold border border-orange-200">🏙️ Nhà Cửa (NDBI)</span>
+                <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-700 font-bold border border-blue-200">💧 Mặt Nước (NDWI)</span>
             </div>
         </div>
 
@@ -168,14 +168,14 @@
             <div>
                 <h3 class="text-xl font-extrabold text-gray-900 tracking-tight flex items-center gap-2">
                     <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
-                    Biểu Đồ Tán Xạ Quan Hệ Viễn Thám (NDVI vs LST)
+                    Biểu Đồ Tương Quan: Nơi Nào Càng Ít Cây Xanh Thì Càng Nóng
                 </h3>
-                <p class="text-xs text-gray-500 mt-0.5">Mô hình tam giác nhiệt độ - thực vật kinh điển (Điểm tô màu theo mức độ khô hạn TVDI)</p>
+                <p class="text-xs text-gray-500 mt-0.5">Mỗi chấm tròn là một thời điểm đo (Các chấm được tô màu theo mức độ khô hạn)</p>
             </div>
             <div class="flex items-center gap-2 text-xs font-semibold">
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#ff0000]"></span> Khô hạn nặng (> 0.8)</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#ffcc00]"></span> Bình thường (0.4 - 0.6)</span>
-                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#00cc00]"></span> Ẩm ướt (< 0.4)</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#ff0000]"></span> Khô nóng nhiều</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#ffcc00]"></span> Bình thường</span>
+                <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded-full bg-[#00cc00]"></span> Mát mẻ, ẩm ướt</span>
             </div>
         </div>
 
@@ -189,19 +189,19 @@
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
                 <svg class="w-5 h-5 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path></svg>
-                Bảng Thống Kê Các Chỉ Số Viễn Thám (Min - Max - Mean)
+                Bảng So Sánh Tổng Hợp (Thấp Nhất - Cao Nhất - Trung Bình)
             </h3>
-            <span class="text-xs text-gray-400">Đã tính toán chuẩn hóa tự động</span>
+            <span class="text-xs text-gray-400">Tự động tổng hợp số liệu</span>
         </div>
         <div class="overflow-x-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50">
                     <tr>
-                        <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Khu Vực (Xã/Phường)</th>
+                        <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Xã / Phường</th>
                         <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Chỉ Số</th>
                         <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Thấp Nhất (Min)</th>
                         <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Cao Nhất (Max)</th>
-                        <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Trung Bình (Mean)</th>
+                        <th class="px-6 py-3 text-left font-bold text-gray-600 uppercase text-xs">Trung Bình (TB)</th>
                     </tr>
                 </thead>
                 <tbody id="statsTableBody" class="bg-white divide-y divide-gray-200">
@@ -216,24 +216,24 @@
         <div class="px-6 py-4 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
             <h3 class="text-base font-bold text-gray-800 flex items-center gap-2">
                 <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                Bảng Dữ Liệu Chi Tiết (Raw Data)
+                Danh Sách Số Liệu Từng Lần Đo
             </h3>
             <button type="button" onclick="exportAnalysisCsv()" class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                Tải Bảng Dữ Liệu (.csv)
+                Tải Bảng Về Máy (.csv)
             </button>
         </div>
         <div class="overflow-x-auto max-h-96 overflow-y-auto">
             <table class="min-w-full divide-y divide-gray-200 text-sm">
                 <thead class="bg-gray-50 sticky top-0 z-10">
                     <tr>
-                        <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase text-xs bg-gray-50">Thời Gian</th>
-                        <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase text-xs bg-gray-50">Khu Vực</th>
-                        <th class="px-6 py-3 text-left font-bold text-green-700 uppercase text-xs bg-gray-50">NDVI</th>
-                        <th class="px-6 py-3 text-left font-bold text-blue-700 uppercase text-xs bg-gray-50">NDWI</th>
-                        <th class="px-6 py-3 text-left font-bold text-orange-700 uppercase text-xs bg-gray-50">NDBI</th>
-                        <th class="px-6 py-3 text-left font-bold text-red-700 uppercase text-xs bg-gray-50">LST (°C)</th>
-                        <th class="px-6 py-3 text-left font-bold text-yellow-700 uppercase text-xs bg-gray-50">TVDI</th>
+                        <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase text-xs bg-gray-50">Ngày Đo</th>
+                        <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase text-xs bg-gray-50">Xã / Phường</th>
+                        <th class="px-6 py-3 text-left font-bold text-green-700 uppercase text-xs bg-gray-50">Cây Xanh (NDVI)</th>
+                        <th class="px-6 py-3 text-left font-bold text-blue-700 uppercase text-xs bg-gray-50">Mặt Nước (NDWI)</th>
+                        <th class="px-6 py-3 text-left font-bold text-orange-700 uppercase text-xs bg-gray-50">Nhà Cửa (NDBI)</th>
+                        <th class="px-6 py-3 text-left font-bold text-red-700 uppercase text-xs bg-gray-50">Nhiệt Độ (LST °C)</th>
+                        <th class="px-6 py-3 text-left font-bold text-yellow-700 uppercase text-xs bg-gray-50">Khô Hạn (TVDI)</th>
                     </tr>
                 </thead>
                 <tbody id="rawDataTableBody" class="bg-white divide-y divide-gray-200">
@@ -243,37 +243,37 @@
         </div>
     </div>
 
-    <!-- Indices Reference Section (Từ Điển Chỉ Số Viễn Thám) -->
+    <!-- Indices Reference Section (Giải thích ý nghĩa) -->
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
         <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            Từ Điển 5 Chỉ Số Viễn Thám Trong Đề Tài
+            Giải Thích Ý Nghĩa 5 Chỉ Số (Dành Cho Mọi Người)
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div class="bg-green-50/80 p-5 rounded-xl border border-green-200">
                 <span class="bg-green-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">NDVI</span>
-                <h4 class="font-bold text-green-900 mt-2">Chỉ số Thực Vật</h4>
-                <p class="text-xs text-green-800 mt-1">Đánh giá mật độ và sức khỏe thảm thực vật. Càng gần 1 thể hiện rừng cây, thảm thực vật dày. Giá trị thấp (< 0.2) là đô thị hoặc đất trống.</p>
+                <h4 class="font-bold text-green-900 mt-2">Mảng Xanh Cây Cối</h4>
+                <p class="text-xs text-green-800 mt-1">Đo mức độ nhiều hay ít cây xanh. Điểm số càng cao thì khu vực càng nhiều cây cối, rừng rậm và không khí trong lành. Điểm số thấp nghĩa là khu vực nhiều nhà cửa hoặc đất trống.</p>
             </div>
             <div class="bg-red-50/80 p-5 rounded-xl border border-red-200">
                 <span class="bg-red-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">LST (°C)</span>
-                <h4 class="font-bold text-red-900 mt-2">Nhiệt Độ Bề Mặt Đất</h4>
-                <p class="text-xs text-red-800 mt-1">Trích xuất từ dải phổ hồng ngoại nhiệt (TIRS). Phản ánh chính xác hiệu ứng đảo nhiệt đô thị (Urban Heat Island - UHI) tại các vùng bê tông hóa.</p>
+                <h4 class="font-bold text-red-900 mt-2">Nhiệt Độ Mặt Đất</h4>
+                <p class="text-xs text-red-800 mt-1">Đo nhiệt độ trực tiếp trên bề mặt đường sá, mái nhà và mặt đất từ vệ tinh. Nơi nào đường bê tông dày đặc, ít cây xanh sẽ có nhiệt độ mặt đất cao hơn rất nhiều so với vùng ngoại thành.</p>
             </div>
             <div class="bg-yellow-50/80 p-5 rounded-xl border border-yellow-200">
                 <span class="bg-yellow-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">TVDI</span>
-                <h4 class="font-bold text-yellow-900 mt-2">Chỉ Số Khô Hạn</h4>
-                <p class="text-xs text-yellow-800 mt-1">Được tính từ tương quan giữa LST và NDVI. Dao động từ 0 (rất ẩm ướt) đến 1 (khô hạn nghiêm trọng).</p>
+                <h4 class="font-bold text-yellow-900 mt-2">Độ Khô Hạn Đất</h4>
+                <p class="text-xs text-yellow-800 mt-1">Đánh giá xem khu vực có bị thiếu nước hoặc khô nóng hay không. Số 0 nghĩa là đất đủ ẩm ướt hoặc gần sông nước; số 1 nghĩa là đất khô cằn, nắng nóng bốc hơi mạnh.</p>
             </div>
             <div class="bg-orange-50/80 p-5 rounded-xl border border-orange-200">
                 <span class="bg-orange-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">NDBI</span>
-                <h4 class="font-bold text-orange-900 mt-2">Chỉ Số Đất Xây Dựng</h4>
-                <p class="text-xs text-orange-800 mt-1">Phản ánh mật độ xây dựng và công trình nhân tạo. Giá trị dương càng cao biểu thị mức độ đô thị hóa càng đậm đặc.</p>
+                <h4 class="font-bold text-orange-900 mt-2">Mật Độ Nhà Cửa & Bê Tông</h4>
+                <p class="text-xs text-orange-800 mt-1">Đo mức độ tập trung của các công trình xây dựng, nhà ở và đường nhựa. Chỉ số càng cao chứng tỏ khu vực đó càng đông đúc, mật độ xây dựng càng dày đặc.</p>
             </div>
             <div class="bg-blue-50/80 p-5 rounded-xl border border-blue-200 md:col-span-2">
                 <span class="bg-blue-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">NDWI</span>
-                <h4 class="font-bold text-blue-900 mt-2">Chỉ Số Nước Bề Mặt</h4>
-                <p class="text-xs text-blue-800 mt-1">Phân định ranh giới mặt nước, kênh rạch và vùng ngập lụt. Giá trị > 0 thể hiện mặt nước mở (sông Sài Gòn, sông Đồng Nai, rừng ngập mặn Cần Giờ).</p>
+                <h4 class="font-bold text-blue-900 mt-2">Sông Ngòi & Mặt Nước</h4>
+                <p class="text-xs text-blue-800 mt-1">Nhận diện các khu vực có nước như sông Sài Gòn, sông Đồng Nai, kênh rạch và vùng rừng ngập mặn Cần Giờ. Giúp biết nơi nào có nhiều kênh rạch làm mát cho thành phố.</p>
             </div>
         </div>
     </div>
