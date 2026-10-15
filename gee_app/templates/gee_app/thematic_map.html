@@ -97,20 +97,19 @@
     </div>
 
     <!-- Map Canvas Container (Tỉ lệ chuẩn trắc địa vừa vặn trọn vẹn TP.HCM) -->
-    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-2xl border-2 border-gray-300 overflow-hidden relative flex flex-col h-[640px] lg:h-[720px] w-full max-w-[960px]">
-        <!-- Export Overlay Headers (Shown on exported PNG) -->
-        <div id="exportHeaderOverlay" class="hidden px-6 py-4 bg-white border-b-2 border-gray-800 text-center">
-            <div class="text-[11px] font-bold uppercase tracking-widest text-gray-600 mb-0.5">
+    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-2xl border-2 border-gray-300 overflow-hidden relative flex flex-col h-[660px] lg:h-[740px] w-full max-w-[960px]">
+        <!-- Map Sheet Header: Luôn hiển thị để khung nhìn trên màn hình và ảnh xuất ra khớp chính xác 100% -->
+        <div id="exportHeaderOverlay" class="px-6 py-3 bg-white border-b-2 border-gray-800 text-center flex-shrink-0">
+            <div class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">
                 BỘ TÀI NGUYÊN VÀ MÔI TRƯỜNG • ĐẠI HỌC TÀI NGUYÊN VÀ MÔI TRƯỜNG TP. HỒ CHÍ MINH
             </div>
-            <h2 id="exportTitle" class="text-xl lg:text-2xl font-black text-gray-900 uppercase tracking-wide">
+            <h2 id="exportTitle" class="text-base lg:text-lg font-black text-gray-900 uppercase tracking-wide">
                 BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG - TP. HỒ CHÍ MINH
             </h2>
-            <p id="exportSub" class="text-xs text-gray-600 mt-0.5 font-medium">
-                Dữ liệu quan sát qua ảnh vệ tinh • Chuỗi 10 năm (2017 - 2026) • 172 Xã/Phường
-            </p>
-            <div class="mt-1 flex items-center justify-center gap-6 text-[11px] font-bold text-gray-700">
-                <span id="exportScaleRatio">TỈ LỆ 1 : 150.000</span>
+            <div class="mt-0.5 flex flex-wrap items-center justify-center gap-3 text-[10px] text-gray-600 font-semibold">
+                <span id="exportSub">Cả năm (Tính trung bình) • Đầy đủ 172 Xã/Phường TP.HCM</span>
+                <span>•</span>
+                <span id="exportScaleRatio" class="text-indigo-700 font-bold">TỈ LỆ 1 : 150.000</span>
                 <span>•</span>
                 <span>HỆ TỌA ĐỘ: WGS-84 / UTM ZONE 48N</span>
             </div>
@@ -668,9 +667,8 @@
             Đang xuất ảnh bản đồ...
         `;
 
-        // Đồng bộ dữ liệu tiêu đề và tỉ lệ bản đồ, căn chuẩn khung TP.HCM
+        // Đồng bộ dữ liệu tiêu đề và thước tỉ lệ
         updateHeaderTitles();
-        fitHcmcBounds();
         updateDynamicScale();
 
         const captureTarget = document.getElementById('mapCaptureContainer');
@@ -682,14 +680,7 @@
             scale: 2, // Độ phân giải Retina siêu nét 2x
             backgroundColor: '#ffffff',
             onclone: function(clonedDoc) {
-                // Hiển thị khung tiêu đề cơ quan & thông tin bản đồ trên bản chụp
-                const clonedHeader = clonedDoc.getElementById('exportHeaderOverlay');
-                if (clonedHeader) {
-                    clonedHeader.classList.remove('hidden');
-                    clonedHeader.style.display = 'block';
-                }
-
-                // Ẩn bảng hover chuột, nút zoom và nút căn khung trên bản chụp
+                // Ẩn bảng hover chuột, nút zoom và nút căn khung trên bản chụp để ảnh xuất sạch sẽ
                 const clonedHover = clonedDoc.getElementById('wardHoverCard');
                 if (clonedHover) clonedHover.style.display = 'none';
 
