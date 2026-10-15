@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect
-from .models import Ward, GEEDataRequest, IndexType, DataOrigin, ObservationData
+from .models import Ward, GEEDataRequest, ObservationData
 from datetime import datetime
 from django.http import FileResponse, Http404, JsonResponse
 from .gee_utils import start_drive_export, check_task_and_get_drive_link, delete_drive_file, get_map_tile_url
@@ -80,17 +80,29 @@ def home_view(request):
                 
             combined_ward = Ward.objects.filter(ten_xa=combined_name).first()
             if not combined_ward:
+                # Create a pseudo-ward to link to GEEDataRequest (for history tracking)
+                ma_xa_hash = "CTM_" + hashlib.md5(combined_name_full.encode()).hexdigest()[:8]
                 combined_geom = {
                     "type": "GeometryCollection",
                     "geometries": [w.geometry for w in found_wards]
                 }
-                # Create a pseudo-ward to link to GEEDataRequest
-                ma_xa_hash = "CTM_" + hashlib.md5(combined_name_full.encode()).hexdigest()[:8]
                 combined_ward = Ward.objects.create(
                     ma_xa=ma_xa_hash,
                     ten_xa=combined_name,
                     geometry=combined_geom
                 )
+                
+        # Always use FeatureCollection to retain ward details for GEE
+        feature_collection = {
+            "type": "FeatureCollection",
+            "features": [
+                {
+                    "type": "Feature",
+                    "properties": {"tenXa": w.ten_xa, "id": w.id},
+                    "geometry": w.geometry
+                } for w in found_wards
+            ]
+        }
         
         # Prepare filename and folder name
         dataset_name = dataset.split('/')[-1]
@@ -163,21 +175,31 @@ def home_view(request):
                     
                     # Save Time Series Data
                     if time_series_data:
-                        origin, _ = DataOrigin.objects.get_or_create(code='GEE_CURRENT', defaults={'name': 'Dữ liệu Hiện Trạng GEE'})
                         observations = []
                         
                         # Fetch the ward again to get a fresh connection in this thread
                         ward_obj = Ward.objects.get(id=ward_id)
                         
                         for dp in time_series_data:
-                            idx_type, _ = IndexType.objects.get_or_create(code=dp['Index'], defaults={'name': dp['Index']})
                             try:
                                 obs_time = datetime.strptime(dp['Date'], '%Y-%m-%d').date()
+                                
+                                # Use specific ward if provided by GEE, else fallback to the combined request ward
+                                specific_ward_id = dp.get('WardID')
+                                dp_ward = None
+                                if specific_ward_id:
+                                    try:
+                                        dp_ward = Ward.objects.get(id=specific_ward_id)
+                                    except Ward.DoesNotExist:
+                                        pass
+                                
+                                if not dp_ward:
+                                    dp_ward = Ward.objects.get(id=ward_id)
+                                    
                                 observations.append(ObservationData(
                                     request_ref=req_obj,
-                                    ward=ward_obj,
-                                    index_type=idx_type,
-                                    origin=origin,
+                                    ward=dp_ward,
+                                    index_code=dp['Index'],
                                     observation_time=obs_time,
                                     value=dp['Value']
                                 ))
@@ -198,7 +220,7 @@ def home_view(request):
             # Start thread
             import threading
             thread = threading.Thread(target=background_gee_task, args=(
-                req.id, dataset, start_date, end_date, combined_ward.geometry, filename, folder_name, combined_ward.id
+                req.id, dataset, start_date, end_date, feature_collection, filename, folder_name, combined_ward.id
             ))
             thread.daemon = True
             thread.start()
@@ -344,13 +366,14 @@ def api_get_time_series(request, req_id):
         req = GEEDataRequest.objects.get(id=req_id)
         
         # Lấy dữ liệu time series đã lưu trong database
-        observations = ObservationData.objects.filter(request_ref=req).order_by('observation_time')
+        observations = ObservationData.objects.filter(request_ref=req).order_by('observation_time', 'ward__ten_xa')
         
         data = []
         for obs in observations:
             data.append({
                 'Date': obs.observation_time.strftime('%Y-%m-%d'),
-                'Index': obs.index_type.code,
+                'Ward': obs.ward.ten_xa,
+                'Index': obs.index_code,
                 'Value': obs.value
             })
             

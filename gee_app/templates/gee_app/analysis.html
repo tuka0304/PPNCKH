@@ -257,117 +257,146 @@
         }
     });
 
+    // Generate distinct colors for multiple wards
+    const colorPalette = [
+        '#ef4444', '#3b82f6', '#10b981', '#f59e0b', '#8b5cf6', 
+        '#ec4899', '#14b8a6', '#f97316', '#6366f1', '#84cc16'
+    ];
+    
+    // Default single-ward colors
+    const indexColors = {
+        'NDVI': '#16a34a',
+        'NDWI': '#2563eb',
+        'NDBI': '#ea580c',
+        'LST': '#dc2626',
+        'TVDI': '#ca8a04'
+    };
+
     function processApiData(apiData) {
         if (!apiData || apiData.length === 0) {
             alert('Không có dữ liệu chuỗi thời gian cho yêu cầu này!');
             return;
         }
 
-        const dateMap = {}; // { '2024-01-01': { NDVI: 0.5, NDWI: 0.2, TVDI: 0.1 } }
+        const dateMap = {}; // { '2024-01-01': { 'Phường 1': { NDVI: 0.5, LST: 30 } } }
+        const wardsSet = new Set();
+        const indicesSet = new Set();
         
         apiData.forEach(item => {
             if (!dateMap[item.Date]) dateMap[item.Date] = {};
-            dateMap[item.Date][item.Index] = item.Value;
+            const wardName = item.Ward || 'Khu vực';
+            wardsSet.add(wardName);
+            indicesSet.add(item.Index);
+            
+            if (!dateMap[item.Date][wardName]) dateMap[item.Date][wardName] = {};
+            dateMap[item.Date][wardName][item.Index] = item.Value;
         });
 
         const sortedDates = Object.keys(dateMap).sort((a, b) => new Date(a) - new Date(b));
+        const wards = Array.from(wardsSet);
+        const indices = Array.from(indicesSet);
         
-        const sortedNdvi = [];
-        const sortedNdwi = [];
-        const sortedNdbi = [];
-        const sortedLst = [];
-        const sortedTvdi = [];
-        
-        let hasNdvi = false, hasNdwi = false, hasNdbi = false, hasLst = false, hasTvdi = false;
+        const isMultiWard = wards.length > 1;
 
-        sortedDates.forEach(date => {
-            const dataObj = dateMap[date];
-            if (dataObj.NDVI !== undefined) { hasNdvi = true; sortedNdvi.push(dataObj.NDVI); }
-            if (dataObj.NDWI !== undefined) { hasNdwi = true; sortedNdwi.push(dataObj.NDWI); }
-            if (dataObj.NDBI !== undefined) { hasNdbi = true; sortedNdbi.push(dataObj.NDBI); }
-            if (dataObj.LST !== undefined) { hasLst = true; sortedLst.push(dataObj.LST); }
-            if (dataObj.TVDI !== undefined) { hasTvdi = true; sortedTvdi.push(dataObj.TVDI); }
-        });
-
-        renderChart(
-            sortedDates, 
-            hasNdvi ? sortedNdvi : [], 
-            hasNdwi ? sortedNdwi : [], 
-            hasNdbi ? sortedNdbi : [], 
-            hasLst ? sortedLst : [],
-            hasTvdi ? sortedTvdi : []
-        );
+        renderChart(sortedDates, dateMap, wards, indices, isMultiWard);
         
-        if (hasLst && hasNdvi) {
-            renderScatterChart(sortedDates, dateMap);
+        if (indices.includes('LST') && indices.includes('NDVI')) {
+            renderScatterChart(sortedDates, dateMap, wards);
         }
         
-        renderStats(
-            hasNdvi ? sortedNdvi : [], 
-            hasNdwi ? sortedNdwi : [], 
-            hasNdbi ? sortedNdbi : [], 
-            hasLst ? sortedLst : [],
-            hasTvdi ? sortedTvdi : []
-        );
-        renderRawDataTable(sortedDates, dateMap);
+        renderStats(apiData, wards, indices);
+        renderRawDataTable(sortedDates, dateMap, wards);
     }
 
-    function renderRawDataTable(dates, dateMap) {
+    function renderRawDataTable(dates, dateMap, wards) {
         const tbody = document.getElementById('rawDataTableBody');
         tbody.innerHTML = '';
         
-        const rows = dates.map(date => {
-            const dataObj = dateMap[date];
-            const ndvi = dataObj.NDVI !== undefined ? dataObj.NDVI.toFixed(4) : '-';
-            const ndwi = dataObj.NDWI !== undefined ? dataObj.NDWI.toFixed(4) : '-';
-            const ndbi = dataObj.NDBI !== undefined ? dataObj.NDBI.toFixed(4) : '-';
-            const lst = dataObj.LST !== undefined ? dataObj.LST.toFixed(4) : '-';
-            const tvdi = dataObj.TVDI !== undefined ? dataObj.TVDI.toFixed(4) : '-';
-            
-            return `
-                <tr class="hover:bg-blue-50 transition-colors">
-                    <td class="px-6 py-3 whitespace-nowrap font-medium text-gray-900 border-b border-gray-100">${date}</td>
-                    <td class="px-6 py-3 whitespace-nowrap text-green-700 font-semibold border-b border-gray-100">${ndvi}</td>
-                    <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold border-b border-gray-100">${ndwi}</td>
-                    <td class="px-6 py-3 whitespace-nowrap text-orange-700 font-semibold border-b border-gray-100">${ndbi}</td>
-                    <td class="px-6 py-3 whitespace-nowrap text-red-700 font-semibold border-b border-gray-100">${lst}</td>
-                    <td class="px-6 py-3 whitespace-nowrap text-yellow-700 font-semibold border-b border-gray-100">${tvdi}</td>
-                </tr>
-            `;
+        const theadTr = document.querySelector('#rawDataTableBody').parentElement.querySelector('thead tr');
+        theadTr.innerHTML = `
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">Thời Gian</th>
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">Khu Vực</th>
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">NDVI</th>
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">NDWI</th>
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">NDBI</th>
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">LST (°C)</th>
+            <th class="px-6 py-3 text-left font-bold text-gray-700 uppercase tracking-wider bg-gray-50">TVDI</th>
+        `;
+        
+        const rows = [];
+        dates.forEach(date => {
+            wards.forEach(ward => {
+                const dataObj = dateMap[date][ward];
+                if (dataObj) {
+                    const ndvi = dataObj.NDVI !== undefined ? dataObj.NDVI.toFixed(4) : '-';
+                    const ndwi = dataObj.NDWI !== undefined ? dataObj.NDWI.toFixed(4) : '-';
+                    const ndbi = dataObj.NDBI !== undefined ? dataObj.NDBI.toFixed(4) : '-';
+                    const lst = dataObj.LST !== undefined ? dataObj.LST.toFixed(4) : '-';
+                    const tvdi = dataObj.TVDI !== undefined ? dataObj.TVDI.toFixed(4) : '-';
+                    
+                    rows.push(`
+                        <tr class="hover:bg-blue-50 transition-colors">
+                            <td class="px-6 py-3 whitespace-nowrap font-medium text-gray-900 border-b border-gray-100">${date}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-indigo-700 font-bold border-b border-gray-100">${ward}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-green-700 font-semibold border-b border-gray-100">${ndvi}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-blue-700 font-semibold border-b border-gray-100">${ndwi}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-orange-700 font-semibold border-b border-gray-100">${ndbi}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-red-700 font-semibold border-b border-gray-100">${lst}</td>
+                            <td class="px-6 py-3 whitespace-nowrap text-yellow-700 font-semibold border-b border-gray-100">${tvdi}</td>
+                        </tr>
+                    `);
+                }
+            });
         });
         
         tbody.innerHTML = rows.join('');
     }
 
-
-    function renderStats(ndvi, ndwi, ndbi, lst, tvdi) {
+    function renderStats(apiData, wards, indices) {
         const tbody = document.getElementById('statsTableBody');
-        tbody.innerHTML = ''; // clear
+        tbody.innerHTML = ''; 
+        
+        const theadTr = document.querySelector('#statsTableBody').parentElement.querySelector('thead tr');
+        theadTr.innerHTML = `
+            <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Khu Vực</th>
+            <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Chỉ Số</th>
+            <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Nhỏ nhất (Min)</th>
+            <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Lớn nhất (Max)</th>
+            <th class="px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">Trung bình (Mean)</th>
+        `;
 
-        function getStats(dataArr, label, colorClass) {
-            if (!dataArr || dataArr.length === 0) return null;
-            
-            const arr = dataArr.map(Number);
-            const min = Math.min(...arr).toFixed(4);
-            const max = Math.max(...arr).toFixed(4);
-            const mean = (arr.reduce((a, b) => a + b, 0) / arr.length).toFixed(4);
-            return `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap font-bold ${colorClass}">${label}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${min}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${max}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-gray-700">${mean}</td>
-                </tr>
-            `;
-        }
-
-        const rows = [
-            getStats(ndvi, 'NDVI', 'text-green-600'),
-            getStats(ndwi, 'NDWI', 'text-blue-600'),
-            getStats(ndbi, 'NDBI', 'text-orange-600'),
-            getStats(lst, 'LST (°C)', 'text-red-600'),
-            getStats(tvdi, 'TVDI', 'text-yellow-600')
-        ].filter(r => r !== null);
+        const rows = [];
+        
+        wards.forEach(ward => {
+            indices.forEach(index => {
+                const values = apiData
+                    .filter(item => item.Ward === ward && item.Index === index)
+                    .map(item => Number(item.Value));
+                    
+                if (values.length > 0) {
+                    const min = Math.min(...values).toFixed(4);
+                    const max = Math.max(...values).toFixed(4);
+                    const mean = (values.reduce((a, b) => a + b, 0) / values.length).toFixed(4);
+                    
+                    let colorClass = 'text-gray-700';
+                    if (index === 'NDVI') colorClass = 'text-green-600';
+                    if (index === 'NDWI') colorClass = 'text-blue-600';
+                    if (index === 'NDBI') colorClass = 'text-orange-600';
+                    if (index === 'LST') colorClass = 'text-red-600';
+                    if (index === 'TVDI') colorClass = 'text-yellow-600';
+                    
+                    rows.push(`
+                        <tr>
+                            <td class="px-6 py-4 whitespace-nowrap font-bold text-indigo-700">${ward}</td>
+                            <td class="px-6 py-4 whitespace-nowrap font-bold ${colorClass}">${index}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">${min}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">${max}</td>
+                            <td class="px-6 py-4 whitespace-nowrap text-gray-700">${mean}</td>
+                        </tr>
+                    `);
+                }
+            });
+        });
 
         tbody.innerHTML = rows.join('');
     }
@@ -385,20 +414,23 @@
         document.getElementById('areaKm2').textContent = areaKm2.toLocaleString('en-US', {maximumFractionDigits: 4});
     }
 
-    function renderScatterChart(dates, dateMap) {
+    function renderScatterChart(dates, dateMap, wards) {
         document.getElementById('scatterChartContainer').classList.remove('hidden');
         
         const scatterData = [];
         dates.forEach(date => {
-            const obj = dateMap[date];
-            if (obj.NDVI !== undefined && obj.LST !== undefined) {
-                scatterData.push({
-                    x: obj.NDVI,
-                    y: obj.LST,
-                    tvdi: obj.TVDI,
-                    date: date
-                });
-            }
+            wards.forEach(ward => {
+                const obj = dateMap[date][ward];
+                if (obj && obj.NDVI !== undefined && obj.LST !== undefined) {
+                    scatterData.push({
+                        x: obj.NDVI,
+                        y: obj.LST,
+                        tvdi: obj.TVDI,
+                        date: date,
+                        ward: ward
+                    });
+                }
+            });
         });
         
         const ctx = document.getElementById('scatterChart').getContext('2d');
@@ -408,12 +440,11 @@
             type: 'scatter',
             data: {
                 datasets: [{
-                    label: 'NDVI vs LST',
+                    label: 'NDVI vs LST (Tất cả khu vực)',
                     data: scatterData,
                     backgroundColor: function(context) {
                         const val = context.raw?.tvdi;
                         if (val === undefined) return '#3b82f6';
-                        // Map TVDI to color scale roughly
                         if (val > 0.8) return '#ff0000';
                         if (val > 0.6) return '#ff6600';
                         if (val > 0.4) return '#ffcc00';
@@ -432,7 +463,7 @@
                         callbacks: {
                             label: function(context) {
                                 const pt = context.raw;
-                                return `Ngày: ${pt.date} | NDVI: ${pt.x.toFixed(3)} | LST: ${pt.y.toFixed(2)}°C | TVDI: ${pt.tvdi?.toFixed(3)}`;
+                                return `[${pt.ward}] Ngày: ${pt.date} | NDVI: ${pt.x.toFixed(3)} | LST: ${pt.y.toFixed(2)}°C | TVDI: ${pt.tvdi?.toFixed(3)}`;
                             }
                         }
                     }
@@ -449,73 +480,40 @@
         });
     }
 
-    function renderChart(dates, ndvi, ndwi, ndbi, lst, tvdi) {
+    function renderChart(dates, dateMap, wards, indices, isMultiWard) {
         chartContainer.classList.remove('hidden');
         
         const datasets = [];
-        let isLstChart = false;
+        let isLstChart = indices.includes('LST');
         
-        if (ndvi.length > 0) {
-            datasets.push({
-                label: 'NDVI (Thực vật)',
-                data: ndvi,
-                borderColor: '#16a34a', // green-600
-                backgroundColor: 'rgba(22, 163, 74, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                yAxisID: 'y'
+        indices.forEach(index => {
+            wards.forEach((ward, wardIdx) => {
+                const data = dates.map(date => {
+                    const wData = dateMap[date][ward];
+                    return wData && wData[index] !== undefined ? wData[index] : null;
+                });
+                
+                // If data has at least one non-null point
+                if (data.some(v => v !== null)) {
+                    let color = indexColors[index] || '#333';
+                    if (isMultiWard) {
+                        // Use different colors for different wards to compare them
+                        color = colorPalette[wardIdx % colorPalette.length];
+                    }
+                    
+                    datasets.push({
+                        label: isMultiWard ? `${index} - ${ward}` : `${index}`,
+                        data: data,
+                        borderColor: color,
+                        backgroundColor: color + '1a', // 10% opacity
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: !isMultiWard,
+                        yAxisID: index === 'LST' ? 'yLst' : 'y'
+                    });
+                }
             });
-        }
-        if (ndwi.length > 0) {
-            datasets.push({
-                label: 'NDWI (Nước)',
-                data: ndwi,
-                borderColor: '#2563eb', // blue-600
-                backgroundColor: 'rgba(37, 99, 235, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                yAxisID: 'y'
-            });
-        }
-        if (ndbi.length > 0) {
-            datasets.push({
-                label: 'NDBI (Đất xây dựng)',
-                data: ndbi,
-                borderColor: '#ea580c', // orange-600
-                backgroundColor: 'rgba(234, 88, 12, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                yAxisID: 'y'
-            });
-        }
-        if (lst.length > 0) {
-            isLstChart = true;
-            datasets.push({
-                label: 'LST (°C)',
-                data: lst,
-                borderColor: '#dc2626', // red-600
-                backgroundColor: 'rgba(220, 38, 38, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                yAxisID: 'yLst'
-            });
-        }
-        if (tvdi.length > 0) {
-            datasets.push({
-                label: 'TVDI (Khô hạn)',
-                data: tvdi,
-                borderColor: '#ca8a04', // yellow-600
-                backgroundColor: 'rgba(202, 138, 4, 0.1)',
-                borderWidth: 2,
-                tension: 0.3,
-                fill: true,
-                yAxisID: 'y'
-            });
-        }
+        });
 
         const ctx = document.getElementById('myChart').getContext('2d');
         
@@ -542,7 +540,7 @@
                         title: { display: true, text: 'Thời Gian (YYYY-MM-DD)' }
                     },
                     y: {
-                        display: !isLstChart || datasets.length > 1,
+                        display: !isLstChart || datasets.length > (isMultiWard ? wards.length : 1),
                         position: 'left',
                         title: { display: true, text: 'Giá Trị Chỉ Số' },
                         min: -1,

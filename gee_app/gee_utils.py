@@ -133,48 +133,31 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
             ndbi = img.normalizedDifference(['B11', 'B8']).rename('NDBI')
             indices_img = ee.Image.cat([ndvi, ndwi, ndbi])
         elif dataset == 'L8_LST':
-            indices_img = img.select(['LST'])
+            ndvi = img.normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI')
+            tvdi = img.select('LST').subtract(22.0).divide(18.0).clamp(0, 1).rename('TVDI')
+            indices_img = ee.Image.cat([img.select('LST'), ndvi, tvdi])
             
-        stats = indices_img.reduceRegion(
+        # roi is always a FeatureCollection here
+        stats_fc = indices_img.reduceRegions(
+            collection=ee.FeatureCollection(roi),
             reducer=ee.Reducer.mean(),
-            geometry=roi,
-            scale=100,
-            maxPixels=1e13
+            scale=100
         )
         
-        feature_dict = {'Date': date}
-        if dataset == 'L8_LST':
-            feature_dict['LST'] = stats.get('LST')
+        def add_date(f):
+            return f.set('Date', date)
             
-            # Approximate TVDI for LST dataset if we also calculate NDVI
-            # Wait, L8_LST dataset maps to calculating only LST in extract_indices right now.
-            # We can calculate NDVI and TVDI here too.
-            ndvi = img.normalizedDifference(['SR_B5', 'SR_B4']).rename('NDVI')
-            stats_ndvi = ndvi.reduceRegion(reducer=ee.Reducer.mean(), geometry=roi, scale=100, maxPixels=1e13)
-            feature_dict['NDVI'] = stats_ndvi.get('NDVI')
-            
-            # TVDI approximation: TVDI = (LST - LST_min) / (LST_max - LST_min)
-            # using fixed min=22 max=40
-            tvdi = img.select('LST').subtract(22.0).divide(18.0).clamp(0, 1).rename('TVDI')
-            stats_tvdi = tvdi.reduceRegion(reducer=ee.Reducer.mean(), geometry=roi, scale=100, maxPixels=1e13)
-            feature_dict['TVDI'] = stats_tvdi.get('TVDI')
-            
-        else:
-            feature_dict['NDVI'] = stats.get('NDVI')
-            feature_dict['NDWI'] = stats.get('NDWI')
-            feature_dict['NDBI'] = stats.get('NDBI')
-            
-        return ee.Feature(None, feature_dict)
+        return stats_fc.map(add_date)
 
     time_series_data = []
     try:
-        time_series_fc = ee.FeatureCollection(collection.map(extract_indices))
+        time_series_fc = ee.FeatureCollection(collection.map(extract_indices)).flatten()
         
         # Determine selectors based on dataset
         if dataset == 'L8_LST':
-            selectors = ['Date', 'LST', 'NDVI', 'TVDI']
+            selectors = ['Date', 'id', 'tenXa', 'LST', 'NDVI', 'TVDI']
         else:
-            selectors = ['Date', 'NDVI', 'NDWI', 'NDBI']
+            selectors = ['Date', 'id', 'tenXa', 'NDVI', 'NDWI', 'NDBI']
             
         # Get CSV URL to bypass .getInfo() 10MB payload limit for Big Data
         url = time_series_fc.getDownloadURL(filetype='csv', selectors=selectors, filename='time_series')
@@ -189,6 +172,7 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
             reader = csv.DictReader(StringIO(csv_data))
             for row in reader:
                 date_str = row.get('Date')
+                ward_id = row.get('id')
                 if not date_str:
                     continue
                     
@@ -196,12 +180,12 @@ def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename
                     for idx_name in ['LST', 'NDVI', 'TVDI']:
                         val_str = row.get(idx_name)
                         if val_str:
-                            time_series_data.append({'Date': date_str, 'Index': idx_name, 'Value': float(val_str)})
+                            time_series_data.append({'Date': date_str, 'WardID': ward_id, 'Index': idx_name, 'Value': float(val_str)})
                 else:
                     for idx_name in ['NDVI', 'NDWI', 'NDBI']:
                         val_str = row.get(idx_name)
                         if val_str:
-                            time_series_data.append({'Date': date_str, 'Index': idx_name, 'Value': float(val_str)})
+                            time_series_data.append({'Date': date_str, 'WardID': ward_id, 'Index': idx_name, 'Value': float(val_str)})
         else:
             print(f"Failed to download CSV from GEE: {response.status_code}")
             
