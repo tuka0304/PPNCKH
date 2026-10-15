@@ -343,7 +343,8 @@
         // Sử dụng nền Esri World Light Gray Base chuyên dụng cho bản đồ GIS, KHÔNG bị dính watermark API KEY REQUIRED
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
             attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-            maxZoom: 16
+            maxZoom: 16,
+            crossOrigin: true
         }).addTo(map);
 
         // Cập nhật thước tỉ lệ và tỉ lệ số động theo mức phóng to / thu nhỏ
@@ -647,44 +648,80 @@
             Đang xuất ảnh bản đồ...
         `;
 
-        // Đồng bộ tiêu đề và thước tỉ lệ trước khi chụp bản đồ
+        // Đồng bộ dữ liệu tiêu đề và tỉ lệ bản đồ
         updateHeaderTitles();
         updateDynamicScale();
-
-        const exportHeader = document.getElementById('exportHeaderOverlay');
-        const hoverCard = document.getElementById('wardHoverCard');
-        const zoomControl = document.querySelector('.leaflet-control-zoom');
-
-        exportHeader.classList.remove('hidden');
-        if (hoverCard) hoverCard.style.display = 'none';
-        if (zoomControl) zoomControl.style.display = 'none';
 
         const captureTarget = document.getElementById('mapCaptureContainer');
 
         html2canvas(captureTarget, {
             useCORS: true,
-            allowTaint: true,
-            scale: 2 // Chuẩn Retina độ nét cao 2x
+            allowTaint: false, // TUYỆT ĐỐI không để allowTaint: true (vì canvas bị tainted sẽ bị chặn khi toBlob/toDataURL)
+            foreignObjectRendering: false,
+            scale: 2, // Độ phân giải Retina siêu nét 2x
+            backgroundColor: '#ffffff',
+            onclone: function(clonedDoc) {
+                // Hiển thị khung tiêu đề cơ quan & thông tin bản đồ trên bản chụp
+                const clonedHeader = clonedDoc.getElementById('exportHeaderOverlay');
+                if (clonedHeader) {
+                    clonedHeader.classList.remove('hidden');
+                    clonedHeader.style.display = 'block';
+                }
+
+                // Ẩn bảng hover chuột và nút zoom trên bản chụp
+                const clonedHover = clonedDoc.getElementById('wardHoverCard');
+                if (clonedHover) clonedHover.style.display = 'none';
+
+                const clonedZoom = clonedDoc.querySelector('.leaflet-control-zoom');
+                if (clonedZoom) clonedZoom.style.display = 'none';
+
+                const clonedLoader = clonedDoc.getElementById('mapLoader');
+                if (clonedLoader) clonedLoader.style.display = 'none';
+            }
         }).then(canvas => {
-            exportHeader.classList.add('hidden');
-            if (hoverCard) hoverCard.style.display = '';
-            if (zoomControl) zoomControl.style.display = '';
             btn.innerHTML = origText;
 
-            // Đặt tên ảnh xuất chuẩn khoa học
+            // Đặt tên file xuất chuẩn khoa học
             const seasonSlug = currentSeason === 'dry' ? 'MuaNang' : (currentSeason === 'rain' ? 'MuaMua' : 'CaNam');
-            const link = document.createElement('a');
-            link.download = `Ban_Do_Chuyen_De_${currentMetric}_TPHCM_${currentYear}_${seasonSlug}.png`;
-            link.href = canvas.toDataURL('image/png');
-            link.click();
+            const fileName = `Ban_Do_Chuyen_De_${currentMetric}_TPHCM_${currentYear}_${seasonSlug}.png`;
+
+            if (canvas.toBlob) {
+                canvas.toBlob(function(blob) {
+                    if (!blob) {
+                        fallbackDownload(canvas, fileName);
+                        return;
+                    }
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = fileName;
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    setTimeout(() => URL.revokeObjectURL(url), 1500);
+                }, 'image/png');
+            } else {
+                fallbackDownload(canvas, fileName);
+            }
         }).catch(err => {
             console.error("Lỗi xuất ảnh:", err);
-            exportHeader.classList.add('hidden');
-            if (hoverCard) hoverCard.style.display = '';
-            if (zoomControl) zoomControl.style.display = '';
             btn.innerHTML = origText;
-            alert("Lỗi khi xuất ảnh bản đồ. Vui lòng thử lại!");
+            alert("Lỗi khi xuất ảnh: " + (err && err.message ? err.message : "Trình duyệt chặn xuất canvas do bảo mật. Vui lòng thử lại!"));
         });
+    }
+
+    function fallbackDownload(canvas, fileName) {
+        try {
+            const link = document.createElement('a');
+            link.download = fileName;
+            link.href = canvas.toDataURL('image/png');
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        } catch (e) {
+            console.error("Lỗi fallback download:", e);
+            alert("Không thể lưu ảnh tự động: " + (e && e.message ? e.message : "Canvas bị chặn"));
+        }
     }
 </script>
 {% endblock %}
