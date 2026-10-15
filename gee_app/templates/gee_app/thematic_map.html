@@ -242,8 +242,13 @@
 {% endblock %}
 
 {% block scripts %}
-<!-- html2canvas for map exporting -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<!-- html2canvas-pro: Hỗ trợ toàn diện chuẩn màu hiện đại (oklch, oklab, color-mix) của Tailwind CSS v4 -->
+<script src="{% static 'js/html2canvas-pro.min.js' %}"></script>
+<script>
+    if (typeof html2canvas === 'undefined') {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js"><\/script>');
+    }
+</script>
 
 <script>
     // Configuration & State
