@@ -194,28 +194,58 @@
     let thematicLayer = null;
     let map = null;
 
-    // Color Scales Configuration
+    // Color Scales Configuration strictly compliant with 'Thang màu Nhiệt độ-NDVI-TVDI.pdf'
     const PALETTES = {
         'LST': {
             unit: '°C',
             title: 'Nhiệt độ bề mặt (LST)',
-            breaks: [28.0, 31.0, 34.0, 37.0],
-            colors: ['#3b82f6', '#06b6d4', '#eab308', '#f97316', '#dc2626'],
-            labels: ['Mát mẻ (< 28°C)', 'Bình thường (28 - 31°C)', 'Ấm áp (31 - 34°C)', 'Nóng UHI (34 - 37°C)', 'Rất nóng (> 37°C)']
+            range: [20, 45],
+            breaks: [23.0, 26.0, 29.0, 32.0, 35.0, 38.0, 41.0],
+            colors: ["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"],
+            labels: [
+                '< 23°C (Rất mát)', 
+                '23 - 26°C (Mát mẻ)', 
+                '26 - 29°C (Dịu nhẹ)', 
+                '29 - 32°C (Trung bình)', 
+                '32 - 35°C (Ấm áp)', 
+                '35 - 38°C (Nóng đô thị)', 
+                '38 - 41°C (Rất nóng UHI)', 
+                '> 41°C (Cực nóng)'
+            ]
         },
         'NDVI': {
             unit: '',
             title: 'Chỉ số thực vật (NDVI)',
-            breaks: [0.20, 0.35, 0.50, 0.65],
-            colors: ['#fef08a', '#a3e635', '#4ade80', '#16a34a', '#14532d'],
-            labels: ['Rất ít cây (< 0.20)', 'Thưa thớt (0.20 - 0.35)', 'Trung bình (0.35 - 0.50)', 'Dày đặc (0.50 - 0.65)', 'Rất dày (> 0.65)']
+            range: [-0.2, 1.0],
+            breaks: [-0.05, 0.10, 0.25, 0.40, 0.55, 0.70, 0.85],
+            colors: ['#FF0000', '#FF7F00', '#FFFF00', '#ADFF2F', '#00FF00', '#00FFFF', '#007FFF', '#0000FF'],
+            labels: [
+                '< -0.05 (Mặt nước / Đất trống)', 
+                '-0.05 - 0.10 (Đô thị / Rất ít cây)', 
+                '0.10 - 0.25 (Thực vật thưa)', 
+                '0.25 - 0.40 (Thực vật trung bình)', 
+                '0.40 - 0.55 (Thảm xanh tốt)', 
+                '0.55 - 0.70 (Thực vật dày)', 
+                '0.70 - 0.85 (Rừng phát triển tốt)', 
+                '> 0.85 (Rừng rậm tối đa)'
+            ]
         },
         'TVDI': {
             unit: '',
             title: 'Chỉ số khô hạn (TVDI)',
-            breaks: [0.30, 0.50, 0.70, 0.85],
-            colors: ['#0284c7', '#38bdf8', '#facc15', '#f97316', '#b91c1c'],
-            labels: ['Rất ẩm ướt (< 0.30)', 'Ẩm nhẹ (0.30 - 0.50)', 'Bình thường (0.50 - 0.70)', 'Khô hạn (0.70 - 0.85)', 'Hạn nghiêm trọng (> 0.85)']
+            range: [0.0, 1.0],
+            breaks: [0.15, 0.30, 0.45, 0.60, 0.75, 0.85, 0.95],
+            colors: ['#066b00', '#0bc400', '#0ce100', '#00ff00', '#ffff00', '#ffcc00', '#ff6600', '#ff0000'],
+            labels: [
+                '< 0.15 (Rất ẩm ướt / Ngập nước)', 
+                '0.15 - 0.30 (Ẩm ướt cao)', 
+                '0.30 - 0.45 (Ẩm ướt vừa)', 
+                '0.45 - 0.60 (Bình thường)', 
+                '0.60 - 0.75 (Khô hạn nhẹ)', 
+                '0.75 - 0.85 (Khô hạn trung bình)', 
+                '0.85 - 0.95 (Khô hạn nặng)', 
+                '> 0.95 (Khô hạn cực độ)'
+            ]
         },
         'NDBI': {
             unit: '',
@@ -257,11 +287,10 @@
         const cfg = PALETTES[metric];
         const b = cfg.breaks;
         const c = cfg.colors;
-        if (val < b[0]) return c[0];
-        if (val < b[1]) return c[1];
-        if (val < b[2]) return c[2];
-        if (val < b[3]) return c[3];
-        return c[4];
+        for (let i = 0; i < b.length; i++) {
+            if (val < b[i]) return c[i];
+        }
+        return c[c.length - 1];
     }
 
     function getCategoryForValue(val, metric) {
@@ -269,11 +298,10 @@
         const cfg = PALETTES[metric];
         const b = cfg.breaks;
         const l = cfg.labels;
-        if (val < b[0]) return l[0];
-        if (val < b[1]) return l[1];
-        if (val < b[2]) return l[2];
-        if (val < b[3]) return l[3];
-        return l[4];
+        for (let i = 0; i < b.length; i++) {
+            if (val < b[i]) return l[i];
+        }
+        return l[l.length - 1];
     }
 
     function updateLegend() {
