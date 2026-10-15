@@ -425,3 +425,73 @@ def api_get_all_wards(request):
         "features": features
     }
     return JsonResponse(geojson)
+
+def thematic_map_view(request):
+    years = list(range(2017, 2027))
+    indices = [
+        {'code': 'LST', 'name': 'Nhiệt Độ Bề Mặt (LST °C)', 'desc': 'Phân tích đảo nhiệt đô thị (UHI)'},
+        {'code': 'NDVI', 'name': 'Chỉ Số Thực Vật (NDVI)', 'desc': 'Đánh giá mật độ cây xanh'},
+        {'code': 'TVDI', 'name': 'Chỉ Số Khô Hạn (TVDI)', 'desc': 'Đánh giá mức độ khô hạn bề mặt'},
+        {'code': 'NDBI', 'name': 'Chỉ Số Đất Xây Dựng (NDBI)', 'desc': 'Mức độ bê tông hóa & công trình'},
+        {'code': 'NDWI', 'name': 'Chỉ Số Nước Bề Mặt (NDWI)', 'desc': 'Phân bố mặt nước & sông rạch'},
+    ]
+    return render(request, 'gee_app/thematic_map.html', {
+        'years': years,
+        'indices': indices
+    })
+
+def api_thematic_map_data(request):
+    from django.db.models import Avg, Min, Max
+    index_code = request.GET.get('index_code', 'LST').upper()
+    year = request.GET.get('year', '2024')
+    season = request.GET.get('season', 'all')
+    
+    qs = ObservationData.objects.filter(index_code=index_code)
+    
+    if year != 'all':
+        try:
+            qs = qs.filter(observation_time__year=int(year))
+        except ValueError:
+            pass
+            
+    if season == 'dry':
+        qs = qs.filter(observation_time__month__in=[1, 2, 3, 4, 5])
+    elif season == 'rain':
+        qs = qs.filter(observation_time__month__in=[6, 7, 8, 9, 10, 11])
+        
+    records = qs.values('ward__ma_xa', 'ward__ten_xa').annotate(
+        avg_val=Avg('value'),
+        min_val=Min('value'),
+        max_val=Max('value')
+    )
+    
+    data_dict = {}
+    all_values = []
+    
+    for r in records:
+        val = round(r['avg_val'], 4) if r['avg_val'] is not None else None
+        if val is not None:
+            all_values.append(val)
+        data_dict[r['ward__ma_xa']] = {
+            'name': r['ward__ten_xa'],
+            'value': val,
+            'min': round(r['min_val'], 4) if r['min_val'] is not None else None,
+            'max': round(r['max_val'], 4) if r['max_val'] is not None else None,
+        }
+        
+    summary = {
+        'min': min(all_values) if all_values else 0,
+        'max': max(all_values) if all_values else 1,
+        'avg': round(sum(all_values) / len(all_values), 4) if all_values else 0,
+        'count': len(all_values)
+    }
+    
+    return JsonResponse({
+        'status': 'success',
+        'index_code': index_code,
+        'year': year,
+        'season': season,
+        'data': data_dict,
+        'summary': summary
+    })
+

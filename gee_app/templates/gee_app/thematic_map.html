@@ -1,0 +1,541 @@
+{% extends 'gee_app/base.html' %}
+{% load static %}
+
+{% block main_classes %}max-w-[98%]{% endblock %}
+
+{% block content %}
+<div class="w-full flex flex-col gap-5">
+    <!-- Header & Map Controls Card -->
+    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden">
+        <div class="px-8 py-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+            <div>
+                <div class="flex items-center gap-2 mb-1">
+                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-sm">GIS Thematic Studio</span>
+                    <span class="text-xs text-blue-200">172 Xã/Phường sau sáp nhập • 10 Năm (2017 - 2026)</span>
+                </div>
+                <h1 id="mapMainTitle" class="text-2xl font-bold tracking-tight">BẢN ĐỒ CHUYÊN ĐỀ NHIỆT ĐỘ BỀ MẶT (LST) - TP. HỒ CHÍ MINH</h1>
+                <p id="mapSubtitle" class="text-sm text-blue-100 mt-0.5">Phân tích đảo nhiệt đô thị (UHI) và xu thế biến đổi nhiệt độ</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button type="button" onclick="exportThematicMap()" id="btnExportMap" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
+                    <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    Xuất Bản Đồ (PNG Báo Cáo)
+                </button>
+            </div>
+        </div>
+
+        <!-- Interactive Control Bar -->
+        <div class="p-5 bg-gray-50 border-b border-gray-200 flex flex-col lg:flex-row gap-5 items-stretch lg:items-center justify-between">
+            <!-- Metric Chips -->
+            <div class="flex flex-wrap gap-2 items-center">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Chỉ số:</span>
+                <button type="button" onclick="changeMetric('LST')" data-metric="LST" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-red-600 text-white border-red-600 shadow-red-200">
+                    🌡️ LST (Nhiệt độ)
+                </button>
+                <button type="button" onclick="changeMetric('NDVI')" data-metric="NDVI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
+                    🌿 NDVI (Thực vật)
+                </button>
+                <button type="button" onclick="changeMetric('TVDI')" data-metric="TVDI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
+                    ☀️ TVDI (Khô hạn)
+                </button>
+                <button type="button" onclick="changeMetric('NDBI')" data-metric="NDBI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
+                    🏙️ NDBI (Đô thị)
+                </button>
+                <button type="button" onclick="changeMetric('NDWI')" data-metric="NDWI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
+                    💧 NDWI (Mặt nước)
+                </button>
+            </div>
+
+            <!-- Season Selector -->
+            <div class="flex items-center gap-3">
+                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Chu kỳ:</span>
+                <select id="seasonSelect" onchange="onSeasonChange()" class="text-sm font-medium rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 bg-white border">
+                    <option value="all">Toàn năm (Trung bình)</option>
+                    <option value="dry">Mùa khô (Tháng 1 - Tháng 5)</option>
+                    <option value="rain">Mùa mưa (Tháng 6 - Tháng 11)</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- 10-Year Timeline Animation Slider -->
+        <div class="px-6 py-4 bg-white flex flex-col md:flex-row items-center gap-4 border-b border-gray-100">
+            <div class="flex items-center gap-2">
+                <button type="button" id="btnPlayTimeline" onclick="togglePlayTimeline()" class="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md hover:scale-105 transition-all">
+                    <svg id="playIcon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                    <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                </button>
+                <div class="text-left">
+                    <span class="text-xs text-gray-500 font-medium block">Năm quan trắc:</span>
+                    <span id="currentYearBadge" class="text-xl font-extrabold text-indigo-700 leading-none">2024</span>
+                </div>
+            </div>
+
+            <!-- Slider Range -->
+            <div class="flex-grow w-full px-2">
+                <input type="range" id="yearSlider" min="2017" max="2026" step="1" value="2024" oninput="onYearSliderChange(this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                <div class="flex justify-between text-[11px] font-semibold text-gray-400 mt-1.5 px-1">
+                    <span>2017</span>
+                    <span>2018</span>
+                    <span>2019</span>
+                    <span>2020</span>
+                    <span>2021</span>
+                    <span>2022</span>
+                    <span>2023</span>
+                    <span>2024</span>
+                    <span>2025</span>
+                    <span>2026</span>
+                </div>
+            </div>
+
+            <!-- Stats Overview Badge -->
+            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 text-xs text-gray-600 whitespace-nowrap">
+                <div>Min: <strong id="lblStatMin" class="text-gray-900">-</strong></div>
+                <div>Max: <strong id="lblStatMax" class="text-gray-900">-</strong></div>
+                <div>TB: <strong id="lblStatAvg" class="text-indigo-600">-</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Map Canvas Container (Used for interactive viewing and high-res export) -->
+    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden relative flex flex-col h-[750px] lg:h-[820px]">
+        <!-- Export Overlay Headers (Shown on exported PNG) -->
+        <div id="exportHeaderOverlay" class="hidden p-4 bg-white border-b border-gray-200 text-center">
+            <h2 id="exportTitle" class="text-xl font-bold text-gray-900 uppercase tracking-wide">BẢN ĐỒ CHUYÊN ĐỀ NHIỆT ĐỘ BỀ MẶT (LST) - TP. HỒ CHÍ MINH</h2>
+            <p id="exportSub" class="text-xs text-gray-600 mt-0.5">Dữ liệu viễn thám Landsat 8 / Sentinel-2 • Chuỗi thời gian 10 năm (2017 - 2026)</p>
+        </div>
+
+        <!-- Interactive Map Element -->
+        <div id="thematicMap" class="w-full flex-grow z-0"></div>
+
+        <!-- Hover Info Card (Góc trên bên phải) -->
+        <div id="wardHoverCard" class="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-gray-200 z-[1000] w-72 transition-all pointer-events-none">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
+                <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Thông tin khu vực</span>
+                <span id="hoverWardCode" class="text-[10px] text-gray-400 font-mono"></span>
+            </div>
+            <h4 id="hoverWardName" class="text-base font-bold text-gray-900 leading-tight">Rê chuột lên bản đồ...</h4>
+            <div class="mt-2.5 flex items-baseline justify-between">
+                <span id="hoverMetricLabel" class="text-xs font-medium text-gray-500">Giá trị chỉ số:</span>
+                <span id="hoverMetricVal" class="text-xl font-extrabold text-indigo-700">--</span>
+            </div>
+            <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
+                <span>Phân loại:</span>
+                <span id="hoverCategory" class="font-bold text-gray-800">--</span>
+            </div>
+        </div>
+
+        <!-- Floating Dynamic Legend (Góc dưới bên trái) -->
+        <div id="legendPanel" class="absolute bottom-6 left-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-gray-200 z-[1000] max-w-xs transition-all">
+            <h5 id="legendTitle" class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                Thang Màu Chú Giải
+            </h5>
+            <div id="legendItems" class="space-y-1.5 text-xs text-gray-700 font-medium">
+                <!-- Injected via JavaScript -->
+            </div>
+        </div>
+
+        <!-- Compass / North Arrow & Watermark (Góc dưới bên phải) -->
+        <div class="absolute bottom-6 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 z-[1000] flex items-center gap-3 text-xs text-gray-500">
+            <div class="flex flex-col items-center justify-center font-bold text-gray-800">
+                <span class="text-[10px] tracking-widest text-red-600">▲</span>
+                <span class="text-xs font-extrabold tracking-tighter">BẮC</span>
+            </div>
+            <div class="border-l border-gray-300 pl-3 leading-tight">
+                <p class="font-bold text-gray-800">Hệ Thống PPN-CKH TP.HCM</p>
+                <p class="text-[10px] text-gray-400">Tọa độ WGS84 • Ranh giới 172 Xã/Phường</p>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div id="mapLoader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[2000] flex flex-col items-center justify-center hidden">
+            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
+            <p class="mt-3 text-indigo-900 font-bold text-base">Đang tải và đồng bộ ma trận dữ liệu...</p>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Ward Detail (Hiển thị khi click vào 1 xã/phường) -->
+<div id="wardDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[3000] hidden flex items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-gray-100 transform transition-all">
+        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
+            <div>
+                <span class="text-xs font-bold text-indigo-600 uppercase">Chi tiết chỉ số viễn thám</span>
+                <h3 id="modalWardTitle" class="text-xl font-bold text-gray-900">Phường Bến Nghé</h3>
+            </div>
+            <button type="button" onclick="closeWardModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+        <div id="modalContent" class="space-y-4">
+            <!-- Details injected here -->
+        </div>
+        <div class="mt-6 flex justify-end">
+            <button type="button" onclick="closeWardModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-colors">Đóng</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- html2canvas for map exporting -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script>
+    // Configuration & State
+    let currentMetric = 'LST';
+    let currentYear = 2024;
+    let currentSeason = 'all';
+    let isPlaying = false;
+    let playInterval = null;
+    
+    let geojsonData = null;
+    let currentDataMap = {};
+    let thematicLayer = null;
+    let map = null;
+
+    // Color Scales Configuration
+    const PALETTES = {
+        'LST': {
+            unit: '°C',
+            title: 'Nhiệt độ bề mặt (LST)',
+            breaks: [28.0, 31.0, 34.0, 37.0],
+            colors: ['#3b82f6', '#06b6d4', '#eab308', '#f97316', '#dc2626'],
+            labels: ['Mát mẻ (< 28°C)', 'Bình thường (28 - 31°C)', 'Ấm áp (31 - 34°C)', 'Nóng UHI (34 - 37°C)', 'Rất nóng (> 37°C)']
+        },
+        'NDVI': {
+            unit: '',
+            title: 'Chỉ số thực vật (NDVI)',
+            breaks: [0.20, 0.35, 0.50, 0.65],
+            colors: ['#fef08a', '#a3e635', '#4ade80', '#16a34a', '#14532d'],
+            labels: ['Rất ít cây (< 0.20)', 'Thưa thớt (0.20 - 0.35)', 'Trung bình (0.35 - 0.50)', 'Dày đặc (0.50 - 0.65)', 'Rất dày (> 0.65)']
+        },
+        'TVDI': {
+            unit: '',
+            title: 'Chỉ số khô hạn (TVDI)',
+            breaks: [0.30, 0.50, 0.70, 0.85],
+            colors: ['#0284c7', '#38bdf8', '#facc15', '#f97316', '#b91c1c'],
+            labels: ['Rất ẩm ướt (< 0.30)', 'Ẩm nhẹ (0.30 - 0.50)', 'Bình thường (0.50 - 0.70)', 'Khô hạn (0.70 - 0.85)', 'Hạn nghiêm trọng (> 0.85)']
+        },
+        'NDBI': {
+            unit: '',
+            title: 'Chỉ số đất xây dựng (NDBI)',
+            breaks: [-0.05, 0.10, 0.22, 0.32],
+            colors: ['#a7f3d0', '#cbd5e1', '#fdba74', '#ea580c', '#7f1d1d'],
+            labels: ['Cây xanh/Mặt nước (< -0.05)', 'Ven đô ít công trình (-0.05 - 0.10)', 'Đang phát triển (0.10 - 0.22)', 'Mật độ xây dựng cao (0.22 - 0.32)', 'Lõi đô thị hóa dày (> 0.32)']
+        },
+        'NDWI': {
+            unit: '',
+            title: 'Chỉ số nước bề mặt (NDWI)',
+            breaks: [-0.15, 0.0, 0.15, 0.30],
+            colors: ['#fed7aa', '#fde047', '#38bdf8', '#2563eb', '#1e3a8a'],
+            labels: ['Đất khô ráo (< -0.15)', 'Đất ẩm ( -0.15 - 0.0)', 'Mặt nước nông (0.0 - 0.15)', 'Sông ngòi / Kênh rạch (0.15 - 0.30)', 'Vùng nước sâu (> 0.30)']
+        }
+    };
+
+    document.addEventListener("DOMContentLoaded", function() {
+        initMap();
+        loadGeoJsonAndData();
+    });
+
+    function initMap() {
+        var hcmcBounds = L.latLngBounds([10.3, 106.3], [11.2, 107.1]);
+        map = L.map('thematicMap', {
+            maxBounds: hcmcBounds,
+            minZoom: 9
+        }).setView([10.776, 106.685], 10);
+
+        // CartoDB Positron base layer for clean thematic mapping
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; CartoDB &copy; OpenStreetMap',
+            maxZoom: 18
+        }).addTo(map);
+    }
+
+    function getColorForValue(val, metric) {
+        if (val === null || val === undefined) return '#e5e7eb';
+        const cfg = PALETTES[metric];
+        const b = cfg.breaks;
+        const c = cfg.colors;
+        if (val < b[0]) return c[0];
+        if (val < b[1]) return c[1];
+        if (val < b[2]) return c[2];
+        if (val < b[3]) return c[3];
+        return c[4];
+    }
+
+    function getCategoryForValue(val, metric) {
+        if (val === null || val === undefined) return 'Chưa có số liệu';
+        const cfg = PALETTES[metric];
+        const b = cfg.breaks;
+        const l = cfg.labels;
+        if (val < b[0]) return l[0];
+        if (val < b[1]) return l[1];
+        if (val < b[2]) return l[2];
+        if (val < b[3]) return l[3];
+        return l[4];
+    }
+
+    function updateLegend() {
+        const cfg = PALETTES[currentMetric];
+        document.getElementById('legendTitle').innerHTML = `
+            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+            Chú giải ${cfg.title} ${cfg.unit ? `(${cfg.unit})` : ''}
+        `;
+
+        const container = document.getElementById('legendItems');
+        let html = '';
+        for (let i = 0; i < cfg.colors.length; i++) {
+            html += `
+                <div class="flex items-center gap-2.5">
+                    <span class="w-5 h-3.5 rounded border border-black/10 shadow-sm flex-shrink-0" style="background-color: ${cfg.colors[i]}"></span>
+                    <span class="text-[11px] leading-tight text-gray-700">${cfg.labels[i]}</span>
+                </div>
+            `;
+        }
+        container.innerHTML = html;
+    }
+
+    function loadGeoJsonAndData() {
+        showLoader(true);
+        // Fetch GeoJSON boundary
+        fetch("{% url 'api_get_all_wards' %}")
+            .then(res => res.json())
+            .then(geojson => {
+                geojsonData = geojson;
+                fetchThematicData();
+            })
+            .catch(err => {
+                console.error("Lỗi tải GeoJSON:", err);
+                showLoader(false);
+            });
+    }
+
+    function fetchThematicData() {
+        showLoader(true);
+        const url = `/api/thematic-map-data/?index_code=${currentMetric}&year=${currentYear}&season=${currentSeason}`;
+        fetch(url)
+            .then(res => res.json())
+            .then(res => {
+                if (res.status === 'success') {
+                    currentDataMap = res.data;
+                    renderThematicLayer();
+                    updateHeaderTitles();
+                    updateLegend();
+                    updateStatsDisplay(res.summary);
+                }
+                showLoader(false);
+            })
+            .catch(err => {
+                console.error("Lỗi lấy số liệu bản đồ:", err);
+                showLoader(false);
+            });
+    }
+
+    function renderThematicLayer() {
+        if (thematicLayer) {
+            map.removeLayer(thematicLayer);
+        }
+
+        thematicLayer = L.geoJSON(geojsonData, {
+            style: function(feature) {
+                const maXa = feature.properties.maXa;
+                const d = currentDataMap[maXa];
+                const val = d ? d.value : null;
+                return {
+                    fillColor: getColorForValue(val, currentMetric),
+                    weight: 1.2,
+                    opacity: 1,
+                    color: '#ffffff',
+                    fillOpacity: 0.85
+                };
+            },
+            onEachFeature: function(feature, layer) {
+                const maXa = feature.properties.maXa;
+                const tenXa = feature.properties.tenXa;
+
+                layer.on({
+                    mouseover: function(e) {
+                        const l = e.target;
+                        l.setStyle({
+                            weight: 3.5,
+                            color: '#1e1b4b',
+                            fillOpacity: 0.95
+                        });
+                        l.bringToFront();
+                        updateHoverCard(maXa, tenXa);
+                    },
+                    mouseout: function(e) {
+                        thematicLayer.resetStyle(e.target);
+                    },
+                    click: function() {
+                        openWardModal(maXa, tenXa);
+                    }
+                });
+            }
+        }).addTo(map);
+    }
+
+    function updateHoverCard(maXa, tenXa) {
+        const d = currentDataMap[maXa];
+        const val = d ? d.value : null;
+        const cfg = PALETTES[currentMetric];
+
+        document.getElementById('hoverWardCode').textContent = maXa || '';
+        document.getElementById('hoverWardName').textContent = tenXa || 'Khu vực';
+        document.getElementById('hoverMetricLabel').textContent = `${cfg.title}:`;
+        
+        if (val !== null && val !== undefined) {
+            document.getElementById('hoverMetricVal').textContent = `${val} ${cfg.unit}`;
+            document.getElementById('hoverCategory').textContent = getCategoryForValue(val, currentMetric);
+        } else {
+            document.getElementById('hoverMetricVal').textContent = 'N/A';
+            document.getElementById('hoverCategory').textContent = 'Chưa có dữ liệu';
+        }
+    }
+
+    function updateHeaderTitles() {
+        const cfg = PALETTES[currentMetric];
+        const titleText = `BẢN ĐỒ CHUYÊN ĐỀ ${cfg.title.toUpperCase()} - NĂM ${currentYear} - TP. HỒ CHÍ MINH`;
+        document.getElementById('mapMainTitle').textContent = titleText;
+        document.getElementById('exportTitle').textContent = titleText;
+        document.getElementById('currentYearBadge').textContent = currentYear;
+
+        let seasonText = "Toàn năm (Giá trị trung bình)";
+        if (currentSeason === 'dry') seasonText = "Mùa khô (Tháng 1 - Tháng 5)";
+        if (currentSeason === 'rain') seasonText = "Mùa mưa (Tháng 6 - Tháng 11)";
+        
+        const subText = `${seasonText} • 172 Xã/Phường sau sáp nhập • Nguồn: Landsat 8 / Sentinel-2`;
+        document.getElementById('mapSubtitle').textContent = subText;
+        document.getElementById('exportSub').textContent = subText;
+    }
+
+    function updateStatsDisplay(sum) {
+        const cfg = PALETTES[currentMetric];
+        document.getElementById('lblStatMin').textContent = `${sum.min} ${cfg.unit}`;
+        document.getElementById('lblStatMax').textContent = `${sum.max} ${cfg.unit}`;
+        document.getElementById('lblStatAvg').textContent = `${sum.avg} ${cfg.unit}`;
+    }
+
+    function changeMetric(metric) {
+        currentMetric = metric;
+        document.querySelectorAll('.metric-btn').forEach(btn => {
+            if (btn.getAttribute('data-metric') === metric) {
+                btn.className = "metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-indigo-600 text-white border-indigo-600 shadow-indigo-200";
+            } else {
+                btn.className = "metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300";
+            }
+        });
+        fetchThematicData();
+    }
+
+    function onYearSliderChange(val) {
+        currentYear = parseInt(val);
+        document.getElementById('currentYearBadge').textContent = currentYear;
+        fetchThematicData();
+    }
+
+    function onSeasonChange() {
+        currentSeason = document.getElementById('seasonSelect').value;
+        fetchThematicData();
+    }
+
+    function togglePlayTimeline() {
+        isPlaying = !isPlaying;
+        const playIcon = document.getElementById('playIcon');
+        const pauseIcon = document.getElementById('pauseIcon');
+        
+        if (isPlaying) {
+            playIcon.classList.add('hidden');
+            pauseIcon.classList.remove('hidden');
+            playInterval = setInterval(() => {
+                currentYear += 1;
+                if (currentYear > 2026) currentYear = 2017;
+                document.getElementById('yearSlider').value = currentYear;
+                document.getElementById('currentYearBadge').textContent = currentYear;
+                fetchThematicData();
+            }, 1800);
+        } else {
+            playIcon.classList.remove('hidden');
+            pauseIcon.classList.add('hidden');
+            if (playInterval) clearInterval(playInterval);
+        }
+    }
+
+    function openWardModal(maXa, tenXa) {
+        const d = currentDataMap[maXa];
+        document.getElementById('modalWardTitle').textContent = tenXa;
+        const cfg = PALETTES[currentMetric];
+        
+        let html = `
+            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between">
+                <div>
+                    <span class="text-xs font-semibold text-indigo-700">${cfg.title} (${currentYear}):</span>
+                    <p class="text-2xl font-black text-indigo-900">${d ? d.value : 'N/A'} ${cfg.unit}</p>
+                </div>
+                <div class="text-right">
+                    <span class="text-xs text-gray-500">Mức độ:</span>
+                    <p class="text-sm font-bold text-indigo-800">${d ? getCategoryForValue(d.value, currentMetric) : '--'}</p>
+                </div>
+            </div>
+            <div class="grid grid-cols-2 gap-3 mt-3 text-sm">
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500">Thấp nhất trong năm:</span>
+                    <p class="font-bold text-gray-800">${d ? d.min : '--'} ${cfg.unit}</p>
+                </div>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
+                    <span class="text-xs text-gray-500">Cao nhất trong năm:</span>
+                    <p class="font-bold text-gray-800">${d ? d.max : '--'} ${cfg.unit}</p>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-2 italic">* Số liệu được tổng hợp từ chuỗi dữ liệu lớn viễn thám trong cơ sở dữ liệu hệ thống.</p>
+        `;
+        document.getElementById('modalContent').innerHTML = html;
+        document.getElementById('wardDetailModal').classList.remove('hidden');
+    }
+
+    function closeWardModal() {
+        document.getElementById('wardDetailModal').classList.add('hidden');
+    }
+
+    function showLoader(flag) {
+        const el = document.getElementById('mapLoader');
+        if (flag) el.classList.remove('hidden');
+        else el.classList.add('hidden');
+    }
+
+    function exportThematicMap() {
+        const btn = document.getElementById('btnExportMap');
+        const origText = btn.innerHTML;
+        btn.innerHTML = `
+            <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            Đang xuất ảnh bản đồ...
+        `;
+
+        // Temporarily reveal export header overlay
+        const exportHeader = document.getElementById('exportHeaderOverlay');
+        exportHeader.classList.remove('hidden');
+
+        // Capture map container using html2canvas
+        html2canvas(document.getElementById('mapCaptureContainer'), {
+            useCORS: true,
+            allowTaint: true,
+            scale: 2 // High Resolution (Retina 2x)
+        }).then(canvas => {
+            exportHeader.classList.add('hidden');
+            btn.innerHTML = origText;
+
+            // Trigger download
+            const link = document.createElement('a');
+            link.download = `Ban_Do_Chuyen_De_${currentMetric}_TPHCM_${currentYear}.png`;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }).catch(err => {
+            console.error("Lỗi xuất ảnh:", err);
+            exportHeader.classList.add('hidden');
+            btn.innerHTML = origText;
+            alert("Lỗi khi xuất ảnh bản đồ. Vui lòng thử lại!");
+        });
+    }
+</script>
+{% endblock %}
