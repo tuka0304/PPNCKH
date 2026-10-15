@@ -97,26 +97,38 @@
     </div>
 
     <!-- Map Canvas Container (Used for interactive viewing and high-res export) -->
-    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden relative flex flex-col h-[750px] lg:h-[820px]">
+    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-xl border-2 border-gray-200 overflow-hidden relative flex flex-col h-[500px] lg:h-[560px]">
         <!-- Export Overlay Headers (Shown on exported PNG) -->
-        <div id="exportHeaderOverlay" class="hidden p-4 bg-white border-b border-gray-200 text-center">
-            <h2 id="exportTitle" class="text-xl font-bold text-gray-900 uppercase tracking-wide">BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG - TP. HỒ CHÍ MINH</h2>
-            <p id="exportSub" class="text-xs text-gray-600 mt-0.5">Dữ liệu quan sát qua ảnh vệ tinh • Chuỗi 10 năm (2017 - 2026)</p>
+        <div id="exportHeaderOverlay" class="hidden px-6 py-4 bg-white border-b-2 border-gray-800 text-center">
+            <div class="text-[11px] font-bold uppercase tracking-widest text-gray-600 mb-0.5">
+                BỘ TÀI NGUYÊN VÀ MÔI TRƯỜNG • ĐẠI HỌC TÀI NGUYÊN VÀ MÔI TRƯỜNG TP. HỒ CHÍ MINH
+            </div>
+            <h2 id="exportTitle" class="text-xl lg:text-2xl font-black text-gray-900 uppercase tracking-wide">
+                BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG - TP. HỒ CHÍ MINH
+            </h2>
+            <p id="exportSub" class="text-xs text-gray-600 mt-0.5 font-medium">
+                Dữ liệu quan sát qua ảnh vệ tinh • Chuỗi 10 năm (2017 - 2026) • 172 Xã/Phường
+            </p>
+            <div class="mt-1 flex items-center justify-center gap-6 text-[11px] font-bold text-gray-700">
+                <span id="exportScaleRatio">TỈ LỆ 1 : 150.000</span>
+                <span>•</span>
+                <span>HỆ TỌA ĐỘ: WGS-84 / UTM ZONE 48N</span>
+            </div>
         </div>
 
         <!-- Interactive Map Element -->
         <div id="thematicMap" class="w-full flex-grow z-0"></div>
 
         <!-- Hover Info Card (Góc trên bên phải) -->
-        <div id="wardHoverCard" class="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-gray-200 z-[1000] w-72 transition-all pointer-events-none">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-2 mb-2">
-                <span class="text-xs font-bold text-indigo-600 uppercase tracking-wider">Thông tin khu vực</span>
+        <div id="wardHoverCard" class="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-2xl border border-gray-200 z-[1000] w-64 transition-all pointer-events-none">
+            <div class="flex items-center justify-between border-b border-gray-100 pb-1.5 mb-1.5">
+                <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Thông tin khu vực</span>
                 <span id="hoverWardCode" class="text-[10px] text-gray-400 font-mono"></span>
             </div>
-            <h4 id="hoverWardName" class="text-base font-bold text-gray-900 leading-tight">Chỉ chuột vào phường/xã trên bản đồ...</h4>
-            <div class="mt-2.5 flex items-baseline justify-between">
+            <h4 id="hoverWardName" class="text-sm font-bold text-gray-900 leading-tight">Chỉ chuột vào phường/xã trên bản đồ...</h4>
+            <div class="mt-2 flex items-baseline justify-between">
                 <span id="hoverMetricLabel" class="text-xs font-medium text-gray-500">Mức đo được:</span>
-                <span id="hoverMetricVal" class="text-xl font-extrabold text-indigo-700">--</span>
+                <span id="hoverMetricVal" class="text-lg font-extrabold text-indigo-700">--</span>
             </div>
             <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
                 <span>Mức độ:</span>
@@ -125,25 +137,77 @@
         </div>
 
         <!-- Floating Dynamic Legend (Góc dưới bên trái) -->
-        <div id="legendPanel" class="absolute bottom-6 left-4 bg-white/95 backdrop-blur-md p-4 rounded-xl shadow-2xl border border-gray-200 z-[1000] max-w-xs transition-all">
+        <div id="legendPanel" class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-2xl border border-gray-200 z-[1000] max-w-xs transition-all">
             <h5 id="legendTitle" class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
                 <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
                 Ý Nghĩa Các Màu Sắc
             </h5>
-            <div id="legendItems" class="space-y-1.5 text-xs text-gray-700 font-medium">
+            <div id="legendItems" class="space-y-1 text-[11px] text-gray-700 font-medium">
                 <!-- Injected via JavaScript -->
             </div>
         </div>
 
-        <!-- Compass / North Arrow & Watermark (Góc dưới bên phải) -->
-        <div class="absolute bottom-6 right-4 bg-white/90 backdrop-blur-sm p-3 rounded-xl shadow-lg border border-gray-200 z-[1000] flex items-center gap-3 text-xs text-gray-500">
-            <div class="flex flex-col items-center justify-center font-bold text-gray-800">
-                <span class="text-[10px] tracking-widest text-red-600">▲</span>
-                <span class="text-xs font-extrabold tracking-tighter">BẮC</span>
+        <!-- Compass Rose (4 Hướng Đông - Tây - Nam - Bắc), Thước Tỉ Lệ & Thông Tin Bản Đồ (Góc dưới bên phải) -->
+        <div id="cartoInfoPanel" class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-2xl border border-gray-200 z-[1000] flex items-center gap-4 text-xs">
+            <!-- La bàn 4 hướng (Compass Rose: BẮC - NAM - ĐÔNG - TÂY) -->
+            <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
+                <!-- Chữ B (Bắc) -->
+                <span class="absolute -top-1 text-[10px] font-black text-red-600 leading-none">B</span>
+                <!-- Chữ N (Nam) -->
+                <span class="absolute -bottom-1 text-[9px] font-bold text-gray-600 leading-none">N</span>
+                <!-- Chữ T (Tây) -->
+                <span class="absolute -left-1 text-[9px] font-bold text-gray-600 leading-none">T</span>
+                <!-- Chữ Đ (Đông) -->
+                <span class="absolute -right-1 text-[9px] font-bold text-gray-600 leading-none">Đ</span>
+                <!-- Hình hoa tiêu la bàn GIS -->
+                <svg class="w-11 h-11 text-gray-800 drop-shadow-sm" viewBox="0 0 100 100">
+                    <circle cx="50" cy="50" r="42" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="2,2"/>
+                    <circle cx="50" cy="50" r="3.5" fill="#1f2937"/>
+                    <!-- Mũi tên Bắc (Màu đỏ) -->
+                    <polygon points="50,12 45,47 50,44" fill="#dc2626"/>
+                    <polygon points="50,12 55,47 50,44" fill="#ef4444"/>
+                    <!-- Mũi tên Nam (Màu xám tối) -->
+                    <polygon points="50,88 45,53 50,56" fill="#374151"/>
+                    <polygon points="50,88 55,53 50,56" fill="#9ca3af"/>
+                    <!-- Mũi tên Tây -->
+                    <polygon points="12,50 47,45 44,50" fill="#4b5563"/>
+                    <polygon points="12,50 47,55 44,50" fill="#9ca3af"/>
+                    <!-- Mũi tên Đông -->
+                    <polygon points="88,50 53,45 56,50" fill="#374151"/>
+                    <polygon points="88,50 53,55 56,50" fill="#6b7280"/>
+                </svg>
             </div>
-            <div class="border-l border-gray-300 pl-3 leading-tight">
-                <p class="font-bold text-gray-800">Giám Sát Môi Trường TP.HCM</p>
-                <p class="text-[10px] text-gray-400">Đầy đủ 172 Xã/Phường sau sáp nhập</p>
+
+            <!-- Thước tỉ lệ đồ giải & Thông tin bản đồ -->
+            <div class="border-l border-gray-200 pl-3 space-y-1">
+                <!-- Tỉ lệ số -->
+                <div class="flex items-center justify-between text-[11px] font-bold text-gray-800">
+                    <span>TỈ LỆ BẢN ĐỒ:</span>
+                    <span id="uiScaleRatio" class="text-indigo-700">1 : 150.000</span>
+                </div>
+                
+                <!-- Thanh thước tỉ lệ đồ giải chuẩn trắc địa -->
+                <div class="w-36 py-0.5">
+                    <div id="scaleBarLabels" class="flex justify-between text-[9px] font-bold text-gray-600 px-0.5">
+                        <span>0</span>
+                        <span>5</span>
+                        <span>10</span>
+                        <span>20 km</span>
+                    </div>
+                    <!-- Thanh chia đoạn đen trắng -->
+                    <div class="h-2 w-full border border-gray-800 flex rounded-[1px] overflow-hidden">
+                        <div class="w-1/4 bg-gray-900 border-r border-white"></div>
+                        <div class="w-1/4 bg-white border-r border-gray-900"></div>
+                        <div class="w-1/4 bg-gray-900 border-r border-white"></div>
+                        <div class="w-1/4 bg-white"></div>
+                    </div>
+                </div>
+
+                <!-- Nguồn và đơn vị -->
+                <div class="text-[9px] text-gray-500 leading-tight pt-0.5">
+                    <p class="font-bold text-gray-700">ĐH Tài nguyên & Môi trường TP.HCM</p>
+                    <p>Hệ tọa độ WGS-84 • 172 Xã/Phường</p>
+                </div>
             </div>
         </div>
 
@@ -269,17 +333,53 @@
     });
 
     function initMap() {
-        var hcmcBounds = L.latLngBounds([10.3, 106.3], [11.2, 107.1]);
+        var hcmcBounds = L.latLngBounds([10.15, 106.2], [11.3, 107.25]);
         map = L.map('thematicMap', {
             maxBounds: hcmcBounds,
-            minZoom: 9
+            minZoom: 9,
+            zoomControl: true
         }).setView([10.776, 106.685], 10);
 
-        // CartoDB Positron base layer for clean thematic mapping
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB &copy; OpenStreetMap',
-            maxZoom: 18
+        // Sử dụng nền Esri World Light Gray Base chuyên dụng cho bản đồ GIS, KHÔNG bị dính watermark API KEY REQUIRED
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
+            maxZoom: 16
         }).addTo(map);
+
+        // Cập nhật thước tỉ lệ và tỉ lệ số động theo mức phóng to / thu nhỏ
+        map.on('zoomend', updateDynamicScale);
+        map.on('moveend', updateDynamicScale);
+        updateDynamicScale();
+    }
+
+    function updateDynamicScale() {
+        if (!map) return;
+        const center = map.getCenter();
+        const zoom = map.getZoom();
+        // Độ phân giải mét/pixel theo vĩ độ và mức zoom
+        const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
+        // Tỉ lệ bản đồ chuẩn tại 96 DPI (1 inch = 0.0254m => 3779.52 pixel/mét)
+        const rawScale = Math.round((metersPerPixel * 3779.52) / 5000) * 5000;
+        const scaleText = "1 : " + rawScale.toLocaleString('vi-VN');
+        
+        const uiScale = document.getElementById('uiScaleRatio');
+        const exportScale = document.getElementById('exportScaleRatio');
+        if (uiScale) uiScale.textContent = scaleText;
+        if (exportScale) exportScale.textContent = 'TỈ LỆ ' + scaleText;
+
+        // Cập nhật giá trị hiển thị trên thanh tỉ lệ đồ giải (Scale Bar) dựa trên độ dài 144px
+        const totalKm = (metersPerPixel * 144) / 1000;
+        let step = Math.round(totalKm / 4);
+        if (step < 1) step = 1;
+        const barLabels = document.getElementById('scaleBarLabels');
+        if (barLabels) {
+            barLabels.innerHTML = `
+                <span>0</span>
+                <span>${step}</span>
+                <span>${step * 2}</span>
+                <span>${step * 4} km</span>
+            `;
+        }
     }
 
     function getColorForValue(val, metric) {
@@ -402,6 +502,13 @@
                 });
             }
         }).addTo(map);
+
+        // Canh chỉnh khung nhìn vừa vặn toàn bộ 172 xã/phường TP.HCM
+        if (!window.hasFittedBounds && thematicLayer) {
+            map.fitBounds(thematicLayer.getBounds(), { padding: [15, 15] });
+            window.hasFittedBounds = true;
+            setTimeout(updateDynamicScale, 300);
+        }
     }
 
     function updateHoverCard(maXa, tenXa) {
@@ -536,31 +643,45 @@
         const btn = document.getElementById('btnExportMap');
         const origText = btn.innerHTML;
         btn.innerHTML = `
-            <svg class="animate-spin w-4 h-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+            <svg class="animate-spin w-4 h-4 text-white inline-block mr-1.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
             Đang xuất ảnh bản đồ...
         `;
 
-        // Temporarily reveal export header overlay
-        const exportHeader = document.getElementById('exportHeaderOverlay');
-        exportHeader.classList.remove('hidden');
+        // Đồng bộ tiêu đề và thước tỉ lệ trước khi chụp bản đồ
+        updateHeaderTitles();
+        updateDynamicScale();
 
-        // Capture map container using html2canvas
-        html2canvas(document.getElementById('mapCaptureContainer'), {
+        const exportHeader = document.getElementById('exportHeaderOverlay');
+        const hoverCard = document.getElementById('wardHoverCard');
+        const zoomControl = document.querySelector('.leaflet-control-zoom');
+
+        exportHeader.classList.remove('hidden');
+        if (hoverCard) hoverCard.style.display = 'none';
+        if (zoomControl) zoomControl.style.display = 'none';
+
+        const captureTarget = document.getElementById('mapCaptureContainer');
+
+        html2canvas(captureTarget, {
             useCORS: true,
             allowTaint: true,
-            scale: 2 // High Resolution (Retina 2x)
+            scale: 2 // Chuẩn Retina độ nét cao 2x
         }).then(canvas => {
             exportHeader.classList.add('hidden');
+            if (hoverCard) hoverCard.style.display = '';
+            if (zoomControl) zoomControl.style.display = '';
             btn.innerHTML = origText;
 
-            // Trigger download
+            // Đặt tên ảnh xuất chuẩn khoa học
+            const seasonSlug = currentSeason === 'dry' ? 'MuaNang' : (currentSeason === 'rain' ? 'MuaMua' : 'CaNam');
             const link = document.createElement('a');
-            link.download = `Ban_Do_Chuyen_De_${currentMetric}_TPHCM_${currentYear}.png`;
+            link.download = `Ban_Do_Chuyen_De_${currentMetric}_TPHCM_${currentYear}_${seasonSlug}.png`;
             link.href = canvas.toDataURL('image/png');
             link.click();
         }).catch(err => {
             console.error("Lỗi xuất ảnh:", err);
             exportHeader.classList.add('hidden');
+            if (hoverCard) hoverCard.style.display = '';
+            if (zoomControl) zoomControl.style.display = '';
             btn.innerHTML = origText;
             alert("Lỗi khi xuất ảnh bản đồ. Vui lòng thử lại!");
         });
