@@ -1,0 +1,1272 @@
+{% extends 'gee_app/base.html' %}
+{% load static %}
+
+{% block content %}
+<style>
+    @media print {
+        nav, footer, .khong_in {
+            display: none !important;
+        }
+        body, main {
+            background: #ffffff !important;
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+        #khung_ban_tin_xuat {
+            box-shadow: none !important;
+            border: none !important;
+        }
+    }
+</style>
+
+<div class="w-full flex flex-col gap-4 max-w-[99%] mx-auto">
+    <div class="khong_in bg-white rounded-2xl shadow-sm border border-slate-200 px-5 py-3.5 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex flex-wrap items-center gap-3">
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600 uppercase">Năm giám sát:</span>
+                <select id="chon_nam_ban_tin" onchange="tai_du_lieu_ban_tin()" class="text-xs font-bold rounded-xl border border-slate-300 py-1.5 px-3 bg-slate-50 focus:bg-white text-indigo-700">
+                    {% for nam in danh_sach_nam %}
+                        <option value="{{ nam }}" {% if nam == 2024 %}selected{% endif %}>Năm {{ nam }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600 uppercase">Kỳ mùa vụ:</span>
+                <select id="chon_mua_ban_tin" onchange="tai_du_lieu_ban_tin()" class="text-xs font-bold rounded-xl border border-slate-300 py-1.5 px-3 bg-slate-50 focus:bg-white text-slate-800">
+                    <option value="all">Cả năm (Trung bình)</option>
+                    <option value="dry">Mùa khô (Tháng 1 - Tháng 5)</option>
+                    <option value="rain">Mùa mưa (Tháng 6 - Tháng 11)</option>
+                </select>
+            </div>
+
+            <div class="flex items-center gap-2">
+                <span class="text-xs font-bold text-slate-600 uppercase">Lớp bản đồ:</span>
+                <select id="chon_chi_so_ban_do" onchange="cap_nhat_mau_ban_do_ban_tin()" class="text-xs font-bold rounded-xl border border-slate-300 py-1.5 px-3 bg-slate-50 focus:bg-white text-rose-700">
+                    <option value="LST">🌡️ Nhiệt độ bề mặt (LST °C)</option>
+                    <option value="NDVI">🌿 Lớp phủ thực vật (NDVI)</option>
+                    <option value="TVDI">☀️ Mức độ khô hạn (TVDI)</option>
+                    <option value="NDBI">🏗️ Đất xây dựng (NDBI)</option>
+                    <option value="NDWI">💧 Nước bề mặt (NDWI)</option>
+                </select>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+            <button type="button" onclick="mo_popup_bo_cuc_ban_do()" class="px-3.5 py-2 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                Xuất Ảnh Thành Lập Bản Đồ (.png)
+            </button>
+            <button type="button" onclick="xuat_bao_cao_word()" class="px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Xuất Báo Cáo Word (.doc)
+            </button>
+            <button type="button" id="nut_xuat_anh_ban_tin" onclick="xuat_anh_ban_tin()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                Xuất Ảnh Bản Tin (.png)
+            </button>
+            <button type="button" onclick="in_bao_cao_pdf()" class="px-3.5 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+                <svg class="w-4 h-4 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                In / Xuất PDF (A4)
+            </button>
+            <button type="button" onclick="xuat_csv_ban_tin()" class="px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                Xuất Bảng (.csv)
+            </button>
+        </div>
+    </div>
+
+    <div id="khung_ban_tin_xuat" class="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 space-y-6">
+        <div class="border-b-2 border-slate-800 pb-4 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+            <div>
+                <div class="text-[11px] font-extrabold uppercase tracking-widest text-indigo-600 mb-1">
+                    BẢN TIN TỔNG HỢP GIÁM SÁT & CẢNH BÁO VIỄN THÁM ĐÔ THỊ
+                </div>
+                <h1 class="text-xl lg:text-2xl font-black text-slate-900 uppercase tracking-tight">
+                    HỆ THỐNG GIÁM SÁT NHIỆT ĐỘ BỀ MẶT – LỚP PHỦ THỰC VẬT – MỨC ĐỘ KHÔ HẠN TẠI TP.HCM
+                </h1>
+                <p id="phu_de_ky_ban_tin" class="text-xs font-semibold text-slate-500 mt-1">
+                    Kỳ báo cáo: Năm 2024 • Cả năm (Trung bình) • Phạm vi: 167 Phường/Xã TP. Hồ Chí Minh • Hệ tọa độ: WGS-84
+                </p>
+            </div>
+            <div class="bg-slate-100 rounded-xl px-4 py-2.5 border border-slate-200 text-right flex-shrink-0">
+                <span class="text-[10px] font-bold text-slate-400 uppercase block">Trạng thái cơ sở dữ liệu</span>
+                <span class="text-xs font-extrabold text-emerald-700 flex items-center justify-end gap-1.5 mt-0.5">
+                    <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+                    Đồng bộ 167 Phường/Xã (LST • NDVI • TVDI)
+                </span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="rounded-2xl bg-rose-50/70 border border-rose-200 p-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-rose-700 uppercase">Nhiệt Độ Bề Mặt TB (LST)</span>
+                    <span class="text-lg">🌡️</span>
+                </div>
+                <div id="kpi_lst_tb" class="text-2xl font-black text-rose-700 mt-1">-- °C</div>
+                <div id="kpi_lst_cuc_tri" class="text-[11px] font-semibold text-rose-600/80 mt-1">Biên độ: -- đến -- °C</div>
+            </div>
+
+            <div class="rounded-2xl bg-emerald-50/70 border border-emerald-200 p-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-emerald-700 uppercase">Lớp Phủ Thực Vật TB (NDVI)</span>
+                    <span class="text-lg">🌿</span>
+                </div>
+                <div id="kpi_ndvi_tb" class="text-2xl font-black text-emerald-700 mt-1">--</div>
+                <div id="kpi_ndvi_cuc_tri" class="text-[11px] font-semibold text-emerald-600/80 mt-1">Biên độ: -- đến --</div>
+            </div>
+
+            <div class="rounded-2xl bg-amber-50/70 border border-amber-200 p-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-amber-700 uppercase">Mức Độ Khô Hạn TB (TVDI)</span>
+                    <span class="text-lg">☀️</span>
+                </div>
+                <div id="kpi_tvdi_tb" class="text-2xl font-black text-amber-700 mt-1">--</div>
+                <div id="kpi_tvdi_cuc_tri" class="text-[11px] font-semibold text-amber-600/80 mt-1">Biên độ: -- đến --</div>
+            </div>
+
+            <div class="rounded-2xl bg-indigo-50/70 border border-indigo-200 p-4">
+                <div class="flex items-center justify-between">
+                    <span class="text-xs font-bold text-indigo-700 uppercase">Cảnh Báo Đảo Nhiệt & Khô Hạn</span>
+                    <span class="text-lg">🚨</span>
+                </div>
+                <div id="kpi_so_phuong_canh_bao" class="text-2xl font-black text-indigo-700 mt-1">-- / 167</div>
+                <div class="text-[11px] font-semibold text-indigo-600/80 mt-1">Phường có LST ≥ 34°C hoặc TVDI ≥ 0.65</div>
+            </div>
+        </div>
+
+        <div class="bg-slate-50 rounded-2xl border border-slate-200 p-4">
+            <h3 class="text-xs font-extrabold uppercase tracking-wider text-slate-800 mb-2 flex items-center gap-1.5">
+                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
+                Nhận Định Tổng Hợp & Cảnh Báo Chuyên Môn Tự Động
+            </h3>
+            <p id="noi_dung_nhan_dinh_ban_tin" class="text-xs text-slate-700 leading-relaxed font-medium">
+                Đang tổng hợp dữ liệu bản tin...
+            </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-stretch">
+            <div class="lg:col-span-6 bg-white rounded-2xl border border-slate-300 overflow-hidden flex flex-col" style="min-height: 480px;">
+                <div class="px-4 py-2.5 bg-slate-100 border-b border-slate-200 flex flex-wrap items-center justify-between gap-2">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h3 id="tieu_de_ban_do_ban_tin" class="text-xs font-extrabold text-slate-800 uppercase">
+                            Bản Đồ Phân Bố Nhiệt Độ Bề Mặt (LST °C)
+                        </h3>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-[11px] font-semibold text-slate-500">Tỉ lệ 1:150.000 • WGS-84</span>
+                        <button type="button" onclick="mo_popup_bo_cuc_ban_do()" class="khong_in px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Thành Lập & Xuất Bản Đồ
+                        </button>
+                    </div>
+                </div>
+                <div class="relative flex-grow w-full overflow-hidden" style="min-height: 430px;">
+                    <div class="absolute inset-0 pointer-events-none z-[400] flex flex-col justify-between p-1.5">
+                        <div class="w-full flex justify-between text-[9px] font-mono font-bold text-slate-500 px-8">
+                            <span>106°30'Đ</span>
+                            <span>106°40'Đ</span>
+                            <span>106°50'Đ</span>
+                            <span>107°00'Đ</span>
+                        </div>
+                        <div class="w-full flex justify-between items-center text-[9px] font-mono font-bold text-slate-500 flex-grow py-4">
+                            <div class="flex flex-col justify-between h-full">
+                                <span>11°05'B</span>
+                                <span>10°50'B</span>
+                                <span>10°35'B</span>
+                            </div>
+                            <div class="flex flex-col justify-between h-full text-right">
+                                <span>11°05'B</span>
+                                <span>10°50'B</span>
+                                <span>10°35'B</span>
+                            </div>
+                        </div>
+                        <div class="w-full flex justify-between text-[9px] font-mono font-bold text-slate-500 px-8">
+                            <span>106°30'Đ</span>
+                            <span>106°40'Đ</span>
+                            <span>106°50'Đ</span>
+                            <span>107°00'Đ</span>
+                        </div>
+                    </div>
+                    <div id="ban_do_ban_tin" class="w-full h-full z-0" style="min-height: 430px;"></div>
+                    <div id="chu_giai_ban_do_ban_tin" class="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-md border border-slate-200 z-[500] text-[10px] space-y-0.5"></div>
+                    <div class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md p-2 rounded-xl shadow-md border border-slate-200 z-[500] flex items-center gap-2.5">
+                        <div class="relative w-10 h-10 flex items-center justify-center flex-shrink-0">
+                            <span class="absolute -top-1 text-[8px] font-black text-rose-600 leading-none">B</span>
+                            <span class="absolute -bottom-1 text-[7px] font-bold text-slate-500 leading-none">N</span>
+                            <span class="absolute -left-0.5 text-[7px] font-bold text-slate-500 leading-none">T</span>
+                            <span class="absolute -right-0.5 text-[7px] font-bold text-slate-500 leading-none">Đ</span>
+                            <svg class="w-8 h-8 text-slate-800" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                <circle cx="50" cy="50" r="3" fill="#1e293b"/>
+                                <polygon points="50,12 45,47 50,44" fill="#e11d48"/>
+                                <polygon points="50,12 55,47 50,44" fill="#f43f5e"/>
+                                <polygon points="50,88 45,53 50,56" fill="#475569"/>
+                                <polygon points="50,88 55,53 50,56" fill="#94a3b8"/>
+                                <polygon points="12,50 47,45 44,50" fill="#64748b"/>
+                                <polygon points="12,50 47,55 44,50" fill="#94a3b8"/>
+                                <polygon points="88,50 53,45 56,50" fill="#475569"/>
+                                <polygon points="88,50 53,55 56,50" fill="#64748b"/>
+                            </svg>
+                        </div>
+                        <div class="border-l border-slate-200 pl-2 space-y-0.5">
+                            <div class="text-[9px] font-bold text-slate-700">TỈ LỆ 1 : 150.000</div>
+                            <div class="w-20">
+                                <div class="flex justify-between text-[7px] font-bold text-slate-500 px-0.5">
+                                    <span>0</span>
+                                    <span>5</span>
+                                    <span>10 km</span>
+                                </div>
+                                <div class="h-1.5 w-full border border-slate-700 flex rounded-[1px] overflow-hidden">
+                                    <div class="w-1/2 bg-slate-900 border-r border-white"></div>
+                                    <div class="w-1/2 bg-white"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lg:col-span-6 flex flex-col gap-4">
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 flex-1 flex flex-col">
+                    <h3 class="text-xs font-extrabold text-slate-800 uppercase mb-2 flex items-center justify-between">
+                        <span>Biểu Đồ Top 10 Phường/Xã Nhiệt Độ (LST) & Khô Hạn (TVDI) Cao Nhất</span>
+                        <span class="text-[10px] text-rose-600 font-semibold">Điểm nóng đô thị</span>
+                    </h3>
+                    <div class="w-full flex-1 relative" style="min-height: 195px;">
+                        <canvas id="bieu_do_top_nong"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-2xl border border-slate-200 p-4 flex-1 flex flex-col">
+                    <h3 class="text-xs font-extrabold text-slate-800 uppercase mb-2 flex items-center justify-between">
+                        <span>Biểu Đồ Phân Phối Mức Độ Cảnh Báo & So Sánh Thực Vật (NDVI)</span>
+                        <span class="text-[10px] text-emerald-600 font-semibold">167 Phường/Xã</span>
+                    </h3>
+                    <div class="w-full flex-1 relative" style="min-height: 195px;">
+                        <canvas id="bieu_do_tuong_quan_ban_tin"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden">
+            <div class="px-5 py-3.5 bg-slate-50 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3">
+                <div>
+                    <h3 class="text-xs font-extrabold text-slate-800 uppercase tracking-wide">
+                        Bảng Tổng Hợp Số Liệu Giám Sát LST – NDVI – TVDI Toàn Bộ 167 Phường/Xã
+                    </h3>
+                    <p class="text-[11px] text-slate-500">Sắp xếp theo thứ tự giảm dần nhiệt độ bề mặt (LST °C)</p>
+                </div>
+                <div class="khong_in flex items-center gap-2">
+                    <select id="loc_muc_canh_bao" onchange="ve_bang_ban_tin()" class="text-xs font-semibold rounded-xl border border-slate-300 py-1.5 px-2.5 bg-white">
+                        <option value="ALL">Tất cả mức độ (167 phường/xã)</option>
+                        <option value="CAO">🚨 Cảnh báo cao (LST ≥ 34°C / TVDI ≥ 0.65)</option>
+                        <option value="TRUNG_BINH">⚠️ Trung bình (31°C ≤ LST &lt; 34°C)</option>
+                        <option value="TOT">🌿 Sinh thái tốt (LST &lt; 31°C &amp; NDVI cao)</option>
+                    </select>
+                    <input type="text" id="tim_ten_phuong_ban_tin" oninput="ve_bang_ban_tin()" placeholder="Tìm tên phường/xã..." class="text-xs rounded-xl border border-slate-300 py-1.5 px-3 bg-white">
+                </div>
+            </div>
+
+            <div class="overflow-x-auto max-h-[460px] overflow-y-auto">
+                <table id="bang_so_lieu_ban_tin" class="min-w-full divide-y divide-slate-200 text-xs">
+                    <thead class="bg-slate-100 sticky top-0 z-10">
+                        <tr>
+                            <th class="px-4 py-2.5 text-center font-bold text-slate-700 uppercase">Hạng</th>
+                            <th class="px-4 py-2.5 text-left font-bold text-slate-700 uppercase">Mã Xã</th>
+                            <th class="px-4 py-2.5 text-left font-bold text-slate-700 uppercase">Tên Phường / Xã</th>
+                            <th class="px-4 py-2.5 text-center font-bold text-rose-700 uppercase">Nhiệt Độ LST (°C)</th>
+                            <th class="px-4 py-2.5 text-center font-bold text-emerald-700 uppercase">Thực Vật (NDVI)</th>
+                            <th class="px-4 py-2.5 text-center font-bold text-amber-700 uppercase">Khô Hạn (TVDI)</th>
+                            <th class="px-4 py-2.5 text-center font-bold text-slate-700 uppercase">Xây Dựng (NDBI)</th>
+                            <th class="px-4 py-2.5 text-center font-bold text-blue-700 uppercase">Mặt Nước (NDWI)</th>
+                            <th class="px-4 py-2.5 text-center font-bold text-slate-700 uppercase">Phân Cấp Cảnh Báo</th>
+                        </tr>
+                    </thead>
+                    <tbody id="than_bang_ban_tin" class="bg-white divide-y divide-slate-100"></tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="popup_bo_cuc_ban_do" class="khong_in fixed inset-0 bg-slate-900/75 backdrop-blur-md z-[5000] hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl h-[94vh] flex flex-col overflow-hidden border border-slate-200">
+        <div class="px-6 py-3.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base tracking-wide">Xem Trước & Thiết Kế Bố Cục Bản Đồ Xuất</h3>
+                    <p class="text-xs text-slate-300">Tự do kéo di chuyển, thu phóng bản đồ và tùy chỉnh tiêu đề, chú giải trước khi tải về</p>
+                </div>
+            </div>
+            <button type="button" onclick="dong_popup_bo_cuc_ban_do()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        <div class="flex-grow flex flex-col lg:flex-row overflow-hidden bg-slate-100">
+            <div class="flex-grow flex items-center justify-center p-4 overflow-auto bg-slate-200/70">
+                <div id="khung_trang_xuat" class="bg-white rounded-xl shadow-2xl border-2 border-slate-800 flex flex-col relative overflow-hidden transition-all duration-300" style="width: 820px; height: 580px; max-width: 100%;">
+                    <div id="tieu_de_khung_in" class="px-5 py-2.5 bg-white border-b-2 border-slate-800 text-center flex-shrink-0 select-none">
+                        <div id="chu_co_quan_in" class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-0.5">
+                            HỆ THỐNG GIÁM SÁT NHIỆT ĐỘ BỀ MẶT – LỚP PHỦ THỰC VẬT – MỨC ĐỘ KHÔ HẠN TẠI TP.HCM
+                        </div>
+                        <h2 id="chu_tieu_de_in" class="text-sm lg:text-base font-black text-slate-900 uppercase tracking-wide">
+                            BẢN ĐỒ PHÂN BỐ NHIỆT ĐỘ BỀ MẶT (LST °C) - TP. HỒ CHÍ MINH
+                        </h2>
+                        <div class="mt-0.5 flex flex-wrap items-center justify-center gap-2 text-[9px] text-slate-600 font-semibold">
+                            <span id="chu_phu_de_in">Năm 2024 • Cả năm (Trung bình) • 167 Phường/Xã TP.HCM</span>
+                            <span>•</span>
+                            <span id="chu_ti_le_in" class="text-indigo-700 font-bold">TỈ LỆ 1 : 150.000</span>
+                            <span>•</span>
+                            <span>HỆ TỌA ĐỘ: WGS-84 / UTM ZONE 48N</span>
+                        </div>
+                    </div>
+
+                    <div id="khung_ban_do_xem_truoc" class="w-full flex-1 relative bg-slate-50 z-0 overflow-hidden" style="flex: 1 1 0%; min-height: 0; position: relative;">
+                        <div class="absolute inset-0 pointer-events-none z-[400] flex flex-col justify-between p-1.5">
+                            <div class="w-full flex justify-between text-[9px] font-mono font-bold text-slate-500 px-8">
+                                <span>106°30'Đ</span>
+                                <span>106°40'Đ</span>
+                                <span>106°50'Đ</span>
+                                <span>107°00'Đ</span>
+                            </div>
+                            <div class="w-full flex justify-between items-center text-[9px] font-mono font-bold text-slate-500 flex-grow py-4">
+                                <div class="flex flex-col justify-between h-full">
+                                    <span>11°05'B</span>
+                                    <span>10°50'B</span>
+                                    <span>10°35'B</span>
+                                </div>
+                                <div class="flex flex-col justify-between h-full text-right">
+                                    <span>11°05'B</span>
+                                    <span>10°50'B</span>
+                                    <span>10°35'B</span>
+                                </div>
+                            </div>
+                            <div class="w-full flex justify-between text-[9px] font-mono font-bold text-slate-500 px-8">
+                                <span>106°30'Đ</span>
+                                <span>106°40'Đ</span>
+                                <span>106°50'Đ</span>
+                                <span>107°00'Đ</span>
+                            </div>
+                        </div>
+
+                        <div id="ban_do_xem_truoc" class="w-full h-full" style="position: absolute; inset: 0;"></div>
+
+                        <div id="hop_chu_giai_in" class="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md p-2.5 rounded-lg shadow-xl border border-slate-300 z-[1000] max-w-[220px] transition-all">
+                            <h5 id="tieu_de_chu_giai_in" class="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                                Chú Giải Màu Sắc
+                            </h5>
+                            <div id="danh_sach_chu_giai_in" class="space-y-0.5 text-[10px] text-slate-700 font-medium"></div>
+                        </div>
+
+                        <div id="hop_thuoc_do_in" class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md p-2 rounded-lg shadow-xl border border-slate-300 z-[1000] flex items-center gap-2.5 text-xs transition-all">
+                            <div class="relative w-11 h-11 flex items-center justify-center flex-shrink-0">
+                                <span class="absolute -top-1 text-[8px] font-black text-rose-600">B</span>
+                                <span class="absolute -bottom-1 text-[7px] font-bold text-slate-600">N</span>
+                                <span class="absolute -left-0.5 text-[7px] font-bold text-slate-600">T</span>
+                                <span class="absolute -right-0.5 text-[7px] font-bold text-slate-600">Đ</span>
+                                <svg class="w-8 h-8 text-slate-800" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                    <circle cx="50" cy="50" r="3.5" fill="#1e293b"/>
+                                    <polygon points="50,12 45,47 50,44" fill="#e11d48"/>
+                                    <polygon points="50,12 55,47 50,44" fill="#f43f5e"/>
+                                    <polygon points="50,88 45,53 50,56" fill="#475569"/>
+                                    <polygon points="50,88 55,53 50,56" fill="#94a3b8"/>
+                                    <polygon points="12,50 47,45 44,50" fill="#64748b"/>
+                                    <polygon points="12,50 47,55 44,50" fill="#94a3b8"/>
+                                    <polygon points="88,50 53,45 56,50" fill="#475569"/>
+                                    <polygon points="88,50 53,55 56,50" fill="#64748b"/>
+                                </svg>
+                            </div>
+                            <div class="border-l border-slate-200 pl-2 space-y-0.5">
+                                <div class="flex items-center justify-between text-[9px] font-bold text-slate-800">
+                                    <span>TỈ LỆ:</span>
+                                    <span id="so_ti_le_in" class="text-indigo-700">1 : 150.000</span>
+                                </div>
+                                <div class="w-24 py-0.5">
+                                    <div class="flex justify-between text-[8px] font-bold text-slate-600 px-0.5">
+                                        <span>0</span>
+                                        <span>5</span>
+                                        <span id="nhan_km_cuoi_in">10 km</span>
+                                    </div>
+                                    <div class="flex h-1.5 w-full border border-slate-800 bg-white">
+                                        <div class="w-1/2 bg-slate-900 border-r border-slate-800"></div>
+                                        <div class="w-1/2 bg-white"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-96 bg-white border-l border-slate-200 flex flex-col justify-between p-5 overflow-y-auto">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Khổ Giấy / Tỉ Lệ Xuất</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button type="button" onclick="thay_doi_kho_giay('a4_ngang')" id="nut_kho_a4_ngang" class="kho-btn py-2 px-3 rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-left transition-all flex items-center justify-between">
+                                <span>A4 Khổ Ngang</span>
+                                <span class="text-[10px] text-indigo-400">16:11</span>
+                            </button>
+                            <button type="button" onclick="thay_doi_kho_giay('man_hinh_rong')" id="nut_kho_man_hinh_rong" class="kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between">
+                                <span>Màn Hình Rộng</span>
+                                <span class="text-[10px] text-slate-400">16:9</span>
+                            </button>
+                            <button type="button" onclick="thay_doi_kho_giay('kho_vuong')" id="nut_kho_kho_vuong" class="kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between">
+                                <span>Khổ Vuông</span>
+                                <span class="text-[10px] text-slate-400">1:1</span>
+                            </button>
+                            <button type="button" onclick="thay_doi_kho_giay('a4_doc')" id="nut_kho_a4_doc" class="kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between">
+                                <span>A4 Khổ Dọc</span>
+                                <span class="text-[10px] text-slate-400">3:4</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">2. Tiêu Đề & Thông Tin In</label>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium block mb-1">Tiêu đề chính:</span>
+                                <input type="text" id="nhap_tieu_de_chinh" oninput="cap_nhat_van_ban_xem_truoc()" class="w-full text-xs font-bold rounded-lg border border-slate-300 py-1.5 px-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium block mb-1">Tên hệ thống / Nhãn tiêu đề trên:</span>
+                                <input type="text" id="nhap_co_quan" oninput="cap_nhat_van_ban_xem_truoc()" class="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium block mb-1">Phụ đề thời gian / ghi chú:</span>
+                                <input type="text" id="nhap_phu_de" oninput="cap_nhat_van_ban_xem_truoc()" class="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">3. Vị Trí Các Khối Chức Năng</label>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600 font-medium">Bảng chú giải màu:</span>
+                                <select id="chon_vi_tri_chu_giai" onchange="thay_doi_vi_tri_chu_giai(this.value)" class="text-xs rounded-lg border-slate-300 py-1 px-2 bg-slate-50 font-semibold border">
+                                    <option value="duoi_trai">Dưới cùng - Bên Trái</option>
+                                    <option value="duoi_phai">Dưới cùng - Bên Phải</option>
+                                    <option value="tren_phai">Trên cùng - Bên Phải</option>
+                                    <option value="an">Ẩn chú giải</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600 font-medium">La bàn & Thước đo:</span>
+                                <select id="chon_vi_tri_thuoc_do" onchange="thay_doi_vi_tri_thuoc_do(this.value)" class="text-xs rounded-lg border-slate-300 py-1 px-2 bg-slate-50 font-semibold border">
+                                    <option value="duoi_phai">Dưới cùng - Bên Phải</option>
+                                    <option value="duoi_trai">Dưới cùng - Bên Trái</option>
+                                    <option value="an">Ẩn la bàn & thước đo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">4. Căn Chỉnh Vị Trí Xem Trước</label>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="can_khung_xem_truoc('toan_tp')" class="flex-1 py-1.5 px-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                Vừa Khít TP.HCM
+                            </button>
+                            <button type="button" onclick="can_khung_xem_truoc('trung_tam')" class="flex-1 py-1.5 px-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                                Khu Trung Tâm
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">5. Độ Phân Giải Xuất</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="flex items-center gap-2 p-2 rounded-lg border border-indigo-200 bg-indigo-50/50 cursor-pointer">
+                                <input type="radio" name="do_phan_giai" value="2" checked class="text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <span class="font-bold text-slate-800 block text-xs">Siêu Nét (2x)</span>
+                                    <span class="text-[10px] text-slate-400">In ấn, trình chiếu</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer">
+                                <input type="radio" name="do_phan_giai" value="1" class="text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <span class="font-bold text-slate-800 block text-xs">Tiêu Chuẩn (1x)</span>
+                                    <span class="text-[10px] text-slate-400">Tải nhanh, web</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-between gap-3 mt-4">
+                    <button type="button" onclick="dong_popup_bo_cuc_ban_do()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all">
+                        Đóng
+                    </button>
+                    <button type="button" onclick="xuat_anh_theo_bo_cuc()" id="nut_xuat_anh_cuoi" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all text-xs flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>Xuất & Tải Bản Đồ (PNG)</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="{% static 'js/html2canvas-pro.min.js' %}"></script>
+<script>
+    if (typeof html2canvas === 'undefined') {
+        document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js"><\\/script>');
+    }
+</script>
+<script>
+    var ban_do_ban_tin_instance = null;
+    var lop_geojson_ban_tin = null;
+    var du_lieu_geojson_phuong = null;
+    var danh_sach_phuong_hien_tai = [];
+    var tu_dien_phuong_hien_tai = {};
+    var bieu_do_top_instance = null;
+    var bieu_do_tuong_quan_instance = null;
+    var ban_do_xem_truoc_instance = null;
+    var lop_du_lieu_xem_truoc = null;
+
+    var thang_mau_ban_tin = {
+        'LST': {
+            min: 25,
+            max: 39,
+            mau: ["#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"],
+            nhan: [
+                { mau: "#FF0000", chu: "> 36.0 °C (Rất nóng)" },
+                { mau: "#FF6600", chu: "34.0 – 36.0 °C (Nóng)" },
+                { mau: "#FFCC00", chu: "32.0 – 34.0 °C (Khá nóng)" },
+                { mau: "#FFFF00", chu: "30.0 – 32.0 °C (Trung bình)" },
+                { mau: "#00FF00", chu: "28.0 – 30.0 °C (Mát mẻ)" },
+                { mau: "#0066FF", chu: "< 28.0 °C (Rất mát)" }
+            ]
+        },
+        'NDVI': {
+            min: 0.1,
+            max: 0.7,
+            mau: ["#FF0000", "#FF7F00", "#FFFF00", "#ADFF2F", "#00CC00", "#006600"],
+            nhan: [
+                { mau: "#006600", chu: "> 0.50 (Rừng / Thực vật dày)" },
+                { mau: "#00CC00", chu: "0.35 – 0.50 (Cây xanh tốt)" },
+                { mau: "#ADFF2F", chu: "0.25 – 0.35 (Trung bình)" },
+                { mau: "#FFFF00", chu: "0.18 – 0.25 (Thưa thớt)" },
+                { mau: "#FF0000", chu: "< 0.18 (Rất ít cây xanh)" }
+            ]
+        },
+        'TVDI': {
+            min: 0.2,
+            max: 0.9,
+            mau: ["#066b00", "#00cc00", "#ffff00", "#ffcc00", "#ff6600", "#ff0000"],
+            nhan: [
+                { mau: "#ff0000", chu: "> 0.75 (Khô hạn gay gắt)" },
+                { mau: "#ff6600", chu: "0.65 – 0.75 (Khô hạn cao)" },
+                { mau: "#ffcc00", chu: "0.50 – 0.65 (Hơi khô)" },
+                { mau: "#00cc00", chu: "0.35 – 0.50 (Độ ẩm tốt)" },
+                { mau: "#066b00", chu: "< 0.35 (Ẩm ướt)" }
+            ]
+        },
+        'NDBI': {
+            min: -0.35,
+            max: 0.25,
+            mau: ["#1a9850", "#91cf60", "#d9ef8b", "#fee08b", "#fc8d59", "#d73027"],
+            nhan: [
+                { mau: "#d73027", chu: "> 0.10 (Đô thị dày đặc)" },
+                { mau: "#fc8d59", chu: "0.00 – 0.10 (Xây dựng cao)" },
+                { mau: "#fee08b", chu: "-0.10 – 0.00 (Bán đô thị)" },
+                { mau: "#91cf60", chu: "-0.20 – -0.10 (Ít xây dựng)" },
+                { mau: "#1a9850", chu: "< -0.20 (Tự nhiên / Cây xanh)" }
+            ]
+        },
+        'NDWI': {
+            min: -0.5,
+            max: 0.4,
+            mau: ["#d73027", "#fdae61", "#ffffbf", "#abd9e9", "#74add1", "#313695"],
+            nhan: [
+                { mau: "#313695", chu: "> 0.15 (Mặt nước / Sông hồ)" },
+                { mau: "#74add1", chu: "0.00 – 0.15 (Độ ẩm rất cao)" },
+                { mau: "#abd9e9", chu: "-0.15 – 0.00 (Ẩm trung bình)" },
+                { mau: "#fdae61", chu: "-0.30 – -0.15 (Khô ráo)" },
+                { mau: "#d73027", chu: "< -0.30 (Bề mặt rất khô)" }
+            ]
+        }
+    };
+
+    function noi_suy_mau_ban_tin(gia_tri, ma_chi_so) {
+        if (gia_tri === null || gia_tri === undefined || isNaN(gia_tri)) return '#cbd5e1';
+        var ch = thang_mau_ban_tin[ma_chi_so] || thang_mau_ban_tin['LST'];
+        var t = (gia_tri - ch.min) / (ch.max - ch.min);
+        t = Math.max(0, Math.min(1, t));
+        var idx = Math.min(ch.mau.length - 1, Math.floor(t * ch.mau.length));
+        return ch.mau[idx];
+    }
+
+    function phan_cap_canh_bao(phuong) {
+        var lst = phuong.LST !== null ? phuong.LST : 0;
+        var tvdi = phuong.TVDI !== null ? phuong.TVDI : 0;
+        if (lst >= 34.0 || tvdi >= 0.65) {
+            return { ma: 'CAO', nhan: 'Cảnh báo Đảo nhiệt / Khô hạn', lop: 'bg-rose-100 text-rose-800 border-rose-200' };
+        }
+        if (lst >= 31.0 || tvdi >= 0.50) {
+            return { ma: 'TRUNG_BINH', nhan: 'Theo dõi Trung bình', lop: 'bg-amber-100 text-amber-800 border-amber-200' };
+        }
+        return { ma: 'TOT', nhan: 'An toàn / Sinh thái tốt', lop: 'bg-emerald-100 text-emerald-800 border-emerald-200' };
+    }
+
+    document.addEventListener("DOMContentLoaded", function() {
+        ban_do_ban_tin_instance = L.map('ban_do_ban_tin', {
+            zoomControl: true,
+            attributionControl: false,
+            preferCanvas: true
+        }).setView([10.7769, 106.7009], 10);
+
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 16,
+            crossOrigin: true
+        }).addTo(ban_do_ban_tin_instance);
+
+        fetch('/api/wards/geojson/')
+            .then(function(r) { return r.json(); })
+            .then(function(geojson) {
+                du_lieu_geojson_phuong = geojson;
+                tai_du_lieu_ban_tin();
+            });
+    });
+
+    function tai_du_lieu_ban_tin() {
+        var nam = document.getElementById('chon_nam_ban_tin').value;
+        var mua = document.getElementById('chon_mua_ban_tin').value;
+        var ten_mua = mua === 'dry' ? 'Mùa khô (Tháng 1 - Tháng 5)' : (mua === 'rain' ? 'Mùa mưa (Tháng 6 - Tháng 11)' : 'Cả năm (Trung bình)');
+        document.getElementById('phu_de_ky_ban_tin').textContent = 'Kỳ báo cáo: Năm ' + nam + ' • ' + ten_mua + ' • Phạm vi: 167 Phường/Xã TP. Hồ Chí Minh • Hệ tọa độ: WGS-84';
+
+        fetch('/api/danh-sach-phuong-xep-hang/?nam=' + encodeURIComponent(nam) + '&mua=' + encodeURIComponent(mua))
+            .then(function(r) { return r.json(); })
+            .then(function(ket_qua) {
+                danh_sach_phuong_hien_tai = ket_qua.xep_hang_lst || [];
+                tu_dien_phuong_hien_tai = {};
+                danh_sach_phuong_hien_tai.forEach(function(p) {
+                    tu_dien_phuong_hien_tai[p.ma_xa] = p;
+                });
+
+                cap_nhat_kpi_va_nhan_dinh(nam, ten_mua);
+                cap_nhat_mau_ban_do_ban_tin();
+                ve_cac_bieu_do_ban_tin();
+                ve_bang_ban_tin();
+            });
+    }
+
+    function cap_nhat_kpi_va_nhan_dinh(nam, ten_mua) {
+        var mang_lst = danh_sach_phuong_hien_tai.map(function(p) { return p.LST; }).filter(function(v) { return v !== null; });
+        var mang_ndvi = danh_sach_phuong_hien_tai.map(function(p) { return p.NDVI; }).filter(function(v) { return v !== null; });
+        var mang_tvdi = danh_sach_phuong_hien_tai.map(function(p) { return p.TVDI; }).filter(function(v) { return v !== null; });
+
+        var tb_lst = mang_lst.reduce(function(a, b) { return a + b; }, 0) / (mang_lst.length || 1);
+        var tb_ndvi = mang_ndvi.reduce(function(a, b) { return a + b; }, 0) / (mang_ndvi.length || 1);
+        var tb_tvdi = mang_tvdi.reduce(function(a, b) { return a + b; }, 0) / (mang_tvdi.length || 1);
+
+        var min_lst = Math.min.apply(null, mang_lst);
+        var max_lst = Math.max.apply(null, mang_lst);
+        var min_ndvi = Math.min.apply(null, mang_ndvi);
+        var max_ndvi = Math.max.apply(null, mang_ndvi);
+        var min_tvdi = Math.min.apply(null, mang_tvdi);
+        var max_tvdi = Math.max.apply(null, mang_tvdi);
+
+        var so_canh_bao = danh_sach_phuong_hien_tai.filter(function(p) {
+            return phan_cap_canh_bao(p).ma === 'CAO';
+        }).length;
+
+        document.getElementById('kpi_lst_tb').textContent = tb_lst.toFixed(2) + ' °C';
+        document.getElementById('kpi_lst_cuc_tri').textContent = 'Biên độ: ' + min_lst.toFixed(2) + ' đến ' + max_lst.toFixed(2) + ' °C';
+        document.getElementById('kpi_ndvi_tb').textContent = tb_ndvi.toFixed(3);
+        document.getElementById('kpi_ndvi_cuc_tri').textContent = 'Biên độ: ' + min_ndvi.toFixed(3) + ' đến ' + max_ndvi.toFixed(3);
+        document.getElementById('kpi_tvdi_tb').textContent = tb_tvdi.toFixed(3);
+        document.getElementById('kpi_tvdi_cuc_tri').textContent = 'Biên độ: ' + min_tvdi.toFixed(3) + ' đến ' + max_tvdi.toFixed(3);
+        document.getElementById('kpi_so_phuong_canh_bao').textContent = so_canh_bao + ' / ' + danh_sach_phuong_hien_tai.length;
+
+        var phuong_nong_nhat = danh_sach_phuong_hien_tai[0] || { ten_xa: '--', LST: 0, TVDI: 0, NDVI: 0 };
+        var phuong_mat_nhat = danh_sach_phuong_hien_tai[danh_sach_phuong_hien_tai.length - 1] || { ten_xa: '--', LST: 0, TVDI: 0, NDVI: 0 };
+        var chenh_lech_uhi = (phuong_nong_nhat.LST - phuong_mat_nhat.LST).toFixed(2);
+
+        document.getElementById('noi_dung_nhan_dinh_ban_tin').innerHTML =
+            'Trong kỳ giám sát <strong>Năm ' + nam + ' (' + ten_mua + ')</strong> trên toàn bộ <strong>167 xã/phường</strong> tại TP.HCM, nhiệt độ bề mặt đất trung bình đạt <strong>' + tb_lst.toFixed(2) + ' °C</strong>, chỉ số lớp phủ thực vật (NDVI) đạt <strong>' + tb_ndvi.toFixed(3) + '</strong> và chỉ số khô hạn bề mặt (TVDI) đạt <strong>' + tb_tvdi.toFixed(3) + '</strong>. ' +
+            'Khu vực ghi nhận cường độ nhiệt và khô hạn cao nhất là <strong>' + phuong_nong_nhat.ten_xa + '</strong> (LST = ' + phuong_nong_nhat.LST.toFixed(2) + ' °C, TVDI = ' + phuong_nong_nhat.TVDI.toFixed(3) + ', NDVI = ' + phuong_nong_nhat.NDVI.toFixed(3) + '), trong khi khu vực điều hòa sinh thái mát nhất là <strong>' + phuong_mat_nhat.ten_xa + '</strong> (LST = ' + phuong_mat_nhat.LST.toFixed(2) + ' °C, NDVI = ' + phuong_mat_nhat.NDVI.toFixed(3) + '), tạo ra biên độ đảo nhiệt đô thị (UHI) ở mức <strong>+' + chenh_lech_uhi + ' °C</strong>. ' +
+            'Toàn thành phố hiện có <strong>' + so_canh_bao + '/167 đơn vị hành chính</strong> nằm trong ngưỡng cảnh báo đảo nhiệt và khô hạn cao cần ưu tiên tăng cường mảng xanh và mặt nước điều hòa.';
+    }
+
+    function cap_nhat_mau_ban_do_ban_tin() {
+        if (!ban_do_ban_tin_instance || !du_lieu_geojson_phuong) return;
+        var ma_chi_so = document.getElementById('chon_chi_so_ban_do').value;
+        var bang_ten_ban_do = {
+            'LST': 'Bản Đồ Phân Bố Nhiệt Độ Bề Mặt (LST °C)',
+            'NDVI': 'Bản Đồ Lớp Phủ Thực Vật (NDVI)',
+            'TVDI': 'Bản Đồ Mức Độ Khô Hạn (TVDI)',
+            'NDBI': 'Bản Đồ Mật Độ Đất Xây Dựng (NDBI)',
+            'NDWI': 'Bản Đồ Chỉ Số Nước Bề Mặt (NDWI)'
+        };
+        var ten_ban_do = bang_ten_ban_do[ma_chi_so] || bang_ten_ban_do['LST'];
+        document.getElementById('tieu_de_ban_do_ban_tin').textContent = ten_ban_do;
+
+        if (lop_geojson_ban_tin) {
+            ban_do_ban_tin_instance.removeLayer(lop_geojson_ban_tin);
+        }
+
+        lop_geojson_ban_tin = L.geoJSON(du_lieu_geojson_phuong, {
+            style: function(dac_trung) {
+                var ma_xa = dac_trung.properties.maXa;
+                var p = tu_dien_phuong_hien_tai[ma_xa];
+                var gia_tri = p ? p[ma_chi_so] : null;
+                return {
+                    fillColor: noi_suy_mau_ban_tin(gia_tri, ma_chi_so),
+                    weight: 0.8,
+                    opacity: 0.9,
+                    color: '#334155',
+                    fillOpacity: 0.85
+                };
+            },
+            onEachFeature: function(dac_trung, lop) {
+                var ma_xa = dac_trung.properties.maXa;
+                var p = tu_dien_phuong_hien_tai[ma_xa];
+                if (p) {
+                    lop.bindTooltip(
+                        '<strong>' + p.ten_xa + '</strong><br>LST: ' + p.LST + ' °C | NDVI: ' + p.NDVI + ' | TVDI: ' + p.TVDI,
+                        { sticky: true }
+                    );
+                }
+            }
+        }).addTo(ban_do_ban_tin_instance);
+
+        ban_do_ban_tin_instance.fitBounds(lop_geojson_ban_tin.getBounds(), { padding: [15, 15] });
+
+        var ch = thang_mau_ban_tin[ma_chi_so] || thang_mau_ban_tin['LST'];
+        var html_chu_giai = '<div class="font-bold text-slate-800 uppercase mb-1">Chú giải ' + ma_chi_so + '</div>';
+        ch.nhan.forEach(function(muc) {
+            html_chu_giai += '<div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm inline-block border border-slate-400" style="background:' + muc.mau + '"></span><span>' + muc.chu + '</span></div>';
+        });
+        document.getElementById('chu_giai_ban_do_ban_tin').innerHTML = html_chu_giai;
+    }
+
+    function mo_popup_bo_cuc_ban_do() {
+        var ma_chi_so = document.getElementById('chon_chi_so_ban_do').value;
+        var nam_dang_chon = document.getElementById('chon_nam_ban_tin').value;
+        var mua_dang_chon = document.getElementById('chon_mua_ban_tin').value;
+        var tieu_de_chinh = document.getElementById('tieu_de_ban_do_ban_tin').textContent.trim().toUpperCase() + ' - TP. HỒ CHÍ MINH';
+        document.getElementById('nhap_tieu_de_chinh').value = tieu_de_chinh;
+        document.getElementById('nhap_co_quan').value = "HỆ THỐNG GIÁM SÁT NHIỆT ĐỘ BỀ MẶT – LỚP PHỦ THỰC VẬT – MỨC ĐỘ KHÔ HẠN TẠI TP.HCM";
+
+        var chuoi_mua = "Cả năm (Tính trung bình)";
+        if (mua_dang_chon === 'dry') chuoi_mua = "Mùa khô (Tháng 1 - Tháng 5)";
+        else if (mua_dang_chon === 'rain') chuoi_mua = "Mùa mưa (Tháng 6 - Tháng 11)";
+        var chuoi_phu_de = "Năm " + nam_dang_chon + " • " + chuoi_mua + " • Đầy đủ 167 Phường/Xã TP.HCM";
+        document.getElementById('nhap_phu_de').value = chuoi_phu_de;
+
+        cap_nhat_van_ban_xem_truoc();
+
+        var ten_chi_so = 'Nhiệt độ bề mặt (LST °C)';
+        if (ma_chi_so === 'NDVI') ten_chi_so = 'Chỉ số thực vật (NDVI)';
+        else if (ma_chi_so === 'TVDI') ten_chi_so = 'Chỉ số khô hạn (TVDI)';
+        else if (ma_chi_so === 'NDBI') ten_chi_so = 'Chỉ số đất xây dựng (NDBI)';
+        else if (ma_chi_so === 'NDWI') ten_chi_so = 'Chỉ số nước bề mặt (NDWI)';
+        document.getElementById('tieu_de_chu_giai_in').innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-600"></span> Chú giải ' + ten_chi_so;
+
+        var ch = thang_mau_ban_tin[ma_chi_so] || thang_mau_ban_tin['LST'];
+        var html_muc_in = '';
+        ch.nhan.forEach(function(muc) {
+            html_muc_in += '<div class="flex items-center gap-1.5"><span class="w-3 h-3 rounded-sm inline-block border border-slate-400" style="background:' + muc.mau + '"></span><span>' + muc.chu + '</span></div>';
+        });
+        document.getElementById('danh_sach_chu_giai_in').innerHTML = html_muc_in;
+
+        document.getElementById('popup_bo_cuc_ban_do').classList.remove('hidden');
+
+        setTimeout(function() {
+            if (!ban_do_xem_truoc_instance) {
+                ban_do_xem_truoc_instance = L.map('ban_do_xem_truoc', {
+                    zoomControl: true,
+                    minZoom: 8,
+                    preferCanvas: true
+                });
+
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '',
+                    maxZoom: 16,
+                    crossOrigin: true
+                }).addTo(ban_do_xem_truoc_instance);
+            }
+
+            if (lop_du_lieu_xem_truoc) {
+                ban_do_xem_truoc_instance.removeLayer(lop_du_lieu_xem_truoc);
+            }
+
+            if (du_lieu_geojson_phuong) {
+                lop_du_lieu_xem_truoc = L.geoJSON(du_lieu_geojson_phuong, {
+                    style: function(dac_trung) {
+                        var ma_xa = dac_trung.properties.maXa;
+                        var thong_tin = tu_dien_phuong_hien_tai[ma_xa];
+                        var gia_tri = thong_tin ? thong_tin[ma_chi_so] : null;
+                        return {
+                            fillColor: noi_suy_mau_ban_tin(gia_tri, ma_chi_so),
+                            weight: 0.8,
+                            opacity: 0.9,
+                            color: '#374151',
+                            fillOpacity: 0.85
+                        };
+                    }
+                }).addTo(ban_do_xem_truoc_instance);
+            }
+
+            ban_do_xem_truoc_instance.invalidateSize();
+            if (lop_du_lieu_xem_truoc) {
+                ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+            } else {
+                ban_do_xem_truoc_instance.setView([10.776, 106.698], 10);
+            }
+            setTimeout(function() {
+                if (ban_do_xem_truoc_instance) {
+                    ban_do_xem_truoc_instance.invalidateSize();
+                    if (lop_du_lieu_xem_truoc) {
+                        ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+                    }
+                }
+            }, 80);
+        }, 150);
+    }
+
+    function dong_popup_bo_cuc_ban_do() {
+        document.getElementById('popup_bo_cuc_ban_do').classList.add('hidden');
+    }
+
+    function thay_doi_kho_giay(loai_kho) {
+        var khung = document.getElementById('khung_trang_xuat');
+        var cac_nut = document.querySelectorAll('.kho-btn');
+        cac_nut.forEach(function(nut) {
+            nut.className = "kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between";
+        });
+        var nut_chon = document.getElementById('nut_kho_' + loai_kho);
+        if (nut_chon) {
+            nut_chon.className = "kho-btn py-2 px-3 rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-left transition-all flex items-center justify-between";
+        }
+
+        if (loai_kho === 'a4_ngang') {
+            khung.style.width = '820px';
+            khung.style.height = '580px';
+        } else if (loai_kho === 'man_hinh_rong') {
+            khung.style.width = '880px';
+            khung.style.height = '495px';
+        } else if (loai_kho === 'kho_vuong') {
+            khung.style.width = '600px';
+            khung.style.height = '600px';
+        } else if (loai_kho === 'a4_doc') {
+            khung.style.width = '520px';
+            khung.style.height = '680px';
+        }
+
+        setTimeout(function() {
+            if (ban_do_xem_truoc_instance) {
+                ban_do_xem_truoc_instance.invalidateSize();
+                if (lop_du_lieu_xem_truoc) {
+                    ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+                }
+            }
+        }, 120);
+    }
+
+    function thay_doi_vi_tri_chu_giai(vi_tri) {
+        var hop = document.getElementById('hop_chu_giai_in');
+        hop.className = "absolute p-2.5 rounded-lg shadow-xl border border-slate-300 z-[1000] max-w-[220px] transition-all bg-white/95 backdrop-blur-md ";
+        if (vi_tri === 'duoi_trai') {
+            hop.className += "bottom-3 left-3 block";
+        } else if (vi_tri === 'duoi_phai') {
+            hop.className += "bottom-3 right-3 block";
+        } else if (vi_tri === 'tren_phai') {
+            hop.className += "top-3 right-3 block";
+        } else {
+            hop.className += "hidden";
+        }
+    }
+
+    function thay_doi_vi_tri_thuoc_do(vi_tri) {
+        var hop = document.getElementById('hop_thuoc_do_in');
+        hop.className = "absolute p-2 rounded-lg shadow-xl border border-slate-300 z-[1000] items-center gap-2.5 text-xs transition-all bg-white/95 backdrop-blur-md ";
+        if (vi_tri === 'duoi_phai') {
+            hop.className += "bottom-3 right-3 flex";
+        } else if (vi_tri === 'duoi_trai') {
+            hop.className += "bottom-3 left-3 flex";
+        } else {
+            hop.className += "hidden";
+        }
+    }
+
+    function cap_nhat_van_ban_xem_truoc() {
+        document.getElementById('chu_tieu_de_in').textContent = document.getElementById('nhap_tieu_de_chinh').value;
+        document.getElementById('chu_co_quan_in').textContent = document.getElementById('nhap_co_quan').value;
+        document.getElementById('chu_phu_de_in').textContent = document.getElementById('nhap_phu_de').value;
+    }
+
+    function can_khung_xem_truoc(che_do) {
+        if (!ban_do_xem_truoc_instance) return;
+        ban_do_xem_truoc_instance.invalidateSize();
+        if (che_do === 'toan_tp') {
+            if (lop_du_lieu_xem_truoc) {
+                ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+            }
+        } else if (che_do === 'trung_tam') {
+            ban_do_xem_truoc_instance.setView([10.776, 106.698], 12);
+        }
+    }
+
+    function lay_toa_do_dich_chuyen(phan_tu) {
+        if (!phan_tu) return { x: 0, y: 0 };
+        if (phan_tu._leaflet_pos) {
+            return { x: phan_tu._leaflet_pos.x, y: phan_tu._leaflet_pos.y };
+        }
+        var phong_cach = window.getComputedStyle(phan_tu);
+        var chuoi_transform = phong_cach.transform || phan_tu.style.transform;
+        if (!chuoi_transform || chuoi_transform === 'none') {
+            return { x: 0, y: 0 };
+        }
+        var khop_3d = chuoi_transform.match(/translate3d\(([-0-9.]+)px,\s*([-0-9.]+)px/);
+        if (khop_3d) {
+            return { x: parseFloat(khop_3d[1]), y: parseFloat(khop_3d[2]) };
+        }
+        var khop_2d = chuoi_transform.match(/translate\(([-0-9.]+)px,\s*([-0-9.]+)px/);
+        if (khop_2d) {
+            return { x: parseFloat(khop_2d[1]), y: parseFloat(khop_2d[2]) };
+        }
+        var khop_ma_tran = chuoi_transform.match(/matrix.*\((.+)\)/);
+        if (khop_ma_tran) {
+            var gia_tri = khop_ma_tran[1].split(',').map(function(s) { return parseFloat(s.trim()); });
+            if (gia_tri.length === 6) {
+                return { x: gia_tri[4], y: gia_tri[5] };
+            } else if (gia_tri.length === 16) {
+                return { x: gia_tri[12], y: gia_tri[13] };
+            }
+        }
+        return { x: 0, y: 0 };
+    }
+
+    function xuat_anh_theo_bo_cuc() {
+        var nut_xuat = document.getElementById('nut_xuat_anh_cuoi');
+        var noi_dung_goc = nut_xuat.innerHTML;
+        nut_xuat.disabled = true;
+        nut_xuat.innerHTML = '<svg class="animate-spin w-4 h-4 text-white inline-block mr-1.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xuất ảnh...';
+
+        var phan_tu_chup = document.getElementById('khung_trang_xuat');
+        var lua_chon_do_net = document.querySelector('input[name="do_phan_giai"]:checked');
+        var ty_le_net = lua_chon_do_net ? parseInt(lua_chon_do_net.value, 10) : 2;
+        var chieu_rong_chup = phan_tu_chup.offsetWidth;
+        var chieu_cao_chup = phan_tu_chup.offsetHeight;
+        var ma_chi_so = document.getElementById('chon_chi_so_ban_do').value;
+        var nam_dang_chon = document.getElementById('chon_nam_ban_tin').value;
+        var mua_dang_chon = document.getElementById('chon_mua_ban_tin').value;
+
+        html2canvas(phan_tu_chup, {
+            useCORS: true,
+            allowTaint: false,
+            foreignObjectRendering: false,
+            scale: ty_le_net,
+            backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: 0,
+            width: chieu_rong_chup,
+            height: chieu_cao_chup,
+            windowWidth: chieu_rong_chup,
+            windowHeight: chieu_cao_chup,
+            onclone: function(tai_lieu_nhan_ban) {
+                var nut_zoom = tai_lieu_nhan_ban.querySelector('#ban_do_xem_truoc .leaflet-control-zoom');
+                if (nut_zoom) nut_zoom.style.display = 'none';
+
+                var khung_in_clone = tai_lieu_nhan_ban.getElementById('khung_trang_xuat');
+                if (khung_in_clone) khung_in_clone.style.transition = 'none';
+
+                var ban_do_goc = document.getElementById('ban_do_xem_truoc');
+                if (!ban_do_goc) return;
+
+                var map_pane_goc = ban_do_goc.querySelector('.leaflet-map-pane');
+                var map_pane_clone = tai_lieu_nhan_ban.querySelector('#ban_do_xem_truoc .leaflet-map-pane');
+                if (map_pane_goc && map_pane_clone) {
+                    var toa_do_pane = lay_toa_do_dich_chuyen(map_pane_goc);
+                    map_pane_clone.style.transform = 'none';
+                    map_pane_clone.style.left = toa_do_pane.x + 'px';
+                    map_pane_clone.style.top = toa_do_pane.y + 'px';
+                }
+
+                var cac_container_goc = ban_do_goc.querySelectorAll('.leaflet-tile-container');
+                var cac_container_clone = tai_lieu_nhan_ban.querySelectorAll('#ban_do_xem_truoc .leaflet-tile-container');
+                for (var i = 0; i < cac_container_goc.length && i < cac_container_clone.length; i++) {
+                    var toa_do_cnt = lay_toa_do_dich_chuyen(cac_container_goc[i]);
+                    cac_container_clone[i].style.transform = 'none';
+                    cac_container_clone[i].style.left = toa_do_cnt.x + 'px';
+                    cac_container_clone[i].style.top = toa_do_cnt.y + 'px';
+                }
+
+                var cac_tile_goc = ban_do_goc.querySelectorAll('.leaflet-tile');
+                var cac_tile_clone = tai_lieu_nhan_ban.querySelectorAll('#ban_do_xem_truoc .leaflet-tile');
+                for (var j = 0; j < cac_tile_goc.length && j < cac_tile_clone.length; j++) {
+                    var toa_do_tile = lay_toa_do_dich_chuyen(cac_tile_goc[j]);
+                    cac_tile_clone[j].style.transform = 'none';
+                    cac_tile_clone[j].style.left = toa_do_tile.x + 'px';
+                    cac_tile_clone[j].style.top = toa_do_tile.y + 'px';
+                }
+
+                var cac_overlay_goc = ban_do_goc.querySelectorAll('.leaflet-overlay-pane > canvas, .leaflet-overlay-pane > svg');
+                var cac_overlay_clone = tai_lieu_nhan_ban.querySelectorAll('#ban_do_xem_truoc .leaflet-overlay-pane > canvas, #ban_do_xem_truoc .leaflet-overlay-pane > svg');
+                for (var k = 0; k < cac_overlay_goc.length && k < cac_overlay_clone.length; k++) {
+                    var toa_do_ov = lay_toa_do_dich_chuyen(cac_overlay_goc[k]);
+                    cac_overlay_clone[k].style.transform = 'none';
+                    cac_overlay_clone[k].style.left = toa_do_ov.x + 'px';
+                    cac_overlay_clone[k].style.top = toa_do_ov.y + 'px';
+                }
+            }
+        }).then(function(canvas_ket_qua) {
+            nut_xuat.disabled = false;
+            nut_xuat.innerHTML = noi_dung_goc;
+
+            var chuoi_mua_tep = mua_dang_chon === 'dry' ? 'MuaNang' : (mua_dang_chon === 'rain' ? 'MuaMua' : 'CaNam');
+            var ten_tep = 'Ban_Do_' + ma_chi_so + '_TPHCM_' + nam_dang_chon + '_' + chuoi_mua_tep + '.png';
+
+            if (canvas_ket_qua.toBlob) {
+                canvas_ket_qua.toBlob(function(du_lieu_blob) {
+                    if (!du_lieu_blob) {
+                        fallback_tai_tep(canvas_ket_qua, ten_tep);
+                        return;
+                    }
+                    var duong_dan_tam = URL.createObjectURL(du_lieu_blob);
+                    var the_tai = document.createElement('a');
+                    the_tai.download = ten_tep;
+                    the_tai.href = duong_dan_tam;
+                    document.body.appendChild(the_tai);
+                    the_tai.click();
+                    document.body.removeChild(the_tai);
+                    setTimeout(function() {
+                        URL.revokeObjectURL(duong_dan_tam);
+                    }, 1500);
+                }, 'image/png');
+            } else {
+                fallback_tai_tep(canvas_ket_qua, ten_tep);
+            }
+        }).catch(function() {
+            nut_xuat.disabled = false;
+            nut_xuat.innerHTML = noi_dung_goc;
+            alert("Lỗi khi xuất ảnh bản đồ. Vui lòng thử lại!");
+        });
+    }
+
+    function fallback_tai_tep(canvas, ten_tep) {
+        try {
+            var lien_ket = document.createElement('a');
+            lien_ket.download = ten_tep;
+            lien_ket.href = canvas.toDataURL('image/png');
+            document.body.appendChild(lien_ket);
+            lien_ket.click();
+            document.body.removeChild(lien_ket);
+        } catch (loi) {
+            alert("Không thể lưu ảnh tự động: Canvas bị chặn");
+        }
+    }
+
+    function ve_cac_bieu_do_ban_tin() {
+        var top_10 = danh_sach_phuong_hien_tai.slice(0, 10);
+        var nhan_top = top_10.map(function(p) { return p.ten_xa.replace('Phường ', 'P. ').replace('Xã ', 'X. '); });
+        var du_lieu_lst = top_10.map(function(p) { return p.LST; });
+        var du_lieu_tvdi = top_10.map(function(p) { return p.TVDI; });
+
+        if (bieu_do_top_instance) bieu_do_top_instance.destroy();
+        var ctx1 = document.getElementById('bieu_do_top_nong').getContext('2d');
+        bieu_do_top_instance = new Chart(ctx1, {
+            type: 'bar',
+            data: {
+                labels: nhan_top,
+                datasets: [
+                    {
+                        label: 'Nhiệt độ LST (°C)',
+                        data: du_lieu_lst,
+                        backgroundColor: 'rgba(225, 29, 72, 0.82)',
+                        borderRadius: 4,
+                        yAxisID: 'y'
+                    },
+                    {
+                        label: 'Chỉ số khô hạn TVDI',
+                        data: du_lieu_tvdi,
+                        type: 'line',
+                        borderColor: '#d97706',
+                        backgroundColor: '#f59e0b',
+                        borderWidth: 2,
+                        yAxisID: 'y1'
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { labels: { font: { size: 10 } } } },
+                scales: {
+                    x: { ticks: { font: { size: 9 } } },
+                    y: { position: 'left', min: 25, max: 40, ticks: { font: { size: 9 } } },
+                    y1: { position: 'right', min: 0, max: 1, grid: { drawOnChartArea: false }, ticks: { font: { size: 9 } } }
+                }
+            }
+        });
+
+        var dem_cao = 0, dem_tb = 0, dem_tot = 0;
+        danh_sach_phuong_hien_tai.forEach(function(p) {
+            var m = phan_cap_canh_bao(p).ma;
+            if (m === 'CAO') dem_cao++;
+            else if (m === 'TRUNG_BINH') dem_tb++;
+            else dem_tot++;
+        });
+
+        if (bieu_do_tuong_quan_instance) bieu_do_tuong_quan_instance.destroy();
+        var ctx2 = document.getElementById('bieu_do_tuong_quan_ban_tin').getContext('2d');
+        bieu_do_tuong_quan_instance = new Chart(ctx2, {
+            type: 'bar',
+            data: {
+                labels: ['Cảnh báo cao (LST≥34°C / TVDI≥0.65)', 'Theo dõi Trung bình (31–34°C)', 'An toàn / Sinh thái tốt (<31°C)'],
+                datasets: [{
+                    label: 'Số lượng Phường/Xã',
+                    data: [dem_cao, dem_tb, dem_tot],
+                    backgroundColor: ['rgba(225, 29, 72, 0.85)', 'rgba(245, 158, 11, 0.85)', 'rgba(16, 185, 129, 0.85)'],
+                    borderRadius: 6
+                }]
+            },
+            options: {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: { legend: { display: false } },
+                scales: {
+                    x: { beginAtZero: true, max: 167, ticks: { font: { size: 10 } } },
+                    y: { ticks: { font: { size: 10, weight: 'bold' } } }
+                }
+            }
+        });
+    }
+
+    function ve_bang_ban_tin() {
+        var muc_loc = document.getElementById('loc_muc_canh_bao').value;
+        var tu_khoa = (document.getElementById('tim_ten_phuong_ban_tin').value || '').toLowerCase().trim();
+        var than = document.getElementById('than_bang_ban_tin');
+        var html = '';
+
+        danh_sach_phuong_hien_tai.forEach(function(p, idx) {
+            var canh_bao = phan_cap_canh_bao(p);
+            if (muc_loc !== 'ALL' && canh_bao.ma !== muc_loc) return;
+            if (tu_khoa && p.ten_xa.toLowerCase().indexOf(tu_khoa) === -1 && p.ma_xa.toLowerCase().indexOf(tu_khoa) === -1) return;
+
+            html += '<tr class="hover:bg-slate-50">' +
+                '<td class="px-4 py-2 text-center font-bold text-slate-500">' + (idx + 1) + '</td>' +
+                '<td class="px-4 py-2 font-mono text-slate-500">' + p.ma_xa + '</td>' +
+                '<td class="px-4 py-2 font-bold text-slate-800">' + p.ten_xa + '</td>' +
+                '<td class="px-4 py-2 text-center font-extrabold text-rose-700">' + (p.LST !== null ? p.LST.toFixed(2) : '--') + '</td>' +
+                '<td class="px-4 py-2 text-center font-bold text-emerald-700">' + (p.NDVI !== null ? p.NDVI.toFixed(3) : '--') + '</td>' +
+                '<td class="px-4 py-2 text-center font-bold text-amber-700">' + (p.TVDI !== null ? p.TVDI.toFixed(3) : '--') + '</td>' +
+                '<td class="px-4 py-2 text-center text-slate-700">' + (p.NDBI !== null ? p.NDBI.toFixed(3) : '--') + '</td>' +
+                '<td class="px-4 py-2 text-center text-blue-700">' + (p.NDWI !== null ? p.NDWI.toFixed(3) : '--') + '</td>' +
+                '<td class="px-4 py-2 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ' + canh_bao.lop + '">' + canh_bao.nhan + '</span></td>' +
+            '</tr>';
+        });
+
+        than.innerHTML = html;
+    }
+
+    function in_bao_cao_pdf() {
+        window.print();
+    }
+
+    function xuat_anh_ban_tin() {
+        var nut = document.getElementById('nut_xuat_anh_ban_tin');
+        var goc = nut.innerHTML;
+        nut.disabled = true;
+        nut.innerHTML = 'Đang kết xuất ảnh...';
+        var khung = document.getElementById('khung_ban_tin_xuat');
+        var nam = document.getElementById('chon_nam_ban_tin').value;
+
+        html2canvas(khung, {
+            useCORS: true,
+            scale: 2,
+            backgroundColor: '#ffffff'
+        }).then(function(canvas) {
+            nut.disabled = false;
+            nut.innerHTML = goc;
+            var the_a = document.createElement('a');
+            the_a.download = 'Ban_Tin_Giam_Sat_LST_NDVI_TVDI_TPHCM_' + nam + '.png';
+            the_a.href = canvas.toDataURL('image/png');
+            document.body.appendChild(the_a);
+            the_a.click();
+            document.body.removeChild(the_a);
+        }).catch(function() {
+            nut.disabled = false;
+            nut.innerHTML = goc;
+            alert('Không thể xuất ảnh bản tin. Hãy sử dụng nút In / Xuất PDF (A4).');
+        });
+    }
+
+    function xuat_csv_ban_tin() {
+        var nam = document.getElementById('chon_nam_ban_tin').value;
+        var mua = document.getElementById('chon_mua_ban_tin').value;
+        var dong_csv = ["Hang,Ma_Xa,Ten_Phuong_Xa,LST_C,NDVI,TVDI,NDBI,NDWI,Phan_Cap_Canh_Bao"];
+        danh_sach_phuong_hien_tai.forEach(function(p, idx) {
+            var cb = phan_cap_canh_bao(p).nhan;
+            dong_csv.push([
+                idx + 1,
+                p.ma_xa,
+                '"' + p.ten_xa + '"',
+                p.LST !== null ? p.LST.toFixed(3) : '',
+                p.NDVI !== null ? p.NDVI.toFixed(4) : '',
+                p.TVDI !== null ? p.TVDI.toFixed(4) : '',
+                p.NDBI !== null ? p.NDBI.toFixed(4) : '',
+                p.NDWI !== null ? p.NDWI.toFixed(4) : '',
+                '"' + cb + '"'
+            ].join(','));
+        });
+        var blob = new Blob(["\ufeff" + dong_csv.join("\n")], { type: 'text/csv;charset=utf-8;' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'Bao_Cao_So_Lieu_167_Phuong_TPHCM_' + nam + '_' + mua + '.csv';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+
+    function xuat_bao_cao_word() {
+        var nam = document.getElementById('chon_nam_ban_tin').value;
+        var phu_de = document.getElementById('phu_de_ky_ban_tin').textContent;
+        var nhan_dinh = document.getElementById('noi_dung_nhan_dinh_ban_tin').innerHTML;
+        var bang_html = document.getElementById('bang_so_lieu_ban_tin').outerHTML;
+
+        var noi_dung_word =
+            '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
+            '<head><meta charset="utf-8"><title>Báo Cáo Giám Sát TP.HCM</title>' +
+            '<style>body{font-family:"Times New Roman",serif;font-size:12pt;} h1{font-size:15pt;text-align:center;text-transform:uppercase;} p{text-align:justify;line-height:1.4;} table{border-collapse:collapse;width:100%;font-size:10.5pt;} th,td{border:1px solid #333;padding:5px;text-align:center;} th{background:#e2e8f0;}</style>' +
+            '</head><body>' +
+            '<h1>HỆ THỐNG GIÁM SÁT NHIỆT ĐỘ BỀ MẶT – LỚP PHỦ THỰC VẬT – MỨC ĐỘ KHÔ HẠN TẠI TP.HCM</h1>' +
+            '<p style="text-align:center;font-weight:bold;">' + phu_de + '</p>' +
+            '<h3>1. Nhận định tổng hợp & Cảnh báo</h3>' +
+            '<p>' + nhan_dinh + '</p>' +
+            '<h3>2. Bảng thống kê giám sát chi tiết 167 Phường/Xã</h3>' +
+            bang_html +
+            '</body></html>';
+
+        var blob = new Blob(['\ufeff', noi_dung_word], { type: 'application/msword' });
+        var url = URL.createObjectURL(blob);
+        var a = document.createElement('a');
+        a.href = url;
+        a.download = 'Ban_Tin_Bao_Cao_Giam_Sat_TPHCM_' + nam + '.doc';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+    }
+</script>
+{% endblock %}
+

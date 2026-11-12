@@ -53,6 +53,9 @@ def home_view(request):
     datasets = GEEDataRequest.DATASET_CHOICES
     
     if request.method == 'POST':
+        if not request.session.get('la_admin', False):
+            messages.error(request, 'Chức năng tải dữ liệu từ Google Earth Engine chỉ dành cho Quản trị viên (Admin). Vui lòng đăng nhập quyền Admin để thực hiện.')
+            return redirect('home')
         ward_names_input = request.POST.get('ward_names')
         dataset = request.POST.get('dataset')
         start_date = request.POST.get('start_date')
@@ -455,93 +458,252 @@ def api_get_time_series(request, req_id):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 def api_get_all_wards(request):
-    wards = Ward.objects.all()
-    features = []
-    for ward in wards:
-        # Ignore pseudo-wards (CTM_) that are combinations of multiple wards
-        if ward.ma_xa.startswith('CTM_'):
-            continue
-        features.append({
+    danh_sach_phuong = Ward.objects.exclude(ma_xa__startswith='CTM_').exclude(ten_xa__icontains='Côn Đảo')
+    tap_hop_doi_tuong = []
+    for phuong in danh_sach_phuong:
+        tap_hop_doi_tuong.append({
             "type": "Feature",
             "properties": {
-                "maXa": ward.ma_xa,
-                "tenXa": ward.ten_xa
+                "maXa": phuong.ma_xa,
+                "tenXa": phuong.ten_xa
             },
-            "geometry": ward.geometry
+            "geometry": phuong.geometry
         })
-    
-    geojson = {
+    return JsonResponse({
         "type": "FeatureCollection",
-        "features": features
-    }
-    return JsonResponse(geojson)
+        "features": tap_hop_doi_tuong
+    })
 
 def thematic_map_view(request):
-    years = list(range(2017, 2027))
-    indices = [
+    danh_sach_nam = list(range(2017, 2027))
+    danh_sach_chi_so = [
         {'code': 'LST', 'name': 'Nhiệt Độ Bề Mặt (LST °C)', 'desc': 'Phân tích đảo nhiệt đô thị (UHI)'},
         {'code': 'NDVI', 'name': 'Chỉ Số Thực Vật (NDVI)', 'desc': 'Đánh giá mật độ cây xanh'},
         {'code': 'TVDI', 'name': 'Chỉ Số Khô Hạn (TVDI)', 'desc': 'Đánh giá mức độ khô hạn bề mặt'},
         {'code': 'NDBI', 'name': 'Chỉ Số Đất Xây Dựng (NDBI)', 'desc': 'Mức độ bê tông hóa & công trình'},
         {'code': 'NDWI', 'name': 'Chỉ Số Nước Bề Mặt (NDWI)', 'desc': 'Phân bố mặt nước & sông rạch'},
     ]
+    la_admin = request.session.get('la_admin', False)
     return render(request, 'gee_app/thematic_map.html', {
-        'years': years,
-        'indices': indices
+        'years': danh_sach_nam,
+        'indices': danh_sach_chi_so,
+        'la_admin': la_admin
     })
 
 def api_thematic_map_data(request):
     from django.db.models import Avg, Min, Max
-    index_code = request.GET.get('index_code', 'LST').upper()
-    year = request.GET.get('year', '2024')
-    season = request.GET.get('season', 'all')
+    ma_chi_so = request.GET.get('index_code', 'LST').upper()
+    nam_xem = request.GET.get('year', '2024')
+    mua_xem = request.GET.get('season', 'all')
     
-    qs = ObservationData.objects.filter(index_code=index_code)
+    tap_du_lieu = ObservationData.objects.filter(index_code=ma_chi_so).exclude(ward__ten_xa__icontains='Côn Đảo').exclude(ward__ma_xa__startswith='CTM_')
     
-    if year != 'all':
+    if nam_xem != 'all':
         try:
-            qs = qs.filter(observation_time__year=int(year))
+            tap_du_lieu = tap_du_lieu.filter(observation_time__year=int(nam_xem))
         except ValueError:
             pass
             
-    if season == 'dry':
-        qs = qs.filter(observation_time__month__in=[1, 2, 3, 4, 5])
-    elif season == 'rain':
-        qs = qs.filter(observation_time__month__in=[6, 7, 8, 9, 10, 11])
+    if mua_xem == 'dry':
+        tap_du_lieu = tap_du_lieu.filter(observation_time__month__in=[1, 2, 3, 4, 5])
+    elif mua_xem == 'rain':
+        tap_du_lieu = tap_du_lieu.filter(observation_time__month__in=[6, 7, 8, 9, 10, 11])
         
-    records = qs.values('ward__ma_xa', 'ward__ten_xa').annotate(
-        avg_val=Avg('value'),
-        min_val=Min('value'),
-        max_val=Max('value')
+    ban_ghi = tap_du_lieu.values('ward__ma_xa', 'ward__ten_xa').annotate(
+        gia_tri_tb=Avg('value'),
+        gia_tri_nn=Min('value'),
+        gia_tri_ln=Max('value')
     )
     
-    data_dict = {}
-    all_values = []
+    tu_dien_du_lieu = {}
+    danh_sach_gia_tri = []
     
-    for r in records:
-        val = round(r['avg_val'], 4) if r['avg_val'] is not None else None
-        if val is not None:
-            all_values.append(val)
-        data_dict[r['ward__ma_xa']] = {
-            'name': r['ward__ten_xa'],
-            'value': val,
-            'min': round(r['min_val'], 4) if r['min_val'] is not None else None,
-            'max': round(r['max_val'], 4) if r['max_val'] is not None else None,
+    for muc in ban_ghi:
+        gia_tri = round(muc['gia_tri_tb'], 4) if muc['gia_tri_tb'] is not None else None
+        if gia_tri is not None:
+            danh_sach_gia_tri.append(gia_tri)
+        tu_dien_du_lieu[muc['ward__ma_xa']] = {
+            'name': muc['ward__ten_xa'],
+            'value': gia_tri,
+            'min': round(muc['gia_tri_nn'], 4) if muc['gia_tri_nn'] is not None else None,
+            'max': round(muc['gia_tri_ln'], 4) if muc['gia_tri_ln'] is not None else None,
         }
         
-    summary = {
-        'min': min(all_values) if all_values else 0,
-        'max': max(all_values) if all_values else 1,
-        'avg': round(sum(all_values) / len(all_values), 4) if all_values else 0,
-        'count': len(all_values)
+    tong_hop = {
+        'min': min(danh_sach_gia_tri) if danh_sach_gia_tri else 0,
+        'max': max(danh_sach_gia_tri) if danh_sach_gia_tri else 1,
+        'avg': round(sum(danh_sach_gia_tri) / len(danh_sach_gia_tri), 4) if danh_sach_gia_tri else 0,
+        'count': len(danh_sach_gia_tri)
     }
     
     return JsonResponse({
         'status': 'success',
-        'index_code': index_code,
-        'year': year,
-        'season': season,
-        'data': data_dict,
-        'summary': summary
+        'index_code': ma_chi_so,
+        'year': nam_xem,
+        'season': mua_xem,
+        'data': tu_dien_du_lieu,
+        'summary': tong_hop
     })
+
+def api_danh_sach_phuong_xep_hang(request):
+    from django.db.models import Avg
+    nam_xem = request.GET.get('nam', '2024')
+    mua_xem = request.GET.get('mua', 'all')
+    
+    nguong_lst_min = request.GET.get('nguong_lst_min')
+    nguong_lst_max = request.GET.get('nguong_lst_max')
+    nguong_ndvi_min = request.GET.get('nguong_ndvi_min')
+    nguong_ndvi_max = request.GET.get('nguong_ndvi_max')
+    nguong_tvdi_min = request.GET.get('nguong_tvdi_min')
+    nguong_tvdi_max = request.GET.get('nguong_tvdi_max')
+    
+    tap_quan_sat = ObservationData.objects.exclude(ward__ten_xa__icontains='Côn Đảo').exclude(ward__ma_xa__startswith='CTM_')
+    if nam_xem != 'all':
+        try:
+            tap_quan_sat = tap_quan_sat.filter(observation_time__year=int(nam_xem))
+        except ValueError:
+            pass
+    if mua_xem == 'dry':
+        tap_quan_sat = tap_quan_sat.filter(observation_time__month__in=[1, 2, 3, 4, 5])
+    elif mua_xem == 'rain':
+        tap_quan_sat = tap_quan_sat.filter(observation_time__month__in=[6, 7, 8, 9, 10, 11])
+        
+    ban_ghi = tap_quan_sat.values('ward__ma_xa', 'ward__ten_xa', 'index_code').annotate(gia_tri_tb=Avg('value'))
+    
+    du_lieu_phuong = {}
+    for r in ban_ghi:
+        ma = r['ward__ma_xa']
+        if ma not in du_lieu_phuong:
+            du_lieu_phuong[ma] = {
+                'ma_xa': ma,
+                'ten_xa': r['ward__ten_xa'],
+                'LST': None,
+                'NDVI': None,
+                'TVDI': None,
+                'NDBI': None,
+                'NDWI': None
+            }
+        val = round(r['gia_tri_tb'], 3) if r['gia_tri_tb'] is not None else None
+        du_lieu_phuong[ma][r['index_code']] = val
+        
+    danh_sach_ket_qua = []
+    for phuong in du_lieu_phuong.values():
+        thoa_nguong = True
+        if nguong_lst_min is not None and nguong_lst_min != '':
+            try:
+                if phuong['LST'] is None or phuong['LST'] < float(nguong_lst_min):
+                    thoa_nguong = False
+            except ValueError:
+                pass
+        if nguong_lst_max is not None and nguong_lst_max != '':
+            try:
+                if phuong['LST'] is None or phuong['LST'] > float(nguong_lst_max):
+                    thoa_nguong = False
+            except ValueError:
+                pass
+        if nguong_ndvi_min is not None and nguong_ndvi_min != '':
+            try:
+                if phuong['NDVI'] is None or phuong['NDVI'] < float(nguong_ndvi_min):
+                    thoa_nguong = False
+            except ValueError:
+                pass
+        if nguong_ndvi_max is not None and nguong_ndvi_max != '':
+            try:
+                if phuong['NDVI'] is None or phuong['NDVI'] > float(nguong_ndvi_max):
+                    thoa_nguong = False
+            except ValueError:
+                pass
+        if nguong_tvdi_min is not None and nguong_tvdi_min != '':
+            try:
+                if phuong['TVDI'] is None or phuong['TVDI'] < float(nguong_tvdi_min):
+                    thoa_nguong = False
+            except ValueError:
+                pass
+        if nguong_tvdi_max is not None and nguong_tvdi_max != '':
+            try:
+                if phuong['TVDI'] is None or phuong['TVDI'] > float(nguong_tvdi_max):
+                    thoa_nguong = False
+            except ValueError:
+                pass
+        
+        phuong_sao_chep = dict(phuong)
+        phuong_sao_chep['thoa_nguong'] = thoa_nguong
+        danh_sach_ket_qua.append(phuong_sao_chep)
+        
+    xep_hang_lst = sorted(danh_sach_ket_qua, key=lambda x: (x['LST'] is not None, x['LST']), reverse=True)
+    xep_hang_ndvi = sorted(danh_sach_ket_qua, key=lambda x: (x['NDVI'] is None, x['NDVI']))
+    xep_hang_tvdi = sorted(danh_sach_ket_qua, key=lambda x: (x['TVDI'] is not None, x['TVDI']), reverse=True)
+    xep_hang_ndbi = sorted(danh_sach_ket_qua, key=lambda x: (x['NDBI'] is not None, x['NDBI']), reverse=True)
+    xep_hang_ndwi = sorted(danh_sach_ket_qua, key=lambda x: (x['NDWI'] is not None, x['NDWI']), reverse=True)
+    
+    so_phuong_thoa_nguong = sum(1 for p in danh_sach_ket_qua if p['thoa_nguong'])
+    
+    return JsonResponse({
+        'trang_thai': 'thanh_cong',
+        'tong_so_phuong': len(danh_sach_ket_qua),
+        'so_phuong_thoa_nguong': so_phuong_thoa_nguong,
+        'danh_sach': danh_sach_ket_qua,
+        'xep_hang_lst': xep_hang_lst,
+        'xep_hang_ndvi': xep_hang_ndvi,
+        'xep_hang_tvdi': xep_hang_tvdi,
+        'xep_hang_ndbi': xep_hang_ndbi,
+        'xep_hang_ndwi': xep_hang_ndwi
+    })
+
+def api_dang_nhap_admin(request):
+    import json
+    if request.method == 'POST':
+        mat_khau_gui = ''
+        try:
+            du_lieu_nhan = json.loads(request.body)
+            mat_khau_gui = du_lieu_nhan.get('mat_khau', '')
+        except Exception:
+            mat_khau_gui = request.POST.get('mat_khau', '')
+            
+        mat_khau_chuan = os.environ.get('MAT_KHAU_ADMIN', 'admin123')
+        if mat_khau_gui == mat_khau_chuan:
+            request.session['la_admin'] = True
+            return JsonResponse({
+                'trang_thai': 'thanh_cong',
+                'la_admin': True,
+                'thong_bao': 'Đăng nhập Quản trị viên thành công!'
+            })
+        return JsonResponse({
+            'trang_thai': 'that_bai',
+            'la_admin': False,
+            'thong_bao': 'Mật khẩu quản trị viên không chính xác!'
+        }, status=400)
+    return JsonResponse({'trang_thai': 'that_bai', 'thong_bao': 'Yêu cầu phương thức POST'}, status=405)
+
+def api_dang_xuat_admin(request):
+    request.session['la_admin'] = False
+    return JsonResponse({
+        'trang_thai': 'thanh_cong',
+        'la_admin': False,
+        'thong_bao': 'Đã chuyển về quyền Người dùng bình thường!'
+    })
+
+def api_trang_thai_phan_quyen(request):
+    return JsonResponse({
+        'la_admin': bool(request.session.get('la_admin', False))
+    })
+
+def delete_file_view(request, req_id):
+    if not request.session.get('la_admin', False):
+        messages.error(request, 'Thao tác xóa dữ liệu yêu cầu quyền Quản trị viên (Admin).')
+        return redirect('history')
+    try:
+        yeu_cau = GEEDataRequest.objects.get(id=req_id)
+        yeu_cau.delete()
+        messages.success(request, 'Đã xóa bản ghi thành công!')
+    except GEEDataRequest.DoesNotExist:
+        messages.error(request, 'Không tìm thấy yêu cầu cần xóa!')
+    return redirect('history')
+
+def trang_ban_tin(request):
+    danh_sach_nam = list(range(2017, 2027))
+    return render(request, 'gee_app/ban_tin.html', {
+        'danh_sach_nam': danh_sach_nam
+    })
+
 

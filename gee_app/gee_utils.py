@@ -15,6 +15,8 @@ def init_gee():
             key_path = getattr(settings, 'GEE_PRIVATE_KEY_PATH', None) or os.environ.get('GEE_PRIVATE_KEY_PATH')
             
             if sa and key_path:
+                if not os.path.isabs(key_path) and hasattr(settings, 'BASE_DIR'):
+                    key_path = str(settings.BASE_DIR / key_path)
                 credentials = ee.ServiceAccountCredentials(sa, key_path)
                 ee.Initialize(credentials=credentials)
             else:
@@ -26,10 +28,13 @@ def init_gee():
 
 def get_drive_service():
     key_path = getattr(settings, 'GEE_PRIVATE_KEY_PATH', None) or os.environ.get('GEE_PRIVATE_KEY_PATH')
-    if key_path and os.path.exists(key_path):
-        SCOPES = ['https://www.googleapis.com/auth/drive']
-        creds = service_account.Credentials.from_service_account_file(key_path, scopes=SCOPES)
-        return build('drive', 'v3', credentials=creds)
+    if key_path:
+        if not os.path.isabs(key_path) and hasattr(settings, 'BASE_DIR'):
+            key_path = str(settings.BASE_DIR / key_path)
+        if os.path.exists(key_path):
+            SCOPES = ['https://www.googleapis.com/auth/drive']
+            creds = service_account.Credentials.from_service_account_file(key_path, scopes=SCOPES)
+            return build('drive', 'v3', credentials=creds)
     return None
 
 def start_drive_export(dataset, start_date, end_date, geometry_geojson, filename, folder_name):

@@ -3,8 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hệ Thống Phân Tích Dữ Liệu Vệ Tinh (GEE)</title>
-    <!-- Tailwind CSS -->
+    <title>Hệ thống giám sát nhiệt độ bề mặt – lớp phủ thực vật – mức độ khô hạn tại TP.HCM</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body, html { margin: 0; padding: 0; height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; }
@@ -26,16 +25,13 @@
             text-shadow: 0 0 20px rgba(255,255,255,0.5);
         }
     </style>
-    <!-- Vanta.js and Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
 </head>
 <body class="text-white relative bg-slate-900">
 
-    <!-- Vanta Background -->
     <div id="vanta-canvas"></div>
 
-    <!-- Main Content -->
     <div class="relative z-10 flex flex-col items-center justify-center h-full px-4 sm:px-6 lg:px-8 text-center">
         <div class="glass-panel p-10 md:p-16 rounded-3xl max-w-4xl shadow-2xl transition-transform transform hover:scale-[1.02] duration-500">
             
@@ -47,39 +43,41 @@
                 </div>
             </div>
 
-            <h1 class="text-3xl md:text-5xl lg:text-5xl font-extrabold tracking-tight mb-4 glow-text">
-                Bản Đồ Môi Trường & Nhiệt Độ TP.HCM
+            <h1 class="text-2xl md:text-4xl lg:text-4xl font-extrabold tracking-tight mb-4 glow-text leading-snug">
+                Hệ Thống Giám Sát Nhiệt Độ Bề Mặt – Lớp Phủ Thực Vật – Mức Độ Khô Hạn Tại TP.HCM
             </h1>
             
             <p class="text-base md:text-lg text-blue-100 font-light mb-10 max-w-2xl mx-auto leading-relaxed">
-                Nền tảng tra cứu mức độ nóng, mảng xanh cây cối và sông ngòi của 172 xã/phường TP. Hồ Chí Minh qua ảnh chụp từ vệ tinh (2017 - 2026). Trực quan, dễ hiểu và dễ sử dụng cho tất cả mọi người.
+                Nền tảng giám sát, thành lập bản đồ 2D/3D, bản tin cảnh báo và phân tích biến động nhiệt độ bề mặt (LST), lớp phủ thực vật (NDVI) và mức độ khô hạn (TVDI) trên 167 xã/phường TP. Hồ Chí Minh (2017 - 2026).
             </p>
             
             <div class="flex flex-col sm:flex-row gap-4 justify-center">
                 <a href="{% url 'home' %}" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-blue-900 bg-white rounded-full hover:bg-blue-50 transition-all shadow-[0_0_20px_rgba(255,255,255,0.4)] hover:shadow-[0_0_30px_rgba(255,255,255,0.6)] hover:-translate-y-1">
-                    Bắt Đầu Tra Cứu Ngay
+                    Bắt Đầu Giám Sát Ngay
                     <svg class="w-5 h-5 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path></svg>
+                </a>
+                <a href="{% url 'ban_tin' %}" class="inline-flex items-center justify-center px-8 py-4 text-lg font-bold text-white bg-indigo-600/80 border border-white/30 rounded-full hover:bg-indigo-600 transition-all hover:-translate-y-1">
+                    Xem Bản Tin & Xuất Báo Cáo
                 </a>
             </div>
 
             <div class="mt-12 pt-8 border-t border-white/20 grid grid-cols-3 gap-4 text-center">
                 <div>
-                    <div class="text-2xl md:text-3xl font-bold text-white mb-1">172 Xã/Phường</div>
+                    <div class="text-2xl md:text-3xl font-bold text-white mb-1">167 Xã/Phường</div>
                     <div class="text-xs text-blue-200 uppercase tracking-wider">Đầy đủ sau sáp nhập</div>
                 </div>
                 <div>
                     <div class="text-2xl md:text-3xl font-bold text-white mb-1">10 Năm</div>
-                    <div class="text-xs text-blue-200 uppercase tracking-wider">Theo dõi từ 2017 - 2026</div>
+                    <div class="text-xs text-blue-200 uppercase tracking-wider">Chuỗi số liệu 2017 - 2026</div>
                 </div>
                 <div>
-                    <div class="text-2xl md:text-3xl font-bold text-white mb-1">Ảnh Vệ Tinh Thật</div>
-                    <div class="text-xs text-blue-200 uppercase tracking-wider">Cập nhật liên tục</div>
+                    <div class="text-2xl md:text-3xl font-bold text-white mb-1">2D / 3D / Bản Tin</div>
+                    <div class="text-xs text-blue-200 uppercase tracking-wider">Thành lập bản đồ & Báo cáo</div>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Initialize Vanta.js -->
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             VANTA.GLOBE({

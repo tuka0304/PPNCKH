@@ -4,47 +4,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>GEE Data Platform</title>
+    <title>Hệ thống giám sát nhiệt độ bề mặt – lớp phủ thực vật – mức độ khô hạn tại TP.HCM</title>
     <link href="{% static 'css/output.css' %}" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <!-- Leaflet CSS & JS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Outfit:wght@500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
     <style>
-        body { font-family: 'Inter', sans-serif; }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; margin: 0; padding: 0; }
+        .font-heading { font-family: 'Outfit', sans-serif; }
+        .khung_giao_dien_chinh {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) 370px;
+            gap: 14px;
+            width: 100%;
+            box-sizing: border-box;
+            align-items: start;
+        }
+        @media (max-width: 1150px) {
+            .khung_giao_dien_chinh {
+                grid-template-columns: 100%;
+            }
+        }
     </style>
 </head>
-<body class="bg-gray-50 min-h-screen text-gray-800 flex flex-col">
-    <!-- Navbar -->
-    <nav class="bg-white shadow-md border-b border-gray-100">
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="flex justify-between h-16 items-center">
-                <div class="flex-shrink-0 flex items-center">
-                    <a href="{% url 'home' %}" class="text-2xl font-bold text-primary flex items-center gap-2">
-                        <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                        <span class="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-emerald-500">Giám Sát Môi Trường TP.HCM</span>
+<body class="bg-slate-50 min-h-screen text-slate-800 antialiased" style="margin: 0; padding: 0; width: 100%; min-width: 100%; min-height: 100vh; display: flex; flex-direction: column;">
+    <nav class="bg-white/90 backdrop-blur-md sticky top-0 z-50 border-b border-slate-200 shadow-sm" style="width: 100%;">
+        <div class="w-full px-4 sm:px-6" style="width: 100%; box-sizing: border-box;">
+            <div class="flex justify-between h-16 items-center w-full">
+                <div class="flex-shrink-0 flex items-center gap-3">
+                    <a href="{% url 'home' %}" class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-indigo-600 to-emerald-500 flex items-center justify-center text-white shadow-md shadow-indigo-100">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        </div>
+                        <div>
+                            <span class="font-heading font-extrabold text-sm lg:text-base text-slate-800 tracking-tight block leading-tight">Hệ thống giám sát nhiệt độ bề mặt – lớp phủ thực vật – mức độ khô hạn tại TP.HCM</span>
+                            <span class="text-[11px] font-semibold text-slate-400 block tracking-wide">167 Phường/Xã • Giám Sát & Thành Lập Bản Đồ Viễn Thám</span>
+                        </div>
                     </a>
                 </div>
-                <div class="hidden sm:flex sm:space-x-8 items-center">
-                    <a href="{% url 'home' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Tra Cứu & Tải Ảnh</a>
-                    <a href="{% url 'thematic_map' %}" class="bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 px-3.5 py-1.5 rounded-lg text-sm font-semibold shadow-sm transition-all flex items-center gap-1.5">
-                        <svg class="w-4 h-4 text-emerald-300 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
-                        Bản Đồ Màu TP.HCM
+
+                <div class="hidden md:flex items-center space-x-1 lg:space-x-2">
+                    <a href="{% url 'home' %}" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all {% if request.path == '/' or request.path == '/thematic-map/' %}bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm{% else %}text-slate-600 hover:text-indigo-600 hover:bg-slate-100/80{% endif %} flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                        Bản Đồ Giám Sát (2D/3D)
                     </a>
-                    <a href="{% url 'analysis' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">So Sánh Phường/Xã</a>
-                    <a href="{% url 'history' %}" class="text-gray-700 hover:text-blue-600 px-3 py-2 rounded-md text-sm font-medium transition-colors">Lịch Sử Tra Cứu</a>
+                    <a href="{% url 'ban_tin' %}" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all {% if request.path == '/ban-tin/' %}bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm{% else %}text-slate-600 hover:text-indigo-600 hover:bg-slate-100/80{% endif %} flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Bản Tin & Xuất Báo Cáo
+                    </a>
+                    <a href="{% url 'analysis' %}" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all {% if request.path == '/analysis/' %}bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm{% else %}text-slate-600 hover:text-indigo-600 hover:bg-slate-100/80{% endif %} flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-emerald-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+                        Biểu Đồ So Sánh
+                    </a>
+                    <a href="{% url 'gee_download' %}" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all {% if request.path == '/gee-download/' %}bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm{% else %}text-slate-600 hover:text-indigo-600 hover:bg-slate-100/80{% endif %} flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Tải Ảnh Vệ Tinh (GEE)
+                    </a>
+                    <a href="{% url 'history' %}" class="px-3.5 py-2 rounded-xl text-xs font-bold transition-all {% if request.path == '/history/' %}bg-indigo-50 text-indigo-700 border border-indigo-200/60 shadow-sm{% else %}text-slate-600 hover:text-indigo-600 hover:bg-slate-100/80{% endif %} flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Lịch Sử Tra Cứu
+                    </a>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <div id="khung_vai_tro_nguoi_dung" class="flex items-center gap-2">
+                        {% if request.session.la_admin %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200 shadow-sm">
+                                <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                                Quản Trị Viên (Admin)
+                            </span>
+                            <button type="button" onclick="xu_ly_dang_xuat_admin()" class="text-xs text-rose-600 hover:text-rose-800 font-bold px-2.5 py-1 rounded-lg border border-rose-200 bg-rose-50 hover:bg-rose-100 transition-colors">
+                                Đăng Xuất
+                            </button>
+                        {% else %}
+                            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-600 border border-slate-200">
+                                <span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>
+                                Người Dùng (Chỉ Xem)
+                            </span>
+                            <button type="button" onclick="mo_hop_dang_nhap_admin()" class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-3 py-1.5 rounded-xl shadow-sm transition-all flex items-center gap-1">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                Đăng Nhập Admin
+                            </button>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
     </nav>
 
-    <!-- Main Content -->
-    <main class="flex-grow {% block main_classes %}max-w-7xl{% endblock %} mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+    <main class="w-full flex-grow" style="width: 100%; max-width: 100%; box-sizing: border-box; flex: 1 0 auto; padding: 10px 16px;">
         {% if messages %}
-            <div class="mb-6 space-y-2">
+            <div class="mb-4 space-y-2 max-w-5xl mx-auto">
                 {% for message in messages %}
-                    <div class="p-4 rounded-lg shadow-sm text-sm {% if message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200{% elif message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200{% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
-                        {{ message }}
+                    <div class="p-3.5 rounded-xl shadow-sm text-xs font-semibold flex items-center justify-between {% if message.tags == 'error' %}bg-rose-50 text-rose-800 border border-rose-200{% elif message.tags == 'success' %}bg-emerald-50 text-emerald-800 border border-emerald-200{% else %}bg-indigo-50 text-indigo-800 border border-indigo-200{% endif %}">
+                        <span>{{ message }}</span>
+                        <button type="button" onclick="this.parentElement.remove()" class="text-slate-400 hover:text-slate-600 ml-3">✕</button>
                     </div>
                 {% endfor %}
             </div>
@@ -53,13 +110,121 @@
         {% block content %}{% endblock %}
     </main>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-gray-200 mt-auto">
-        <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <p class="text-center text-sm text-gray-500">© 2026 Hệ Thống Giám Sát Môi Trường & Nhiệt Độ Đô Thị TP. Hồ Chí Minh • Sử dụng ảnh vệ tinh Landsat & Sentinel</p>
+    <footer class="bg-white border-t border-slate-200 py-3.5 mt-auto">
+        <div class="max-w-[98%] mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-slate-500">
+            <p>© 2026 Hệ thống giám sát nhiệt độ bề mặt – lớp phủ thực vật – mức độ khô hạn tại TP.HCM (167 Phường/Xã)</p>
+            <p class="font-medium text-slate-400">Dữ liệu viễn thám vệ tinh • Chuỗi thời gian 10 năm (2017 - 2026)</p>
         </div>
     </footer>
-    
+
+    <div id="hop_thoai_dang_nhap_admin" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-[9999] hidden items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-2xl border border-slate-200 max-w-sm w-full p-6 text-left">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
+                <div class="flex items-center gap-2">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path></svg>
+                    </div>
+                    <div>
+                        <h4 class="font-bold text-sm text-slate-800">Đăng Nhập Quản Trị Viên</h4>
+                        <span class="text-[11px] text-slate-400">Toàn quyền tải GEE & quản trị</span>
+                    </div>
+                </div>
+                <button type="button" onclick="dong_hop_dang_nhap_admin()" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">✕</button>
+            </div>
+            
+            <form onsubmit="xu_ly_dang_nhap_admin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-slate-700 mb-1">Mật khẩu Quản trị viên:</label>
+                    <input type="password" id="o_nhap_mat_khau_admin" placeholder="Nhập mật khẩu admin..." required class="w-full text-sm rounded-xl border border-slate-300 px-3.5 py-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 shadow-sm transition-all">
+                </div>
+                <div id="thong_bao_loi_admin" class="text-xs text-rose-600 font-semibold hidden"></div>
+                <div class="flex items-center justify-end gap-2 pt-2">
+                    <button type="button" onclick="dong_hop_dang_nhap_admin()" class="px-4 py-2 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors">Hủy</button>
+                    <button type="submit" id="nut_xac_nhan_admin" class="px-5 py-2 rounded-xl text-xs font-bold text-white bg-indigo-600 hover:bg-indigo-700 shadow-sm transition-all">Đăng Nhập</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function mo_hop_dang_nhap_admin() {
+            var hop_thoai = document.getElementById('hop_thoai_dang_nhap_admin');
+            var o_nhap = document.getElementById('o_nhap_mat_khau_admin');
+            var bao_loi = document.getElementById('thong_bao_loi_admin');
+            if (hop_thoai) {
+                hop_thoai.style.display = 'flex';
+                if (o_nhap) { o_nhap.value = ''; o_nhap.focus(); }
+                if (bao_loi) { bao_loi.classList.add('hidden'); }
+            }
+        }
+
+        function dong_hop_dang_nhap_admin() {
+            var hop_thoai = document.getElementById('hop_thoai_dang_nhap_admin');
+            if (hop_thoai) { hop_thoai.style.display = 'none'; }
+        }
+
+        function xu_ly_dang_nhap_admin(su_kien) {
+            su_kien.preventDefault();
+            var o_nhap = document.getElementById('o_nhap_mat_khau_admin');
+            var bao_loi = document.getElementById('thong_bao_loi_admin');
+            var mat_khau = o_nhap ? o_nhap.value : '';
+            
+            fetch('/api/dang-nhap-admin/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': lay_csrf_token()
+                },
+                body: JSON.stringify({ mat_khau: mat_khau })
+            })
+            .then(function(phan_hoi) { return phan_hoi.json(); })
+            .then(function(du_lieu) {
+                if (du_lieu.trang_thai === 'thanh_cong') {
+                    window.location.reload();
+                } else {
+                    if (bao_loi) {
+                        bao_loi.textContent = du_lieu.thong_bao || 'Mật khẩu không đúng';
+                        bao_loi.classList.remove('hidden');
+                    }
+                }
+            })
+            .catch(function(loi) {
+                if (bao_loi) {
+                    bao_loi.textContent = 'Lỗi kết nối máy chủ';
+                    bao_loi.classList.remove('hidden');
+                }
+            });
+        }
+
+        function xu_ly_dang_xuat_admin() {
+            fetch('/api/dang-xuat-admin/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': lay_csrf_token()
+                }
+            })
+            .then(function() { window.location.reload(); })
+            .catch(function() { window.location.reload(); });
+        }
+
+        function lay_csrf_token() {
+            var ten_cookie = 'csrftoken';
+            var gia_tri_cookie = null;
+            if (document.cookie && document.cookie !== '') {
+                var danh_sach = document.cookie.split(';');
+                for (var i = 0; i < danh_sach.length; i++) {
+                    var muc = danh_sach[i].trim();
+                    if (muc.substring(0, ten_cookie.length + 1) === (ten_cookie + '=')) {
+                        gia_tri_cookie = decodeURIComponent(muc.substring(ten_cookie.length + 1));
+                        break;
+                    }
+                }
+            }
+            return gia_tri_cookie;
+        }
+    </script>
+
     {% block scripts %}{% endblock %}
 </body>
 </html>

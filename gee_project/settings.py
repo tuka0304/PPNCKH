@@ -10,6 +10,7 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.1/ref/settings/
 """
 
+import os
 import environ
 from pathlib import Path
 
@@ -23,6 +24,11 @@ env = environ.Env(
 
 # Take environment variables from .env file
 environ.Env.read_env(BASE_DIR / '.env')
+
+GEE_SERVICE_ACCOUNT = env('GEE_SERVICE_ACCOUNT', default=None)
+GEE_PRIVATE_KEY_PATH = env('GEE_PRIVATE_KEY_PATH', default=None)
+if GEE_PRIVATE_KEY_PATH and not os.path.isabs(GEE_PRIVATE_KEY_PATH):
+    GEE_PRIVATE_KEY_PATH = str(BASE_DIR / GEE_PRIVATE_KEY_PATH)
 
 
 # Quick-start development settings - unsuitable for production
@@ -40,6 +46,7 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'gee_app',
@@ -48,13 +55,14 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-# Use cookies for flash messages so no database session/auth table is required
+SESSION_ENGINE = 'django.contrib.sessions.backends.signed_cookies'
 MESSAGE_STORAGE = 'django.contrib.messages.storage.cookie.CookieStorage'
 
 ROOT_URLCONF = 'gee_project.urls'
@@ -83,9 +91,11 @@ DATABASES = {
     'default': env.db(default=f'sqlite:///{BASE_DIR / "db.sqlite3"}')
 }
 
-# Database connection optimization for Supabase / PostgreSQL
-DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=600)  # Keep connections open for 10 mins
-DATABASES['default']['CONN_HEALTH_CHECKS'] = True  # Check if connection is alive before reusing
+if 'sqlite' in DATABASES['default']['ENGINE']:
+    DATABASES['default']['CONN_MAX_AGE'] = 0
+else:
+    DATABASES['default']['CONN_MAX_AGE'] = env.int('CONN_MAX_AGE', default=600)
+    DATABASES['default']['CONN_HEALTH_CHECKS'] = True
 
 
 # Password validation
@@ -124,7 +134,8 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
-STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
+if not DEBUG:
+    STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 
 # Email

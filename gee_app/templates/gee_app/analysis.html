@@ -11,15 +11,19 @@
                 <span class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-sm">
                     So Sánh & Xem Biểu Đồ
                 </span>
-                <span class="text-xs text-blue-200">Đầy đủ 172 Xã/Phường TP.HCM • Chuỗi 10 Năm (2017 - 2026)</span>
+                <span class="text-xs text-blue-200">Đầy đủ 167 Xã/Phường TP.HCM • Chuỗi 10 Năm (2017 - 2026)</span>
             </div>
             <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight">So Sánh Mức Độ Nóng, Cây Xanh & Khô Hạn</h1>
             <p class="text-blue-100 text-sm mt-1">Chọn các xã/phường bạn muốn để so sánh xem nơi nào nóng hơn, nơi nào nhiều cây xanh hoặc khô ráo hơn.</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             <a href="{% url 'thematic_map' %}" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                 Xem Bản Đồ Màu TP.HCM
+            </a>
+            <a href="{% url 'ban_tin' %}" class="bg-emerald-400 hover:bg-emerald-300 text-slate-900 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Bản Tin & Xuất Báo Cáo
             </a>
             <button type="button" onclick="exportAnalysisCsv()" class="bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
@@ -91,11 +95,11 @@
                 <label class="block text-xs font-bold text-gray-700 uppercase tracking-wider">Bạn muốn so sánh điều gì?</label>
                 <select id="metricFilterSelect" class="w-full text-sm rounded-xl border border-gray-300 py-2.5 px-3.5 bg-gray-50 focus:bg-white focus:ring-2 focus:ring-indigo-500 shadow-sm font-semibold text-gray-800">
                     <option value="ALL">Tất cả thông tin (Xem tổng hợp)</option>
-                    <option value="LST">Nhiệt độ mặt đất (°C - Xem nơi nào nóng hơn)</option>
-                    <option value="NDVI">Mảng xanh cây cối (Xem nơi nào nhiều cây hơn)</option>
-                    <option value="TVDI">Độ khô hạn đất (Xem nơi nào khô cằn hơn)</option>
-                    <option value="NDBI">Mật độ nhà cửa (Xem nơi nào đông đúc hơn)</option>
-                    <option value="NDWI">Sông ngòi & Kênh rạch (Mặt nước)</option>
+                    <option value="LST">Nhiệt độ bề mặt (°C - LST)</option>
+                    <option value="NDVI">Thảm thực vật (NDVI)</option>
+                    <option value="TVDI">Độ khô hạn (TVDI)</option>
+                    <option value="NDBI">Đất xây dựng (NDBI)</option>
+                    <option value="NDWI">Mặt nước (NDWI)</option>
                 </select>
             </div>
 
@@ -247,33 +251,33 @@
     <div class="bg-white rounded-2xl shadow-xl border border-gray-100 p-8">
         <h3 class="text-xl font-bold text-gray-900 mb-6 flex items-center gap-2">
             <svg class="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"></path></svg>
-            Giải Thích Ý Nghĩa 5 Chỉ Số (Dành Cho Mọi Người)
+            Giải Thích Ý Nghĩa 5 Chỉ Số Viễn Thám
         </h3>
         <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
             <div class="bg-green-50/80 p-5 rounded-xl border border-green-200">
                 <span class="bg-green-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">NDVI</span>
-                <h4 class="font-bold text-green-900 mt-2">Mảng Xanh Cây Cối</h4>
-                <p class="text-xs text-green-800 mt-1">Đo mức độ nhiều hay ít cây xanh. Điểm số càng cao thì khu vực càng nhiều cây cối, rừng rậm và không khí trong lành. Điểm số thấp nghĩa là khu vực nhiều nhà cửa hoặc đất trống.</p>
+                <h4 class="font-bold text-green-900 mt-2">Thảm Thực Vật</h4>
+                <p class="text-xs text-green-800 mt-1">Đo lường mật độ sinh khối và độ tươi tốt của thảm thực vật. Chỉ số càng cao phản ánh mật độ tán cây và thảm phủ thực vật càng phát triển.</p>
             </div>
             <div class="bg-red-50/80 p-5 rounded-xl border border-red-200">
                 <span class="bg-red-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">LST (°C)</span>
-                <h4 class="font-bold text-red-900 mt-2">Nhiệt Độ Mặt Đất</h4>
-                <p class="text-xs text-red-800 mt-1">Đo nhiệt độ trực tiếp trên bề mặt đường sá, mái nhà và mặt đất từ vệ tinh. Nơi nào đường bê tông dày đặc, ít cây xanh sẽ có nhiệt độ mặt đất cao hơn rất nhiều so với vùng ngoại thành.</p>
+                <h4 class="font-bold text-red-900 mt-2">Nhiệt Độ Bề Mặt</h4>
+                <p class="text-xs text-red-800 mt-1">Đo nhiệt độ bức xạ nhiệt trực tiếp trên bề mặt đất, công trình và thảm phủ từ vệ tinh, phản ánh hiện tượng đảo nhiệt đô thị (UHI).</p>
             </div>
             <div class="bg-yellow-50/80 p-5 rounded-xl border border-yellow-200">
                 <span class="bg-yellow-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">TVDI</span>
-                <h4 class="font-bold text-yellow-900 mt-2">Độ Khô Hạn Đất</h4>
-                <p class="text-xs text-yellow-800 mt-1">Đánh giá xem khu vực có bị thiếu nước hoặc khô nóng hay không. Số 0 nghĩa là đất đủ ẩm ướt hoặc gần sông nước; số 1 nghĩa là đất khô cằn, nắng nóng bốc hơi mạnh.</p>
+                <h4 class="font-bold text-yellow-900 mt-2">Độ Khô Hạn</h4>
+                <p class="text-xs text-yellow-800 mt-1">Đánh giá mức độ khô hạn bề mặt đất dựa trên mối quan hệ nhiệt độ bề mặt và thảm thực vật, hỗ trợ giám sát khô hạn và độ ẩm đất.</p>
             </div>
             <div class="bg-orange-50/80 p-5 rounded-xl border border-orange-200">
                 <span class="bg-orange-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">NDBI</span>
-                <h4 class="font-bold text-orange-900 mt-2">Mật Độ Nhà Cửa & Bê Tông</h4>
-                <p class="text-xs text-orange-800 mt-1">Đo mức độ tập trung của các công trình xây dựng, nhà ở và đường nhựa. Chỉ số càng cao chứng tỏ khu vực đó càng đông đúc, mật độ xây dựng càng dày đặc.</p>
+                <h4 class="font-bold text-orange-900 mt-2">Đất Xây Dựng</h4>
+                <p class="text-xs text-orange-800 mt-1">Phản ánh mật độ phân bố của các công trình xây dựng, bê tông hóa và cơ sở hạ tầng đô thị.</p>
             </div>
             <div class="bg-blue-50/80 p-5 rounded-xl border border-blue-200 md:col-span-2">
                 <span class="bg-blue-600 text-white text-[11px] font-extrabold px-2 py-0.5 rounded">NDWI</span>
-                <h4 class="font-bold text-blue-900 mt-2">Sông Ngòi & Mặt Nước</h4>
-                <p class="text-xs text-blue-800 mt-1">Nhận diện các khu vực có nước như sông Sài Gòn, sông Đồng Nai, kênh rạch và vùng rừng ngập mặn Cần Giờ. Giúp biết nơi nào có nhiều kênh rạch làm mát cho thành phố.</p>
+                <h4 class="font-bold text-blue-900 mt-2">Mặt Nước</h4>
+                <p class="text-xs text-blue-800 mt-1">Nhận diện và phân định mạng lưới thủy vực, sông ngòi, kênh rạch và vùng ngập nước tự nhiên.</p>
             </div>
         </div>
     </div>

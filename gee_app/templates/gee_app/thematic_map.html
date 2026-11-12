@@ -1,741 +1,1440 @@
 {% extends 'gee_app/base.html' %}
 {% load static %}
 
-{% block main_classes %}max-w-6xl mx-auto px-2 sm:px-4{% endblock %}
-
 {% block content %}
-<div class="w-full flex flex-col gap-5 items-center">
-    <!-- Header & Map Controls Card -->
-    <div class="bg-white rounded-2xl shadow-xl border border-gray-100 overflow-hidden w-full max-w-[960px]">
-        <div class="px-8 py-5 bg-gradient-to-r from-blue-700 via-indigo-700 to-emerald-600 text-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-            <div>
-                <div class="flex items-center gap-2 mb-1">
-                    <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-white/20 text-white border border-white/30 backdrop-blur-sm">Bản Đồ Màu Trực Quan</span>
-                    <span class="text-xs text-blue-200">172 Xã/Phường TP.HCM • Theo dõi 10 Năm (2017 - 2026)</span>
+<div class="khung_giao_dien_chinh">
+    <div class="cot_ban_do" style="display: flex; flex-direction: column; gap: 10px; width: 100%; min-width: 0;">
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200/80 px-4 py-2.5 flex flex-wrap items-center justify-between gap-3" style="width: 100%; box-sizing: border-box;">
+                <div class="flex items-center gap-2">
+                    <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Chỉ số:</span>
+                    <div class="flex flex-wrap gap-1.5">
+                        <button type="button" onclick="thay_doi_chi_so('LST')" data-chi-so="LST" class="nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-rose-600 text-white border-rose-600 shadow-rose-100 flex items-center gap-1">
+                            <span>🌡️</span> <span>Nhiệt Độ (LST °C)</span>
+                        </button>
+                        <button type="button" onclick="thay_doi_chi_so('NDVI')" data-chi-so="NDVI" class="nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-white text-slate-700 hover:bg-slate-100 border-slate-300 flex items-center gap-1">
+                            <span>🌿</span> <span>Thực Vật (NDVI)</span>
+                        </button>
+                        <button type="button" onclick="thay_doi_chi_so('TVDI')" data-chi-so="TVDI" class="nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-white text-slate-700 hover:bg-slate-100 border-slate-300 flex items-center gap-1">
+                            <span>☀️</span> <span>Khô Hạn (TVDI)</span>
+                        </button>
+                        <button type="button" onclick="thay_doi_chi_so('NDBI')" data-chi-so="NDBI" class="nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-white text-slate-700 hover:bg-slate-100 border-slate-300 flex items-center gap-1">
+                            <span>🏗️</span> <span>Xây Dựng (NDBI)</span>
+                        </button>
+                        <button type="button" onclick="thay_doi_chi_so('NDWI')" data-chi-so="NDWI" class="nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-white text-slate-700 hover:bg-slate-100 border-slate-300 flex items-center gap-1">
+                            <span>💧</span> <span>Nước Bề Mặt (NDWI)</span>
+                        </button>
+                    </div>
                 </div>
-                <h1 id="mapMainTitle" class="text-2xl font-bold tracking-tight">BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG TP. HỒ CHÍ MINH</h1>
-                <p id="mapSubtitle" class="text-sm text-blue-100 mt-0.5">Xem nhanh khu vực nào nóng, nhiều cây xanh hay khô hạn qua các năm</p>
-            </div>
-            <div class="flex items-center gap-3">
-                <button type="button" onclick="exportThematicMap()" id="btnExportMap" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
-                    <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
-                    Tải Ảnh Bản Đồ (PNG)
-                </button>
-            </div>
-        </div>
 
-        <!-- Interactive Control Bar -->
-        <div class="p-5 bg-gray-50 border-b border-gray-200 flex flex-col lg:flex-row gap-5 items-stretch lg:items-center justify-between">
-            <!-- Metric Chips -->
-            <div class="flex flex-wrap gap-2 items-center">
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider mr-1">Xem theo:</span>
-                <button type="button" onclick="changeMetric('LST')" data-metric="LST" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-red-600 text-white border-red-600 shadow-red-200">
-                    🌡️ Nhiệt Độ Mặt Đất (°C)
-                </button>
-                <button type="button" onclick="changeMetric('NDVI')" data-metric="NDVI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    🌿 Mảng Xanh Cây Cối
-                </button>
-                <button type="button" onclick="changeMetric('TVDI')" data-metric="TVDI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    ☀️ Độ Khô Hạn Đất
-                </button>
-                <button type="button" onclick="changeMetric('NDBI')" data-metric="NDBI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    🏙️ Nhà Cửa & Bê Tông
-                </button>
-                <button type="button" onclick="changeMetric('NDWI')" data-metric="NDWI" class="metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300">
-                    💧 Sông Ngòi & Kênh Rạch
-                </button>
-            </div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <div class="inline-flex rounded-xl p-0.5 bg-slate-100 border border-slate-200">
+                        <button type="button" id="nut_che_do_2d" onclick="chuyen_che_do_ban_do('2D')" class="px-3 py-1 rounded-lg text-xs font-bold bg-white text-indigo-700 shadow-sm transition-all flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+                            Bản Đồ 2D
+                        </button>
+                        <button type="button" id="nut_che_do_3d" onclick="chuyen_che_do_ban_do('3D')" class="px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 transition-all flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                            Mô Hình 3D
+                        </button>
+                    </div>
 
-            <!-- Season Selector -->
-            <div class="flex items-center gap-3">
-                <span class="text-xs font-bold text-gray-500 uppercase tracking-wider">Thời điểm:</span>
-                <select id="seasonSelect" onchange="onSeasonChange()" class="text-sm font-medium rounded-xl border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 py-2 px-3 bg-white border">
-                    <option value="all">Cả năm (Tính trung bình)</option>
-                    <option value="dry">Mùa nắng nóng (Tháng 1 - Tháng 5)</option>
-                    <option value="rain">Mùa mưa mát mẻ (Tháng 6 - Tháng 11)</option>
-                </select>
-            </div>
-        </div>
+                    <select id="lua_chon_mua" onchange="khi_doi_mua()" class="text-xs font-semibold rounded-xl border border-slate-300 shadow-sm py-1.5 px-2.5 bg-slate-50 focus:bg-white">
+                        <option value="all">Cả năm (Trung bình)</option>
+                        <option value="dry">Mùa nắng (T1 - T5)</option>
+                        <option value="rain">Mùa mưa (T6 - T11)</option>
+                    </select>
 
-        <!-- 10-Year Timeline Animation Slider -->
-        <div class="px-6 py-4 bg-white flex flex-col md:flex-row items-center gap-4 border-b border-gray-100">
-            <div class="flex items-center gap-2">
-                <button type="button" id="btnPlayTimeline" onclick="togglePlayTimeline()" title="Bấm để phát tự động qua các năm" class="w-10 h-10 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-md hover:scale-105 transition-all">
-                    <svg id="playIcon" class="w-5 h-5 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
-                    <svg id="pauseIcon" class="w-5 h-5 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
-                </button>
-                <div class="text-left">
-                    <span class="text-xs text-gray-500 font-medium block">Năm đang xem:</span>
-                    <span id="currentYearBadge" class="text-xl font-extrabold text-indigo-700 leading-none">2024</span>
+                    <button type="button" onclick="mo_popup_bo_cuc_ban_do()" class="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white text-xs font-extrabold shadow-md transition-all flex items-center gap-1.5">
+                        <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        Xuất Ảnh Thành Lập Bản Đồ
+                    </button>
+                    <a href="{% url 'ban_tin' %}" class="px-3 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold shadow-sm transition-all flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5 text-amber-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                        Bản Tin & Xuất Báo Cáo
+                    </a>
                 </div>
             </div>
 
-            <!-- Slider Range -->
-            <div class="flex-grow w-full px-2">
-                <input type="range" id="yearSlider" min="2017" max="2026" step="1" value="2024" oninput="onYearSliderChange(this.value)" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
-                <div class="flex justify-between text-[11px] font-semibold text-gray-400 mt-1.5 px-1">
-                    <span>2017</span>
-                    <span>2018</span>
-                    <span>2019</span>
-                    <span>2020</span>
-                    <span>2021</span>
-                    <span>2022</span>
-                    <span>2023</span>
-                    <span>2024</span>
-                    <span>2025</span>
-                    <span>2026</span>
-                </div>
-            </div>
-
-            <!-- Stats Overview Badge -->
-            <div class="flex items-center gap-3 bg-gray-50 px-4 py-2 rounded-xl border border-gray-200 text-xs text-gray-600 whitespace-nowrap">
-                <div>Thấp nhất: <strong id="lblStatMin" class="text-gray-900">-</strong></div>
-                <div>Cao nhất: <strong id="lblStatMax" class="text-gray-900">-</strong></div>
-                <div>Trung bình: <strong id="lblStatAvg" class="text-indigo-600">-</strong></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Map Canvas Container (Tỉ lệ chuẩn trắc địa vừa vặn trọn vẹn TP.HCM) -->
-    <div id="mapCaptureContainer" class="bg-white rounded-2xl shadow-2xl border-2 border-gray-300 overflow-hidden relative flex flex-col h-[660px] lg:h-[740px] w-full max-w-[960px]">
-        <!-- Map Sheet Header: Luôn hiển thị để khung nhìn trên màn hình và ảnh xuất ra khớp chính xác 100% -->
-        <div id="exportHeaderOverlay" class="px-6 py-3 bg-white border-b-2 border-gray-800 text-center flex-shrink-0">
-            <div class="text-[10px] font-bold uppercase tracking-widest text-gray-500 mb-0.5">
-                BỘ TÀI NGUYÊN VÀ MÔI TRƯỜNG • ĐẠI HỌC TÀI NGUYÊN VÀ MÔI TRƯỜNG TP. HỒ CHÍ MINH
-            </div>
-            <h2 id="exportTitle" class="text-base lg:text-lg font-black text-gray-900 uppercase tracking-wide">
-                BẢN ĐỒ NHIỆT ĐỘ & MÔI TRƯỜNG - TP. HỒ CHÍ MINH
-            </h2>
-            <div class="mt-0.5 flex flex-wrap items-center justify-center gap-3 text-[10px] text-gray-600 font-semibold">
-                <span id="exportSub">Cả năm (Tính trung bình) • Đầy đủ 172 Xã/Phường TP.HCM</span>
-                <span>•</span>
-                <span id="exportScaleRatio" class="text-indigo-700 font-bold">TỈ LỆ 1 : 150.000</span>
-                <span>•</span>
-                <span>HỆ TỌA ĐỘ: WGS-84 / UTM ZONE 48N</span>
-            </div>
-        </div>
-
-        <!-- Interactive Map Element -->
-        <div id="thematicMap" class="w-full flex-grow z-0"></div>
-
-        <!-- Nút Căn Khung Vừa Khít TP.HCM -->
-        <div id="btnFitHcmc" class="absolute top-3 left-14 z-[1000]">
-            <button type="button" onclick="fitHcmcBounds()" title="Thu phóng vừa khít trọn vẹn TP.HCM" class="bg-white/95 backdrop-blur-md px-3 py-1.5 rounded-lg shadow-md border border-gray-200 text-xs font-bold text-gray-700 hover:text-indigo-600 hover:bg-white flex items-center gap-1.5 transition-all">
-                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
-                <span>Vừa Khít TP.HCM</span>
-            </button>
-        </div>
-
-        <!-- Hover Info Card (Góc trên bên phải) -->
-        <div id="wardHoverCard" class="absolute top-4 right-4 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-2xl border border-gray-200 z-[1000] w-64 transition-all pointer-events-none">
-            <div class="flex items-center justify-between border-b border-gray-100 pb-1.5 mb-1.5">
-                <span class="text-[11px] font-bold text-indigo-600 uppercase tracking-wider">Thông tin khu vực</span>
-                <span id="hoverWardCode" class="text-[10px] text-gray-400 font-mono"></span>
-            </div>
-            <h4 id="hoverWardName" class="text-sm font-bold text-gray-900 leading-tight">Chỉ chuột vào phường/xã trên bản đồ...</h4>
-            <div class="mt-2 flex items-baseline justify-between">
-                <span id="hoverMetricLabel" class="text-xs font-medium text-gray-500">Mức đo được:</span>
-                <span id="hoverMetricVal" class="text-lg font-extrabold text-indigo-700">--</span>
-            </div>
-            <div class="mt-1 flex items-center justify-between text-xs text-gray-500">
-                <span>Mức độ:</span>
-                <span id="hoverCategory" class="font-bold text-gray-800">--</span>
-            </div>
-        </div>
-
-        <!-- Floating Dynamic Legend (Góc dưới bên trái) -->
-        <div id="legendPanel" class="absolute bottom-4 left-4 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-2xl border border-gray-200 z-[1000] max-w-xs transition-all">
-            <h5 id="legendTitle" class="text-xs font-bold text-gray-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-                Ý Nghĩa Các Màu Sắc
-            </h5>
-            <div id="legendItems" class="space-y-1 text-[11px] text-gray-700 font-medium">
-                <!-- Injected via JavaScript -->
-            </div>
-        </div>
-
-        <!-- Compass Rose (4 Hướng Đông - Tây - Nam - Bắc), Thước Tỉ Lệ & Thông Tin Bản Đồ (Góc dưới bên phải) -->
-        <div id="cartoInfoPanel" class="absolute bottom-4 right-4 bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-2xl border border-gray-200 z-[1000] flex items-center gap-4 text-xs">
-            <!-- La bàn 4 hướng (Compass Rose: BẮC - NAM - ĐÔNG - TÂY) -->
-            <div class="relative w-16 h-16 flex items-center justify-center flex-shrink-0">
-                <!-- Chữ B (Bắc) -->
-                <span class="absolute -top-1 text-[10px] font-black text-red-600 leading-none">B</span>
-                <!-- Chữ N (Nam) -->
-                <span class="absolute -bottom-1 text-[9px] font-bold text-gray-600 leading-none">N</span>
-                <!-- Chữ T (Tây) -->
-                <span class="absolute -left-1 text-[9px] font-bold text-gray-600 leading-none">T</span>
-                <!-- Chữ Đ (Đông) -->
-                <span class="absolute -right-1 text-[9px] font-bold text-gray-600 leading-none">Đ</span>
-                <!-- Hình hoa tiêu la bàn GIS -->
-                <svg class="w-11 h-11 text-gray-800 drop-shadow-sm" viewBox="0 0 100 100">
-                    <circle cx="50" cy="50" r="42" fill="none" stroke="#d1d5db" stroke-width="1.5" stroke-dasharray="2,2"/>
-                    <circle cx="50" cy="50" r="3.5" fill="#1f2937"/>
-                    <!-- Mũi tên Bắc (Màu đỏ) -->
-                    <polygon points="50,12 45,47 50,44" fill="#dc2626"/>
-                    <polygon points="50,12 55,47 50,44" fill="#ef4444"/>
-                    <!-- Mũi tên Nam (Màu xám tối) -->
-                    <polygon points="50,88 45,53 50,56" fill="#374151"/>
-                    <polygon points="50,88 55,53 50,56" fill="#9ca3af"/>
-                    <!-- Mũi tên Tây -->
-                    <polygon points="12,50 47,45 44,50" fill="#4b5563"/>
-                    <polygon points="12,50 47,55 44,50" fill="#9ca3af"/>
-                    <!-- Mũi tên Đông -->
-                    <polygon points="88,50 53,45 56,50" fill="#374151"/>
-                    <polygon points="88,50 53,55 56,50" fill="#6b7280"/>
-                </svg>
-            </div>
-
-            <!-- Thước tỉ lệ đồ giải & Thông tin bản đồ -->
-            <div class="border-l border-gray-200 pl-3 space-y-1">
-                <!-- Tỉ lệ số -->
-                <div class="flex items-center justify-between text-[11px] font-bold text-gray-800">
-                    <span>TỈ LỆ BẢN ĐỒ:</span>
-                    <span id="uiScaleRatio" class="text-indigo-700">1 : 150.000</span>
-                </div>
+            <div id="khung_chua_toan_bo_ban_do" class="bg-white rounded-2xl shadow-sm border border-slate-300 relative overflow-hidden flex flex-col" style="height: 640px; min-height: 640px; width: 100%; display: flex; flex-direction: column;">
                 
-                <!-- Thanh thước tỉ lệ đồ giải chuẩn trắc địa -->
-                <div class="w-36 py-0.5">
-                    <div id="scaleBarLabels" class="flex justify-between text-[9px] font-bold text-gray-600 px-0.5">
-                        <span>0</span>
-                        <span>5</span>
-                        <span>10</span>
-                        <span>20 km</span>
+                <div id="thanh_tieu_de_ban_do" class="px-4 py-2 bg-slate-50/90 border-b border-slate-200 flex items-center justify-between z-10">
+                    <div class="flex items-center gap-2">
+                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                        <h2 id="tieu_de_hien_thi" class="text-xs font-black uppercase tracking-wider text-slate-800">
+                            BẢN ĐỒ PHÂN BỐ NHIỆT ĐỘ BỀ MẶT (LST) - TP. HỒ CHÍ MINH
+                        </h2>
                     </div>
-                    <!-- Thanh chia đoạn đen trắng -->
-                    <div class="h-2 w-full border border-gray-800 flex rounded-[1px] overflow-hidden">
-                        <div class="w-1/4 bg-gray-900 border-r border-white"></div>
-                        <div class="w-1/4 bg-white border-r border-gray-900"></div>
-                        <div class="w-1/4 bg-gray-900 border-r border-white"></div>
-                        <div class="w-1/4 bg-white"></div>
+                    <div class="flex items-center gap-3 text-[11px] font-semibold text-slate-500">
+                        <span>Hệ Tọa Độ: WGS-84</span>
+                        <span>•</span>
+                        <span id="thong_ke_nhanh_ban_do">167 Phường/Xã</span>
+                        <button type="button" onclick="mo_popup_bo_cuc_ban_do()" class="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-bold shadow-sm transition-all flex items-center gap-1">
+                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                            Thành Lập & Xuất Bản Đồ
+                        </button>
                     </div>
                 </div>
 
-                <!-- Nguồn và đơn vị -->
-                <div class="text-[9px] text-gray-500 leading-tight pt-0.5">
-                    <p class="font-bold text-gray-700">ĐH Tài nguyên & Môi trường TP.HCM</p>
-                    <p>Hệ tọa độ WGS-84 • 172 Xã/Phường</p>
+                <div class="relative flex-grow w-full h-full overflow-hidden" style="width: 100%; height: 100%; flex: 1 1 auto; min-height: 560px;">
+                    
+                    <div id="khung_luoi_toa_do" class="absolute inset-0 pointer-events-none z-[400] flex flex-col justify-between p-1.5">
+                        <div class="w-full flex justify-between text-[9px] font-mono font-bold text-slate-500 px-8">
+                            <span>106°30'Đ</span>
+                            <span>106°40'Đ</span>
+                            <span>106°50'Đ</span>
+                            <span>107°00'Đ</span>
+                        </div>
+                        <div class="w-full flex justify-between items-center text-[9px] font-mono font-bold text-slate-500 flex-grow py-4">
+                            <div class="flex flex-col justify-between h-full">
+                                <span>11°05'B</span>
+                                <span>10°50'B</span>
+                                <span>10°35'B</span>
+                            </div>
+                            <div class="flex flex-col justify-between h-full text-right">
+                                <span>11°05'B</span>
+                                <span>10°50'B</span>
+                                <span>10°35'B</span>
+                            </div>
+                        </div>
+                        <div class="w-full flex justify-between text-[9px] font-mono font-bold text-slate-500 px-8">
+                            <span>106°30'Đ</span>
+                            <span>106°40'Đ</span>
+                            <span>106°50'Đ</span>
+                            <span>107°00'Đ</span>
+                        </div>
+                    </div>
+
+                    <div id="ban_do_2d" class="w-full h-full z-0" style="width: 100%; height: 100%; min-height: 560px;"></div>
+
+                    <div id="ban_do_3d_container" class="w-full h-full z-0 hidden bg-slate-900 relative" style="width: 100%; height: 100%; min-height: 560px;">
+                        <div class="absolute top-3 left-4 z-10 bg-slate-800/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-700 text-[11px] text-slate-200">
+                            🖱️ Kéo chuột trái để xoay 3D • Cuộn chuột để phóng to/thu nhỏ
+                        </div>
+                    </div>
+
+                    <div id="hop_thong_tin_phuong" class="absolute top-3 right-3 bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-slate-200 z-[500] w-60 pointer-events-none transition-all">
+                        <div class="flex items-center justify-between border-b border-slate-100 pb-1 mb-1">
+                            <span class="text-[10px] font-bold text-indigo-600 uppercase">Thông tin phường/xã</span>
+                            <span id="the_ma_phuong" class="text-[9px] text-slate-400 font-mono"></span>
+                        </div>
+                        <h4 id="the_ten_phuong" class="text-xs font-bold text-slate-800 leading-tight">Rê chuột vào phường để xem...</h4>
+                        <div class="mt-2 flex items-baseline justify-between">
+                            <span id="the_nhan_chi_so" class="text-[11px] text-slate-500">Giá trị đo:</span>
+                            <span id="the_gia_tri_chi_so" class="text-base font-extrabold text-indigo-700">--</span>
+                        </div>
+                        <div class="mt-1 flex items-center justify-between text-[11px] text-slate-500">
+                            <span>Phân loại:</span>
+                            <span id="the_muc_do" class="font-bold text-slate-700">--</span>
+                        </div>
+                    </div>
+
+                    <div id="hop_thang_mau" class="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md p-3 rounded-xl shadow-lg border border-slate-200 z-[500] max-w-xs transition-all">
+                        <h5 id="tieu_de_thang_mau" class="text-[11px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            Thang Màu Chỉ Số
+                        </h5>
+                        <div id="cac_muc_thang_mau" class="space-y-0.5 text-[10px] text-slate-700 font-medium"></div>
+                    </div>
+
+                    <div id="hop_la_ban_va_ti_le" class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md p-2.5 rounded-xl shadow-lg border border-slate-200 z-[500] flex items-center gap-3">
+                        <div class="relative w-12 h-12 flex items-center justify-center flex-shrink-0">
+                            <span class="absolute -top-1 text-[9px] font-black text-rose-600 leading-none">B</span>
+                            <span class="absolute -bottom-1 text-[8px] font-bold text-slate-500 leading-none">N</span>
+                            <span class="absolute -left-1 text-[8px] font-bold text-slate-500 leading-none">T</span>
+                            <span class="absolute -right-1 text-[8px] font-bold text-slate-500 leading-none">Đ</span>
+                            <svg class="w-9 h-9 text-slate-800" viewBox="0 0 100 100">
+                                <circle cx="50" cy="50" r="42" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                <circle cx="50" cy="50" r="3" fill="#1e293b"/>
+                                <polygon points="50,12 45,47 50,44" fill="#e11d48"/>
+                                <polygon points="50,12 55,47 50,44" fill="#f43f5e"/>
+                                <polygon points="50,88 45,53 50,56" fill="#475569"/>
+                                <polygon points="50,88 55,53 50,56" fill="#94a3b8"/>
+                                <polygon points="12,50 47,45 44,50" fill="#64748b"/>
+                                <polygon points="12,50 47,55 44,50" fill="#94a3b8"/>
+                                <polygon points="88,50 53,45 56,50" fill="#475569"/>
+                                <polygon points="88,50 53,55 56,50" fill="#64748b"/>
+                            </svg>
+                        </div>
+                        <div class="border-l border-slate-200 pl-2.5 space-y-0.5">
+                            <div class="text-[10px] font-bold text-slate-700">TỈ LỆ 1 : 150.000</div>
+                            <div class="w-24">
+                                <div class="flex justify-between text-[8px] font-bold text-slate-500 px-0.5">
+                                    <span>0</span>
+                                    <span>5</span>
+                                    <span>10 km</span>
+                                </div>
+                                <div class="h-1.5 w-full border border-slate-700 flex rounded-[1px] overflow-hidden">
+                                    <div class="w-1/2 bg-slate-900 border-r border-white"></div>
+                                    <div class="w-1/2 bg-white"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="vong_quay_tai" class="absolute inset-0 bg-white/70 backdrop-blur-sm z-[1000] flex flex-col items-center justify-center hidden">
+                        <div class="animate-spin rounded-full h-9 w-9 border-3 border-indigo-600 border-t-transparent"></div>
+                        <p class="mt-2 text-indigo-900 font-bold text-xs">Đang nạp dữ liệu bản đồ...</p>
+                    </div>
+                </div>
+
+                <div class="px-4 py-2 bg-slate-50 border-t border-slate-200 flex flex-wrap items-center justify-between gap-3 z-10">
+                    <div class="flex items-center gap-2">
+                        <button type="button" id="nut_chay_animation" onclick="bat_tat_animation()" class="w-8 h-8 rounded-full bg-indigo-600 hover:bg-indigo-700 text-white flex items-center justify-center shadow-sm transition-all">
+                            <svg id="bieu_tuong_phat" class="w-4 h-4 ml-0.5" fill="currentColor" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+                            <svg id="bieu_tuong_dung" class="w-4 h-4 hidden" fill="currentColor" viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>
+                        </button>
+                        <div>
+                            <span class="text-[10px] text-slate-400 font-semibold block leading-none">Năm xem:</span>
+                            <span id="hien_thi_nam_hien_tai" class="text-base font-extrabold text-indigo-700 leading-none">2024</span>
+                        </div>
+                    </div>
+
+                    <div class="flex-grow max-w-xl px-2">
+                        <input type="range" id="thanh_truot_nam" min="2017" max="2026" step="1" value="2024" oninput="khi_keo_thanh_truot_nam(this.value)" class="w-full h-1.5 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-indigo-600">
+                        <div class="flex justify-between text-[10px] font-semibold text-slate-400 mt-1">
+                            <span>2017</span>
+                            <span>2019</span>
+                            <span>2021</span>
+                            <span>2023</span>
+                            <span>2024</span>
+                            <span>2026</span>
+                        </div>
+                    </div>
+
+                    <div class="flex items-center gap-2 text-xs">
+                        <span class="text-slate-500 font-medium">Khoảng chạy:</span>
+                        <select id="khoang_nam_bat_dau" onchange="khi_doi_khoang_animation()" class="text-xs font-semibold rounded-lg border border-slate-300 py-1 px-1.5 bg-white">
+                            {% for nam in years %}
+                                <option value="{{ nam }}" {% if nam == 2017 %}selected{% endif %}>{{ nam }}</option>
+                            {% endfor %}
+                        </select>
+                        <span class="text-slate-400">➔</span>
+                        <select id="khoang_nam_ket_thuc" onchange="khi_doi_khoang_animation()" class="text-xs font-semibold rounded-lg border border-slate-300 py-1 px-1.5 bg-white">
+                            {% for nam in years %}
+                                <option value="{{ nam }}" {% if nam == 2026 %}selected{% endif %}>{{ nam }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <!-- Loading Spinner -->
-        <div id="mapLoader" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[2000] flex flex-col items-center justify-center hidden">
-            <div class="animate-spin rounded-full h-12 w-12 border-4 border-indigo-600 border-t-transparent"></div>
-            <p class="mt-3 text-indigo-900 font-bold text-base">Đang tải dữ liệu bản đồ...</p>
+        <div class="cot_thanh_ben" style="display: flex; flex-direction: column; gap: 10px; width: 370px; max-width: 100%; box-sizing: border-box;">
+            
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3">
+                <div class="flex items-center justify-between mb-2">
+                    <div class="flex items-center gap-1.5">
+                        <span class="p-1 rounded-lg bg-indigo-50 text-indigo-600">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                        </span>
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide">Bộ Lọc Ngưỡng Chỉ Số</h3>
+                    </div>
+                    <button type="button" onclick="dat_lai_bo_loc_nguong()" class="text-[11px] text-slate-500 hover:text-indigo-600 font-semibold transition-colors">
+                        Đặt lại
+                    </button>
+                </div>
+
+                <div class="grid grid-cols-3 gap-2 text-xs">
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-0.5">LST (°C) &gt;=</label>
+                        <input type="number" id="o_nguong_lst" step="0.5" placeholder="VD: 35" onchange="khi_doi_nguong()" class="w-full text-xs font-bold px-2 py-1.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-rose-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-0.5">NDVI &lt;=</label>
+                        <input type="number" id="o_nguong_ndvi" step="0.05" placeholder="VD: 0.2" onchange="khi_doi_nguong()" class="w-full text-xs font-bold px-2 py-1.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-[10px] font-bold text-slate-500 mb-0.5">TVDI &gt;=</label>
+                        <input type="number" id="o_nguong_tvdi" step="0.05" placeholder="VD: 0.7" onchange="khi_doi_nguong()" class="w-full text-xs font-bold px-2 py-1.5 rounded-lg border border-slate-300 bg-slate-50 focus:bg-white focus:ring-1 focus:ring-amber-500">
+                    </div>
+                </div>
+
+                <div class="mt-2 flex flex-wrap gap-1">
+                    <span class="text-[10px] text-slate-400 font-semibold self-center mr-1">Mẫu nhanh:</span>
+                    <button type="button" onclick="ap_dung_nguong_nhanh('LST_NONG')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200">
+                        🔥 LST &gt; 35°C
+                    </button>
+                    <button type="button" onclick="ap_dung_nguong_nhanh('LST_CUC_NONG')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-rose-100 text-rose-800 hover:bg-rose-200 border border-rose-300">
+                        🚨 LST &gt; 38°C
+                    </button>
+                    <button type="button" onclick="ap_dung_nguong_nhanh('NDVI_THAP')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 border border-emerald-200">
+                        🌿 NDVI &lt; 0.20
+                    </button>
+                    <button type="button" onclick="ap_dung_nguong_nhanh('TVDI_HAN')" class="px-2 py-0.5 rounded-md text-[10px] font-bold bg-amber-50 text-amber-700 hover:bg-amber-100 border border-amber-200">
+                        ☀️ TVDI &gt; 0.70
+                    </button>
+                </div>
+
+                <div class="mt-2 pt-1.5 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <span class="text-slate-500">Phường thỏa mãn:</span>
+                    <span id="the_dem_thoa_nguong" class="font-extrabold text-indigo-700 bg-indigo-50 px-2 py-0.5 rounded-md border border-indigo-100">
+                        167 / 167 phường
+                    </span>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 flex flex-col overflow-hidden" style="height: 480px;">
+                <div class="p-2.5 bg-slate-50 border-b border-slate-200 flex flex-col gap-1.5">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
+                            <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                            Bảng Xếp Hạng 167 Phường
+                        </h3>
+                        <span id="the_tong_so_phuong" class="text-[10px] text-slate-400 font-semibold">167 đơn vị</span>
+                    </div>
+
+                    <div class="grid grid-cols-5 gap-0.5 p-0.5 bg-slate-200/80 rounded-xl text-center">
+                        <button type="button" id="tab_xep_hang_lst" onclick="chuyen_tab_xep_hang('LST')" class="py-1 px-0.5 text-[10px] font-bold rounded-lg bg-white text-rose-700 shadow-sm transition-all">
+                            🌡️ LST
+                        </button>
+                        <button type="button" id="tab_xep_hang_ndvi" onclick="chuyen_tab_xep_hang('NDVI')" class="py-1 px-0.5 text-[10px] font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                            🌿 NDVI
+                        </button>
+                        <button type="button" id="tab_xep_hang_tvdi" onclick="chuyen_tab_xep_hang('TVDI')" class="py-1 px-0.5 text-[10px] font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                            ☀️ TVDI
+                        </button>
+                        <button type="button" id="tab_xep_hang_ndbi" onclick="chuyen_tab_xep_hang('NDBI')" class="py-1 px-0.5 text-[10px] font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                            🏗️ NDBI
+                        </button>
+                        <button type="button" id="tab_xep_hang_ndwi" onclick="chuyen_tab_xep_hang('NDWI')" class="py-1 px-0.5 text-[10px] font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all">
+                            💧 NDWI
+                        </button>
+                    </div>
+
+                    <div class="relative">
+                        <input type="text" id="o_tim_kiem_phuong" oninput="khi_tim_kiem_phuong(this.value)" placeholder="Tìm tên phường/xã..." class="w-full text-xs rounded-lg border border-slate-300 py-1.5 pl-7 pr-3 bg-white focus:ring-1 focus:ring-indigo-500">
+                        <svg class="w-3.5 h-3.5 text-slate-400 absolute left-2 top-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+                    </div>
+                </div>
+
+                <div id="danh_sach_phuong_chua" class="flex-grow overflow-y-auto divide-y divide-slate-100 p-1"></div>
+            </div>
         </div>
     </div>
-</div>
 
-<!-- Modal Ward Detail (Hiển thị khi click vào 1 xã/phường) -->
-<div id="wardDetailModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[3000] hidden flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl max-w-lg w-full p-6 border border-gray-100 transform transition-all">
-        <div class="flex items-center justify-between border-b border-gray-100 pb-3 mb-4">
-            <div>
-                <span class="text-xs font-bold text-indigo-600 uppercase">Chi tiết chỉ số viễn thám</span>
-                <h3 id="modalWardTitle" class="text-xl font-bold text-gray-900">Phường Bến Nghé</h3>
+<div id="popup_bo_cuc_ban_do" class="fixed inset-0 bg-slate-900/75 backdrop-blur-md z-[5000] hidden flex items-center justify-center p-2 sm:p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-7xl h-[94vh] flex flex-col overflow-hidden border border-slate-200">
+        <div class="px-6 py-3.5 bg-gradient-to-r from-slate-900 via-indigo-950 to-blue-900 text-white flex items-center justify-between border-b border-slate-800">
+            <div class="flex items-center gap-3">
+                <div class="w-8 h-8 rounded-lg bg-indigo-500/20 border border-indigo-400/30 flex items-center justify-center">
+                    <svg class="w-4 h-4 text-indigo-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"></path></svg>
+                </div>
+                <div>
+                    <h3 class="font-bold text-base tracking-wide">Xem Trước & Thiết Kế Bố Cục Bản Đồ Xuất</h3>
+                    <p class="text-xs text-slate-300">Tự do kéo di chuyển, thu phóng bản đồ và tùy chỉnh tiêu đề, chú giải trước khi tải về</p>
+                </div>
             </div>
-            <button type="button" onclick="closeWardModal()" class="text-gray-400 hover:text-gray-600 p-1 rounded-lg">
+            <button type="button" onclick="dong_popup_bo_cuc_ban_do()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-white/10 transition-colors">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
             </button>
         </div>
-        <div id="modalContent" class="space-y-4">
-            <!-- Details injected here -->
-        </div>
-        <div class="mt-6 flex justify-end">
-            <button type="button" onclick="closeWardModal()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-semibold px-5 py-2 rounded-xl text-sm transition-colors">Đóng</button>
+
+        <div class="flex-grow flex flex-col lg:flex-row overflow-hidden bg-slate-100">
+            <div class="flex-grow flex items-center justify-center p-4 overflow-auto bg-slate-200/70">
+                <div id="khung_trang_xuat" class="bg-white rounded-xl shadow-2xl border-2 border-slate-800 flex flex-col relative overflow-hidden transition-all duration-300" style="width: 820px; height: 580px; max-width: 100%;">
+                    <div id="tieu_de_khung_in" class="px-5 py-2.5 bg-white border-b-2 border-slate-800 text-center flex-shrink-0 select-none">
+                        <div id="chu_co_quan_in" class="text-[9px] font-bold uppercase tracking-widest text-slate-500 mb-0.5">
+                            HỆ THỐNG GIÁM SÁT NHIỆT ĐỘ BỀ MẶT – LỚP PHỦ THỰC VẬT – MỨC ĐỘ KHÔ HẠN TẠI TP.HCM
+                        </div>
+                        <h2 id="chu_tieu_de_in" class="text-sm lg:text-base font-black text-slate-900 uppercase tracking-wide">
+                            BẢN ĐỒ PHÂN BỐ NHIỆT ĐỘ BỀ MẶT (LST) - TP. HỒ CHÍ MINH
+                        </h2>
+                        <div class="mt-0.5 flex flex-wrap items-center justify-center gap-2 text-[9px] text-slate-600 font-semibold">
+                            <span id="chu_phu_de_in">Năm 2024 • Cả năm (Trung bình) • 167 Phường/Xã TP.HCM</span>
+                            <span>•</span>
+                            <span id="chu_ti_le_in" class="text-indigo-700 font-bold">TỈ LỆ 1 : 150.000</span>
+                            <span>•</span>
+                            <span>HỆ TỌA ĐỘ: WGS-84 / UTM ZONE 48N</span>
+                        </div>
+                    </div>
+
+                    <div id="khung_ban_do_xem_truoc" class="w-full flex-1 relative bg-slate-50 z-0 overflow-hidden" style="flex: 1 1 0%; min-height: 0; position: relative;">
+                        <div id="ban_do_xem_truoc" class="w-full h-full" style="position: absolute; inset: 0;"></div>
+
+                        <div id="hop_chu_giai_in" class="absolute bottom-3 left-3 bg-white/95 backdrop-blur-md p-2.5 rounded-lg shadow-xl border border-slate-300 z-[1000] max-w-[220px] transition-all">
+                            <h5 id="tieu_de_chu_giai_in" class="text-[10px] font-bold text-slate-800 uppercase tracking-wider mb-1.5 flex items-center gap-1">
+                                <span class="w-2 h-2 rounded-full bg-indigo-600"></span>
+                                Chú Giải Màu Sắc
+                            </h5>
+                            <div id="danh_sach_chu_giai_in" class="space-y-0.5 text-[10px] text-slate-700 font-medium"></div>
+                        </div>
+
+                        <div id="hop_thuoc_do_in" class="absolute bottom-3 right-3 bg-white/95 backdrop-blur-md p-2 rounded-lg shadow-xl border border-slate-300 z-[1000] flex items-center gap-2.5 text-xs transition-all">
+                            <div class="relative w-11 h-11 flex items-center justify-center flex-shrink-0">
+                                <span class="absolute -top-1 text-[8px] font-black text-rose-600">B</span>
+                                <span class="absolute -bottom-1 text-[7px] font-bold text-slate-600">N</span>
+                                <span class="absolute -left-0.5 text-[7px] font-bold text-slate-600">T</span>
+                                <span class="absolute -right-0.5 text-[7px] font-bold text-slate-600">Đ</span>
+                                <svg class="w-8 h-8 text-slate-800" viewBox="0 0 100 100">
+                                    <circle cx="50" cy="50" r="42" fill="none" stroke="#cbd5e1" stroke-width="1.5" stroke-dasharray="2,2"/>
+                                    <circle cx="50" cy="50" r="3.5" fill="#1e293b"/>
+                                    <polygon points="50,12 45,47 50,44" fill="#e11d48"/>
+                                    <polygon points="50,12 55,47 50,44" fill="#f43f5e"/>
+                                    <polygon points="50,88 45,53 50,56" fill="#475569"/>
+                                    <polygon points="50,88 55,53 50,56" fill="#94a3b8"/>
+                                    <polygon points="12,50 47,45 44,50" fill="#64748b"/>
+                                    <polygon points="12,50 47,55 44,50" fill="#94a3b8"/>
+                                    <polygon points="88,50 53,45 56,50" fill="#475569"/>
+                                    <polygon points="88,50 53,55 56,50" fill="#64748b"/>
+                                </svg>
+                            </div>
+                            <div class="border-l border-slate-200 pl-2 space-y-0.5">
+                                <div class="flex items-center justify-between text-[9px] font-bold text-slate-800">
+                                    <span>TỈ LỆ:</span>
+                                    <span id="so_ti_le_in" class="text-indigo-700">1 : 150.000</span>
+                                </div>
+                                <div class="w-24 py-0.5">
+                                    <div class="flex justify-between text-[8px] font-bold text-slate-600 px-0.5">
+                                        <span>0</span>
+                                        <span>5</span>
+                                        <span id="nhan_km_cuoi_in">10 km</span>
+                                    </div>
+                                    <div class="flex h-1.5 w-full border border-slate-800 bg-white">
+                                        <div class="w-1/2 bg-slate-900 border-r border-slate-800"></div>
+                                        <div class="w-1/2 bg-white"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="w-full lg:w-96 bg-white border-l border-slate-200 flex flex-col justify-between p-5 overflow-y-auto">
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">1. Khổ Giấy / Tỉ Lệ Xuất</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <button type="button" onclick="thay_doi_kho_giay('a4_ngang')" id="nut_kho_a4_ngang" class="kho-btn py-2 px-3 rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-left transition-all flex items-center justify-between">
+                                <span>A4 Khổ Ngang</span>
+                                <span class="text-[10px] text-indigo-400">16:11</span>
+                            </button>
+                            <button type="button" onclick="thay_doi_kho_giay('man_hinh_rong')" id="nut_kho_man_hinh_rong" class="kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between">
+                                <span>Màn Hình Rộng</span>
+                                <span class="text-[10px] text-slate-400">16:9</span>
+                            </button>
+                            <button type="button" onclick="thay_doi_kho_giay('kho_vuong')" id="nut_kho_kho_vuong" class="kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between">
+                                <span>Khổ Vuông</span>
+                                <span class="text-[10px] text-slate-400">1:1</span>
+                            </button>
+                            <button type="button" onclick="thay_doi_kho_giay('a4_doc')" id="nut_kho_a4_doc" class="kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between">
+                                <span>A4 Khổ Dọc</span>
+                                <span class="text-[10px] text-slate-400">3:4</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">2. Tiêu Đề & Thông Tin In</label>
+                        <div class="space-y-2 text-xs">
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium block mb-1">Tiêu đề chính:</span>
+                                <input type="text" id="nhap_tieu_de_chinh" oninput="cap_nhat_van_ban_xem_truoc()" class="w-full text-xs font-bold rounded-lg border border-slate-300 py-1.5 px-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium block mb-1">Tên hệ thống / Nhãn tiêu đề trên:</span>
+                                <input type="text" id="nhap_co_quan" oninput="cap_nhat_van_ban_xem_truoc()" class="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                            <div>
+                                <span class="text-slate-500 text-[11px] font-medium block mb-1">Phụ đề thời gian / ghi chú:</span>
+                                <input type="text" id="nhap_phu_de" oninput="cap_nhat_van_ban_xem_truoc()" class="w-full text-xs rounded-lg border border-slate-300 py-1.5 px-2.5 bg-slate-50 focus:bg-white focus:ring-2 focus:ring-indigo-500">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">3. Vị Trí Các Khối Chức Năng</label>
+                        <div class="space-y-2 text-xs">
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600 font-medium">Bảng chú giải màu:</span>
+                                <select id="chon_vi_tri_chu_giai" onchange="thay_doi_vi_tri_chu_giai(this.value)" class="text-xs rounded-lg border-slate-300 py-1 px-2 bg-slate-50 font-semibold border">
+                                    <option value="duoi_trai">Dưới cùng - Bên Trái</option>
+                                    <option value="duoi_phai">Dưới cùng - Bên Phải</option>
+                                    <option value="tren_phai">Trên cùng - Bên Phải</option>
+                                    <option value="an">Ẩn chú giải</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-slate-600 font-medium">La bàn & Thước đo:</span>
+                                <select id="chon_vi_tri_thuoc_do" onchange="thay_doi_vi_tri_thuoc_do(this.value)" class="text-xs rounded-lg border-slate-300 py-1 px-2 bg-slate-50 font-semibold border">
+                                    <option value="duoi_phai">Dưới cùng - Bên Phải</option>
+                                    <option value="duoi_trai">Dưới cùng - Bên Trái</option>
+                                    <option value="an">Ẩn la bàn & thước đo</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">4. Căn Chỉnh Vị Trí Xem Trước</label>
+                        <div class="flex gap-2">
+                            <button type="button" onclick="can_khung_xem_truoc('toan_tp')" class="flex-1 py-1.5 px-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path></svg>
+                                Vừa Khít TP.HCM
+                            </button>
+                            <button type="button" onclick="can_khung_xem_truoc('trung_tam')" class="flex-1 py-1.5 px-2 rounded-lg border border-slate-200 bg-slate-50 hover:bg-indigo-50 hover:text-indigo-700 text-slate-700 text-xs font-bold transition-all flex items-center justify-center gap-1">
+                                <svg class="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path></svg>
+                                Khu Trung Tâm
+                            </button>
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-xs font-bold text-slate-700 uppercase tracking-wider mb-2">5. Độ Phân Giải Xuất</label>
+                        <div class="grid grid-cols-2 gap-2 text-xs">
+                            <label class="flex items-center gap-2 p-2 rounded-lg border border-indigo-200 bg-indigo-50/50 cursor-pointer">
+                                <input type="radio" name="do_phan_giai" value="2" checked class="text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <span class="font-bold text-slate-800 block text-xs">Siêu Nét (2x)</span>
+                                    <span class="text-[10px] text-slate-400">In ấn, trình chiếu</span>
+                                </div>
+                            </label>
+                            <label class="flex items-center gap-2 p-2 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 cursor-pointer">
+                                <input type="radio" name="do_phan_giai" value="1" class="text-indigo-600 focus:ring-indigo-500">
+                                <div>
+                                    <span class="font-bold text-slate-800 block text-xs">Tiêu Chuẩn (1x)</span>
+                                    <span class="text-[10px] text-slate-400">Tải nhanh, web</span>
+                                </div>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-t border-slate-200 flex items-center justify-between gap-3 mt-4">
+                    <button type="button" onclick="dong_popup_bo_cuc_ban_do()" class="px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-100 text-xs font-bold transition-all">
+                        Đóng
+                    </button>
+                    <button type="button" onclick="xuat_anh_theo_bo_cuc()" id="nut_xuat_anh_cuoi" class="flex-1 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-4 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all text-xs flex items-center justify-center gap-2">
+                        <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        <span>Xuất & Tải Bản Đồ (PNG)</span>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 </div>
-{% endblock %}
 
-{% block scripts %}
-<!-- html2canvas-pro: Hỗ trợ toàn diện chuẩn màu hiện đại (oklch, oklab, color-mix) của Tailwind CSS v4 -->
 <script src="{% static 'js/html2canvas-pro.min.js' %}"></script>
 <script>
     if (typeof html2canvas === 'undefined') {
-        document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js"><\/script>');
+        document.write('<script src="https://cdn.jsdelivr.net/npm/html2canvas-pro@1.5.8/dist/html2canvas-pro.min.js"><\\/script>');
     }
 </script>
-
 <script>
-    // Configuration & State
-    let currentMetric = 'LST';
-    let currentYear = 2024;
-    let currentSeason = 'all';
-    let isPlaying = false;
-    let playInterval = null;
-    
-    let geojsonData = null;
-    let currentDataMap = {};
-    let thematicLayer = null;
-    let map = null;
+    var ban_do_hien_tai = null;
+    var lop_vector_phuong = null;
+    var tap_hop_du_lieu_phuong = {};
+    var danh_sach_xep_hang_tong = [];
+    var chi_so_dang_chon = 'LST';
+    var nam_dang_chon = '2024';
+    var mua_dang_chon = 'all';
+    var che_do_hien_tai = '2D';
+    var tab_xep_hang_hien_tai = 'LST';
+    var tu_khoa_tim_phuong = '';
 
-    // Color Scales Configuration strictly compliant with 'Thang màu Nhiệt độ-NDVI-TVDI.pdf'
-    const PALETTES = {
+    var dang_chay_animation = false;
+    var bo_dem_animation = null;
+
+    var canh_scene_3d = null;
+    var camera_3d = null;
+    var bo_ve_renderer_3d = null;
+    var bo_dieu_khien_3d = null;
+    var nhom_khoi_phuong_3d = null;
+    var raycaster_3d = null;
+    var chuot_3d = null;
+
+    var bang_mau = {
         'LST': {
-            unit: '°C',
-            title: 'Nhiệt độ mặt đất',
-            range: [20, 45],
-            breaks: [23.0, 26.0, 29.0, 32.0, 35.0, 38.0, 41.0],
-            colors: ["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"],
-            labels: [
-                '< 23°C (Rất mát mẻ)', 
-                '23 - 26°C (Mát mẻ, dễ chịu)', 
-                '26 - 29°C (Dịu nhẹ bình thường)', 
-                '29 - 32°C (Ấm áp)', 
-                '32 - 35°C (Bắt đầu nóng)', 
-                '35 - 38°C (Nóng bức đô thị)', 
-                '38 - 41°C (Rất nóng)', 
-                '> 41°C (Cực kỳ gay gắt)'
-            ]
+            min: 20,
+            max: 45,
+            mau: ["#0000FF", "#0066FF", "#00FFFF", "#00FF00", "#FFFF00", "#FFCC00", "#FF6600", "#FF0000"],
+            don_vi: '°C'
         },
         'NDVI': {
-            unit: '',
-            title: 'Mảng xanh cây cối',
-            range: [-0.2, 1.0],
-            breaks: [-0.05, 0.10, 0.25, 0.40, 0.55, 0.70, 0.85],
-            colors: ['#FF0000', '#FF7F00', '#FFFF00', '#ADFF2F', '#00FF00', '#00FFFF', '#007FFF', '#0000FF'],
-            labels: [
-                '< -0.05 (Mặt nước / Đất trống)', 
-                '-0.05 - 0.10 (Nhà cửa / Rất ít cây)', 
-                '0.10 - 0.25 (Cây xanh thưa thớt)', 
-                '0.25 - 0.40 (Mảng xanh trung bình)', 
-                '0.40 - 0.55 (Mảng xanh tươi tốt)', 
-                '0.55 - 0.70 (Nhiều cây xanh)', 
-                '0.70 - 0.85 (Rừng cây rậm rạp)', 
-                '> 0.85 (Rừng rậm rạp tối đa)'
-            ]
+            min: -0.2,
+            max: 1.0,
+            mau: ["#FF0000", "#FF7F00", "#FFFF00", "#ADFF2F", "#00FF00", "#00FFFF", "#007FFF", "#0000FF"],
+            don_vi: ''
         },
         'TVDI': {
-            unit: '',
-            title: 'Mức độ khô hạn của đất',
-            range: [0.0, 1.0],
-            breaks: [0.15, 0.30, 0.45, 0.60, 0.75, 0.85, 0.95],
-            colors: ['#066b00', '#0bc400', '#0ce100', '#00ff00', '#ffff00', '#ffcc00', '#ff6600', '#ff0000'],
-            labels: [
-                '< 0.15 (Rất ẩm ướt / Đủ nước)', 
-                '0.15 - 0.30 (Đất ẩm ướt tốt)', 
-                '0.30 - 0.45 (Độ ẩm vừa phải)', 
-                '0.45 - 0.60 (Bình thường)', 
-                '0.60 - 0.75 (Hơi khô ráo)', 
-                '0.75 - 0.85 (Khô hạn vừa)', 
-                '0.85 - 0.95 (Khô hạn nhiều)', 
-                '> 0.95 (Cực kỳ khô hạn)'
-            ]
+            min: 0.0,
+            max: 1.0,
+            mau: ["#066b00", "#0bc400", "#0ce100", "#00ff00", "#ffff00", "#ffcc00", "#ff6600", "#ff0000"],
+            don_vi: ''
         },
         'NDBI': {
-            unit: '',
-            title: 'Mật độ nhà cửa & bê tông',
-            breaks: [-0.05, 0.10, 0.22, 0.32],
-            colors: ['#a7f3d0', '#cbd5e1', '#fdba74', '#ea580c', '#7f1d1d'],
-            labels: ['Nhiều cây / Mặt nước (< -0.05)', 'Ven đô ít nhà (-0.05 - 0.10)', 'Đang xây dựng nhiều (0.10 - 0.22)', 'Mật độ nhà cửa cao (0.22 - 0.32)', 'Khu vực trung tâm đông đúc (> 0.32)']
+            min: -0.3,
+            max: 0.5,
+            mau: ["#228B22", "#90EE90", "#FFFF00", "#FFA500", "#FF4500", "#B22222", "#4B0082"],
+            don_vi: ''
         },
         'NDWI': {
-            unit: '',
-            title: 'Sông ngòi & kênh rạch',
-            breaks: [-0.15, 0.0, 0.15, 0.30],
-            colors: ['#fed7aa', '#fde047', '#38bdf8', '#2563eb', '#1e3a8a'],
-            labels: ['Đất khô ráo (< -0.15)', 'Đất ẩm ( -0.15 - 0.0)', 'Mặt nước nông (0.0 - 0.15)', 'Sông ngòi / Kênh rạch (0.15 - 0.30)', 'Vùng nước sâu / Cửa biển (> 0.30)']
+            min: -0.4,
+            max: 0.5,
+            mau: ["#8B4513", "#D2B48C", "#FFF8DC", "#AFEEEE", "#00BFFF", "#1E90FF", "#00008B"],
+            don_vi: ''
         }
     };
 
     document.addEventListener("DOMContentLoaded", function() {
-        initMap();
-        loadGeoJsonAndData();
+        khoi_tao_ban_do_2d();
+        tai_toan_bo_du_lieu();
     });
 
-    function initMap() {
-        var hcmcBounds = L.latLngBounds([10.15, 106.2], [11.3, 107.25]);
-        map = L.map('thematicMap', {
-            maxBounds: hcmcBounds,
-            minZoom: 9,
-            zoomControl: true
-        }).setView([10.776, 106.685], 10);
+    function khoi_tao_ban_do_2d() {
+        ban_do_hien_tai = L.map('ban_do_2d', {
+            zoomControl: true,
+            attributionControl: false
+        }).setView([10.7769, 106.7009], 10);
 
-        // Sử dụng nền Esri World Light Gray Base chuyên dụng cho bản đồ GIS, KHÔNG bị dính watermark API KEY REQUIRED
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-            attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-            maxZoom: 16,
-            crossOrigin: true
-        }).addTo(map);
+            maxZoom: 16
+        }).addTo(ban_do_hien_tai);
 
-        // Cập nhật thước tỉ lệ và tỉ lệ số động theo mức phóng to / thu nhỏ
-        map.on('zoomend', updateDynamicScale);
-        map.on('moveend', updateDynamicScale);
-        updateDynamicScale();
+        setTimeout(function() {
+            if (ban_do_hien_tai) ban_do_hien_tai.invalidateSize();
+        }, 150);
+        setTimeout(function() {
+            if (ban_do_hien_tai) ban_do_hien_tai.invalidateSize();
+        }, 500);
+        window.addEventListener('resize', function() {
+            if (ban_do_hien_tai) ban_do_hien_tai.invalidateSize();
+        });
     }
 
-    function updateDynamicScale() {
-        if (!map) return;
-        const center = map.getCenter();
-        const zoom = map.getZoom();
-        // Độ phân giải mét/pixel theo vĩ độ và mức zoom
-        const metersPerPixel = 156543.03392 * Math.cos(center.lat * Math.PI / 180) / Math.pow(2, zoom);
-        // Tỉ lệ bản đồ chuẩn tại 96 DPI (1 inch = 0.0254m => 3779.52 pixel/mét)
-        const rawScale = Math.round((metersPerPixel * 3779.52) / 5000) * 5000;
-        const scaleText = "1 : " + rawScale.toLocaleString('vi-VN');
-        
-        const uiScale = document.getElementById('uiScaleRatio');
-        const exportScale = document.getElementById('exportScaleRatio');
-        if (uiScale) uiScale.textContent = scaleText;
-        if (exportScale) exportScale.textContent = 'TỈ LỆ ' + scaleText;
+    function tai_toan_bo_du_lieu() {
+        hien_thi_vong_quay(true);
+        var tham_so = new URLSearchParams({
+            nam: nam_dang_chon,
+            mua: mua_dang_chon,
+            nguong_lst_min: document.getElementById('o_nguong_lst').value,
+            nguong_ndvi_max: document.getElementById('o_nguong_ndvi').value,
+            nguong_tvdi_min: document.getElementById('o_nguong_tvdi').value
+        });
 
-        // Cập nhật giá trị hiển thị trên thanh tỉ lệ đồ giải (Scale Bar) dựa trên độ dài 144px
-        const totalKm = (metersPerPixel * 144) / 1000;
-        let step = Math.round(totalKm / 4);
-        if (step < 1) step = 1;
-        const barLabels = document.getElementById('scaleBarLabels');
-        if (barLabels) {
-            barLabels.innerHTML = `
-                <span>0</span>
-                <span>${step}</span>
-                <span>${step * 2}</span>
-                <span>${step * 4} km</span>
-            `;
-        }
+        Promise.all([
+            fetch('/api/wards/geojson/').then(function(r) { return r.json(); }),
+            fetch('/api/danh-sach-phuong-xep-hang/?' + tham_so.toString()).then(function(r) { return r.json(); })
+        ])
+        .then(function(ket_qua) {
+            var geojson = ket_qua[0];
+            window.du_lieu_geojson_hien_tai = geojson;
+            var du_lieu_xep_hang = ket_qua[1];
+
+            danh_sach_xep_hang_tong = du_lieu_xep_hang;
+            tap_hop_du_lieu_phuong = {};
+            if (du_lieu_xep_hang.danh_sach) {
+                du_lieu_xep_hang.danh_sach.forEach(function(p) {
+                    tap_hop_du_lieu_phuong[p.ma_xa] = p;
+                });
+            }
+
+            ve_lop_vector_2d(geojson);
+            if (lop_vector_phuong && ban_do_hien_tai) {
+                try {
+                    ban_do_hien_tai.fitBounds(lop_vector_phuong.getBounds(), { padding: [15, 15] });
+                    ban_do_hien_tai.invalidateSize();
+                } catch(e) {}
+            }
+            cap_nhat_thang_mau();
+            cap_nhat_bang_xep_hang();
+            cap_nhat_thong_ke_nguong(du_lieu_xep_hang);
+
+            if (che_do_hien_tai === '3D') {
+                ve_mo_hinh_3d(geojson);
+            }
+
+            hien_thi_vong_quay(false);
+        })
+        .catch(function(loi) {
+            hien_thi_vong_quay(false);
+        });
     }
 
-    function getColorForValue(val, metric) {
-        if (val === null || val === undefined) return '#e5e7eb';
-        const cfg = PALETTES[metric];
-        const b = cfg.breaks;
-        const c = cfg.colors;
-        for (let i = 0; i < b.length; i++) {
-            if (val < b[i]) return c[i];
-        }
-        return c[c.length - 1];
-    }
-
-    function getCategoryForValue(val, metric) {
-        if (val === null || val === undefined) return 'Chưa có số liệu';
-        const cfg = PALETTES[metric];
-        const b = cfg.breaks;
-        const l = cfg.labels;
-        for (let i = 0; i < b.length; i++) {
-            if (val < b[i]) return l[i];
-        }
-        return l[l.length - 1];
-    }
-
-    function updateLegend() {
-        const cfg = PALETTES[currentMetric];
-        document.getElementById('legendTitle').innerHTML = `
-            <span class="w-2.5 h-2.5 rounded-full bg-indigo-600"></span>
-            Chú giải ${cfg.title} ${cfg.unit ? `(${cfg.unit})` : ''}
-        `;
-
-        const container = document.getElementById('legendItems');
-        let html = '';
-        for (let i = 0; i < cfg.colors.length; i++) {
-            html += `
-                <div class="flex items-center gap-2.5">
-                    <span class="w-5 h-3.5 rounded border border-black/10 shadow-sm flex-shrink-0" style="background-color: ${cfg.colors[i]}"></span>
-                    <span class="text-[11px] leading-tight text-gray-700">${cfg.labels[i]}</span>
-                </div>
-            `;
-        }
-        container.innerHTML = html;
-    }
-
-    function loadGeoJsonAndData() {
-        showLoader(true);
-        // Fetch GeoJSON boundary
-        fetch("{% url 'api_get_all_wards' %}")
-            .then(res => res.json())
-            .then(geojson => {
-                geojsonData = geojson;
-                fetchThematicData();
-            })
-            .catch(err => {
-                console.error("Lỗi tải GeoJSON:", err);
-                showLoader(false);
-            });
-    }
-
-    function fetchThematicData() {
-        showLoader(true);
-        const url = `/api/thematic-map-data/?index_code=${currentMetric}&year=${currentYear}&season=${currentSeason}`;
-        fetch(url)
-            .then(res => res.json())
-            .then(res => {
-                if (res.status === 'success') {
-                    currentDataMap = res.data;
-                    renderThematicLayer();
-                    updateHeaderTitles();
-                    updateLegend();
-                    updateStatsDisplay(res.summary);
-                }
-                showLoader(false);
-            })
-            .catch(err => {
-                console.error("Lỗi lấy số liệu bản đồ:", err);
-                showLoader(false);
-            });
-    }
-
-    function renderThematicLayer() {
-        if (thematicLayer) {
-            map.removeLayer(thematicLayer);
+    function ve_lop_vector_2d(geojson) {
+        if (lop_vector_phuong) {
+            ban_do_hien_tai.removeLayer(lop_vector_phuong);
         }
 
-        thematicLayer = L.geoJSON(geojsonData, {
+        lop_vector_phuong = L.geoJSON(geojson, {
             style: function(feature) {
-                const maXa = feature.properties.maXa;
-                const d = currentDataMap[maXa];
-                const val = d ? d.value : null;
+                var ma_xa = feature.properties.maXa;
+                var thong_tin = tap_hop_du_lieu_phuong[ma_xa];
+                var gia_tri = thong_tin ? thong_tin[chi_so_dang_chon] : null;
+                var thoa_nguong = thong_tin ? thong_tin.thoa_nguong : true;
+
+                var mau_to = lay_mau_cho_gia_tri(gia_tri, chi_so_dang_chon);
+                if (!thoa_nguong) {
+                    return {
+                        fillColor: '#94a3b8',
+                        weight: 0.8,
+                        opacity: 0.4,
+                        color: '#cbd5e1',
+                        fillOpacity: 0.15
+                    };
+                }
+
                 return {
-                    fillColor: getColorForValue(val, currentMetric),
+                    fillColor: mau_to,
                     weight: 1.2,
-                    opacity: 1,
+                    opacity: 0.9,
                     color: '#ffffff',
                     fillOpacity: 0.85
                 };
             },
             onEachFeature: function(feature, layer) {
-                const maXa = feature.properties.maXa;
-                const tenXa = feature.properties.tenXa;
-
                 layer.on({
                     mouseover: function(e) {
-                        const l = e.target;
-                        l.setStyle({
-                            weight: 3.5,
-                            color: '#1e1b4b',
-                            fillOpacity: 0.95
-                        });
-                        l.bringToFront();
-                        updateHoverCard(maXa, tenXa);
+                        var ma_xa = feature.properties.maXa;
+                        var ten_xa = feature.properties.tenXa;
+                        var thong_tin = tap_hop_du_lieu_phuong[ma_xa];
+                        hien_thi_thong_tin_hover(ma_xa, ten_xa, thong_tin);
+                        e.target.setStyle({ weight: 3, color: '#1e293b' });
+                        if (!L.Browser.ie && !L.Browser.opera && !L.Browser.edge) {
+                            e.target.bringToFront();
+                        }
                     },
                     mouseout: function(e) {
-                        thematicLayer.resetStyle(e.target);
+                        lop_vector_phuong.resetStyle(e.target);
                     },
-                    click: function() {
-                        openWardModal(maXa, tenXa);
+                    click: function(e) {
+                        ban_do_hien_tai.fitBounds(e.target.getBounds(), { padding: [40, 40] });
                     }
                 });
             }
-        }).addTo(map);
+        }).addTo(ban_do_hien_tai);
+    }
 
-        // Canh chỉnh khung nhìn vừa vặn toàn bộ 172 xã/phường TP.HCM
-        if (!window.hasFittedBounds && thematicLayer) {
-            fitHcmcBounds();
-            window.hasFittedBounds = true;
+    function lay_mau_cho_gia_tri(gia_tri, ma_chi_so) {
+        if (gia_tri === null || gia_tri === undefined) return '#cbd5e1';
+        var cau_hinh = bang_mau[ma_chi_so] || bang_mau['LST'];
+        var min = cau_hinh.min;
+        var max = cau_hinh.max;
+        var danh_sach_mau = cau_hinh.mau;
+
+        var ti_le = (gia_tri - min) / (max - min);
+        if (ti_le <= 0) return danh_sach_mau[0];
+        if (ti_le >= 1) return danh_sach_mau[danh_sach_mau.length - 1];
+
+        var chi_muc = Math.floor(ti_le * (danh_sach_mau.length - 1));
+        return danh_sach_mau[chi_muc];
+    }
+
+    function hien_thi_thong_tin_hover(ma_xa, ten_xa, thong_tin) {
+        document.getElementById('the_ma_phuong').textContent = ma_xa || '';
+        document.getElementById('the_ten_phuong').textContent = ten_xa || '';
+
+        var gia_tri = thong_tin ? thong_tin[chi_so_dang_chon] : null;
+        var don_vi = bang_mau[chi_so_dang_chon].don_vi;
+        document.getElementById('the_nhan_chi_so').textContent = chi_so_dang_chon + ':';
+        document.getElementById('the_gia_tri_chi_so').textContent = gia_tri !== null ? gia_tri + ' ' + don_vi : '--';
+
+        var phan_loai = '--';
+        if (gia_tri !== null) {
+            if (chi_so_dang_chon === 'LST') {
+                if (gia_tri >= 36) phan_loai = 'Rất Nóng (Đảo nhiệt cao)';
+                else if (gia_tri >= 33) phan_loai = 'Nóng Trung Bình';
+                else phan_loai = 'Mát Mẻ (Cây xanh / Nước)';
+            } else if (chi_so_dang_chon === 'NDVI') {
+                if (gia_tri >= 0.4) phan_loai = 'Thực Vật Tốt (Nhiều cây)';
+                else if (gia_tri >= 0.2) phan_loai = 'Thực Vật Trung Bình';
+                else phan_loai = 'Thực Vật Kém (Bê tông hóa)';
+            } else if (chi_so_dang_chon === 'TVDI') {
+                if (gia_tri >= 0.7) phan_loai = 'Khô Hạn Nặng';
+                else if (gia_tri >= 0.5) phan_loai = 'Khô Hạn Vừa';
+                else phan_loai = 'Độ Ẩm Cao (Ẩm ướt)';
+            } else if (chi_so_dang_chon === 'NDBI') {
+                if (gia_tri >= 0.25) phan_loai = 'Đô Thị Hóa Cao (Bê tông dày đặc)';
+                else if (gia_tri >= 0.05) phan_loai = 'Đô Thị Trung Bình';
+                else phan_loai = 'Vùng Xanh / Nông Nghiệp / Tự Nhiên';
+            } else if (chi_so_dang_chon === 'NDWI') {
+                if (gia_tri >= 0.15) phan_loai = 'Mặt Nước Rộng (Sông lớn / Đầm)';
+                else if (gia_tri >= -0.05) phan_loai = 'Độ Ẩm Cao / Kênh Rạch Ven';
+                else phan_loai = 'Vùng Khô Ráo / Đất Liền';
+            }
         }
+        document.getElementById('the_muc_do').textContent = phan_loai;
     }
 
-    function fitHcmcBounds() {
-        if (thematicLayer && map) {
-            map.invalidateSize();
-            map.fitBounds(thematicLayer.getBounds(), { padding: [15, 15] });
-            setTimeout(updateDynamicScale, 300);
+    function cap_nhat_thang_mau() {
+        var cau_hinh = bang_mau[chi_so_dang_chon] || bang_mau['LST'];
+        var vung_chua = document.getElementById('cac_muc_thang_mau');
+        var tieu_de = document.getElementById('tieu_de_thang_mau');
+        tieu_de.innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-600"></span> Thang Màu ' + chi_so_dang_chon + ' (' + cau_hinh.don_vi + ')';
+
+        var html = '<div class="h-3 w-44 rounded border border-slate-300 flex overflow-hidden shadow-inner mb-1">';
+        cau_hinh.mau.forEach(function(mau) {
+            html += '<div style="background-color: ' + mau + ';" class="flex-grow h-full"></div>';
+        });
+        html += '</div>';
+        html += '<div class="flex justify-between w-44 text-[9px] font-bold text-slate-600">';
+        html += '<span>' + cau_hinh.min + ' ' + cau_hinh.don_vi + '</span>';
+        html += '<span>' + ((cau_hinh.min + cau_hinh.max) / 2) + '</span>';
+        html += '<span>' + cau_hinh.max + ' ' + cau_hinh.don_vi + '</span>';
+        html += '</div>';
+
+        vung_chua.innerHTML = html;
+    }
+
+    function cap_nhat_bang_xep_hang() {
+        var vung_chua = document.getElementById('danh_sach_phuong_chua');
+        if (!danh_sach_xep_hang_tong) return;
+
+        var danh_sach = [];
+        if (tab_xep_hang_hien_tai === 'LST') {
+            danh_sach = danh_sach_xep_hang_tong.xep_hang_lst || [];
+        } else if (tab_xep_hang_hien_tai === 'NDVI') {
+            danh_sach = danh_sach_xep_hang_tong.xep_hang_ndvi || [];
+        } else if (tab_xep_hang_hien_tai === 'TVDI') {
+            danh_sach = danh_sach_xep_hang_tong.xep_hang_tvdi || [];
+        } else if (tab_xep_hang_hien_tai === 'NDBI') {
+            danh_sach = danh_sach_xep_hang_tong.xep_hang_ndbi || [];
+        } else if (tab_xep_hang_hien_tai === 'NDWI') {
+            danh_sach = danh_sach_xep_hang_tong.xep_hang_ndwi || [];
         }
-    }
 
-    function updateHoverCard(maXa, tenXa) {
-        const d = currentDataMap[maXa];
-        const val = d ? d.value : null;
-        const cfg = PALETTES[currentMetric];
-
-        document.getElementById('hoverWardCode').textContent = maXa || '';
-        document.getElementById('hoverWardName').textContent = tenXa || 'Khu vực';
-        document.getElementById('hoverMetricLabel').textContent = `${cfg.title}:`;
-        
-        if (val !== null && val !== undefined) {
-            document.getElementById('hoverMetricVal').textContent = `${val} ${cfg.unit}`;
-            document.getElementById('hoverCategory').textContent = getCategoryForValue(val, currentMetric);
-        } else {
-            document.getElementById('hoverMetricVal').textContent = 'N/A';
-            document.getElementById('hoverCategory').textContent = 'Chưa có dữ liệu';
+        if (tu_khoa_tim_phuong.trim() !== '') {
+            var tu_khoa = tu_khoa_tim_phuong.toLowerCase();
+            danh_sach = danh_sach.filter(function(p) {
+                return p.ten_xa.toLowerCase().includes(tu_khoa);
+            });
         }
+
+        var html = '';
+        var don_vi = bang_mau[tab_xep_hang_hien_tai].don_vi;
+
+        danh_sach.forEach(function(p, i) {
+            var gia_tri = p[tab_xep_hang_hien_tai];
+            var mau_sac = lay_mau_cho_gia_tri(gia_tri, tab_xep_hang_hien_tai);
+            var thoa_nguong = p.thoa_nguong;
+
+            var hang = i + 1;
+            var mau_hang = 'bg-slate-100 text-slate-700';
+            if (hang === 1) mau_hang = 'bg-amber-400 text-white font-extrabold';
+            else if (hang === 2) mau_hang = 'bg-slate-300 text-slate-800 font-extrabold';
+            else if (hang === 3) mau_hang = 'bg-amber-600 text-white font-extrabold';
+
+            var do_mo = thoa_nguong ? 'opacity-100' : 'opacity-40';
+
+            html += '<div onclick="chon_phuong_tu_danh_sach(\'' + p.ma_xa + '\')" class="p-2 hover:bg-indigo-50/60 rounded-xl cursor-pointer transition-all flex items-center justify-between ' + do_mo + '">';
+            html += '<div class="flex items-center gap-2">';
+            html += '<span class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] ' + mau_hang + '">' + hang + '</span>';
+            html += '<div>';
+            html += '<h5 class="text-xs font-bold text-slate-800 leading-tight">' + p.ten_xa + '</h5>';
+            html += '<span class="text-[9px] text-slate-400 font-mono">' + p.ma_xa + '</span>';
+            html += '</div>';
+            html += '</div>';
+
+            html += '<div class="text-right flex items-center gap-2">';
+            html += '<span class="text-xs font-extrabold text-slate-900">' + (gia_tri !== null ? gia_tri + ' ' + don_vi : '--') + '</span>';
+            html += '<span style="background-color: ' + mau_sac + ';" class="w-3 h-3 rounded-full border border-white shadow-sm"></span>';
+            html += '</div>';
+            html += '</div>';
+        });
+
+        vung_chua.innerHTML = html;
     }
 
-    function updateHeaderTitles() {
-        const cfg = PALETTES[currentMetric];
-        const titleText = `BẢN ĐỒ ${cfg.title.toUpperCase()} - NĂM ${currentYear} - TP. HỒ CHÍ MINH`;
-        document.getElementById('mapMainTitle').textContent = titleText;
-        document.getElementById('exportTitle').textContent = titleText;
-        document.getElementById('currentYearBadge').textContent = currentYear;
-
-        let seasonText = "Cả năm (Tính trung bình)";
-        if (currentSeason === 'dry') seasonText = "Mùa nắng nóng (Tháng 1 - Tháng 5)";
-        if (currentSeason === 'rain') seasonText = "Mùa mưa mát mẻ (Tháng 6 - Tháng 11)";
-        
-        const subText = `${seasonText} • Đầy đủ 172 Xã/Phường TP.HCM`;
-        document.getElementById('mapSubtitle').textContent = subText;
-        document.getElementById('exportSub').textContent = subText;
+    function cap_nhat_thong_ke_nguong(du_lieu) {
+        var the_dem = document.getElementById('the_dem_thoa_nguong');
+        var tong = du_lieu.tong_so_phuong || 167;
+        var thoa = du_lieu.so_phuong_thoa_nguong || 0;
+        the_dem.textContent = thoa + ' / ' + tong + ' phường';
     }
 
-    function updateStatsDisplay(sum) {
-        const cfg = PALETTES[currentMetric];
-        document.getElementById('lblStatMin').textContent = `${sum.min} ${cfg.unit}`;
-        document.getElementById('lblStatMax').textContent = `${sum.max} ${cfg.unit}`;
-        document.getElementById('lblStatAvg').textContent = `${sum.avg} ${cfg.unit}`;
-    }
-
-    function changeMetric(metric) {
-        currentMetric = metric;
-        document.querySelectorAll('.metric-btn').forEach(btn => {
-            if (btn.getAttribute('data-metric') === metric) {
-                btn.className = "metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-indigo-600 text-white border-indigo-600 shadow-indigo-200";
-            } else {
-                btn.className = "metric-btn px-4 py-2 rounded-xl text-sm font-bold shadow-sm transition-all border bg-white text-gray-700 hover:bg-gray-100 border-gray-300";
+    function chon_phuong_tu_danh_sach(ma_xa) {
+        if (!lop_vector_phuong) return;
+        lop_vector_phuong.eachLayer(function(layer) {
+            if (layer.feature && layer.feature.properties.maXa === ma_xa) {
+                ban_do_hien_tai.fitBounds(layer.getBounds(), { padding: [50, 50], maxZoom: 14 });
+                layer.fire('mouseover');
             }
         });
-        fetchThematicData();
     }
 
-    function onYearSliderChange(val) {
-        currentYear = parseInt(val);
-        document.getElementById('currentYearBadge').textContent = currentYear;
-        fetchThematicData();
+    function thay_doi_chi_so(ma_chi_so) {
+        chi_so_dang_chon = ma_chi_so;
+        document.querySelectorAll('.nut-chi-so').forEach(function(btn) {
+            if (btn.getAttribute('data-chi-so') === ma_chi_so) {
+                btn.className = 'nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-rose-600 text-white border-rose-600 shadow-rose-100 flex items-center gap-1';
+            } else {
+                btn.className = 'nut-chi-so px-3 py-1.5 rounded-xl text-xs font-bold shadow-sm transition-all border bg-white text-slate-700 hover:bg-slate-100 border-slate-300 flex items-center gap-1';
+            }
+        });
+
+        var ten_chi_so_day_du = 'NHIỆT ĐỘ BỀ MẶT (LST)';
+        if (ma_chi_so === 'NDVI') ten_chi_so_day_du = 'CHỈ SỐ THỰC VẬT (NDVI)';
+        else if (ma_chi_so === 'TVDI') ten_chi_so_day_du = 'CHỈ SỐ KHÔ HẠN (TVDI)';
+        else if (ma_chi_so === 'NDBI') ten_chi_so_day_du = 'CHỈ SỐ ĐẤT XÂY DỰNG (NDBI)';
+        else if (ma_chi_so === 'NDWI') ten_chi_so_day_du = 'CHỈ SỐ NƯỚC BỀ MẶT (NDWI)';
+        var tieu_de = 'BẢN ĐỒ PHÂN BỐ ' + ten_chi_so_day_du + ' - TP. HỒ CHÍ MINH';
+        document.getElementById('tieu_de_hien_thi').textContent = tieu_de;
+
+        tab_xep_hang_hien_tai = ma_chi_so;
+        dat_trang_thai_tab_xep_hang();
+        tai_toan_bo_du_lieu();
     }
 
-    function onSeasonChange() {
-        currentSeason = document.getElementById('seasonSelect').value;
-        fetchThematicData();
+    function chuyen_tab_xep_hang(ma_tab) {
+        tab_xep_hang_hien_tai = ma_tab;
+        dat_trang_thai_tab_xep_hang();
+        cap_nhat_bang_xep_hang();
     }
 
-    function togglePlayTimeline() {
-        isPlaying = !isPlaying;
-        const playIcon = document.getElementById('playIcon');
-        const pauseIcon = document.getElementById('pauseIcon');
-        
-        if (isPlaying) {
-            playIcon.classList.add('hidden');
-            pauseIcon.classList.remove('hidden');
-            playInterval = setInterval(() => {
-                currentYear += 1;
-                if (currentYear > 2026) currentYear = 2017;
-                document.getElementById('yearSlider').value = currentYear;
-                document.getElementById('currentYearBadge').textContent = currentYear;
-                fetchThematicData();
-            }, 1800);
-        } else {
-            playIcon.classList.remove('hidden');
-            pauseIcon.classList.add('hidden');
-            if (playInterval) clearInterval(playInterval);
+    function dat_trang_thai_tab_xep_hang() {
+        ['LST', 'NDVI', 'TVDI', 'NDBI', 'NDWI'].forEach(function(t) {
+            var nut = document.getElementById('tab_xep_hang_' + t.toLowerCase());
+            if (nut) {
+                if (t === tab_xep_hang_hien_tai) {
+                    nut.className = 'py-1 px-0.5 text-[10px] font-bold rounded-lg bg-white text-indigo-700 shadow-sm transition-all';
+                } else {
+                    nut.className = 'py-1 px-0.5 text-[10px] font-bold rounded-lg text-slate-600 hover:text-slate-900 transition-all';
+                }
+            }
+        });
+    }
+
+    function khi_doi_mua() {
+        mua_dang_chon = document.getElementById('lua_chon_mua').value;
+        tai_toan_bo_du_lieu();
+    }
+
+    function khi_keo_thanh_truot_nam(nam) {
+        nam_dang_chon = nam;
+        document.getElementById('hien_thi_nam_hien_tai').textContent = nam;
+        tai_toan_bo_du_lieu();
+    }
+
+    function khi_doi_nguong() {
+        tai_toan_bo_du_lieu();
+    }
+
+    function ap_dung_nguong_nhanh(loai) {
+        dat_lai_bo_loc_nguong(false);
+        if (loai === 'LST_NONG') {
+            document.getElementById('o_nguong_lst').value = 35;
+            thay_doi_chi_so('LST');
+        } else if (loai === 'LST_CUC_NONG') {
+            document.getElementById('o_nguong_lst').value = 38;
+            thay_doi_chi_so('LST');
+        } else if (loai === 'NDVI_THAP') {
+            document.getElementById('o_nguong_ndvi').value = 0.20;
+            thay_doi_chi_so('NDVI');
+        } else if (loai === 'TVDI_HAN') {
+            document.getElementById('o_nguong_tvdi').value = 0.70;
+            thay_doi_chi_so('TVDI');
+        }
+        tai_toan_bo_du_lieu();
+    }
+
+    function dat_lai_bo_loc_nguong(tai_lai) {
+        document.getElementById('o_nguong_lst').value = '';
+        document.getElementById('o_nguong_ndvi').value = '';
+        document.getElementById('o_nguong_tvdi').value = '';
+        if (tai_lai !== false) {
+            tai_toan_bo_du_lieu();
         }
     }
 
-    function openWardModal(maXa, tenXa) {
-        const d = currentDataMap[maXa];
-        document.getElementById('modalWardTitle').textContent = tenXa;
-        const cfg = PALETTES[currentMetric];
-        
-        let html = `
-            <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-xl flex items-center justify-between">
-                <div>
-                    <span class="text-xs font-semibold text-indigo-700">${cfg.title} (${currentYear}):</span>
-                    <p class="text-2xl font-black text-indigo-900">${d ? d.value : 'N/A'} ${cfg.unit}</p>
-                </div>
-                <div class="text-right">
-                    <span class="text-xs text-gray-500">Mức độ:</span>
-                    <p class="text-sm font-bold text-indigo-800">${d ? getCategoryForValue(d.value, currentMetric) : '--'}</p>
-                </div>
-            </div>
-            <div class="grid grid-cols-2 gap-3 mt-3 text-sm">
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <span class="text-xs text-gray-500">Thấp nhất trong năm:</span>
-                    <p class="font-bold text-gray-800">${d ? d.min : '--'} ${cfg.unit}</p>
-                </div>
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-                    <span class="text-xs text-gray-500">Cao nhất trong năm:</span>
-                    <p class="font-bold text-gray-800">${d ? d.max : '--'} ${cfg.unit}</p>
-                </div>
-            </div>
-            <p class="text-xs text-gray-500 mt-2 italic">* Số liệu được tổng hợp từ chuỗi dữ liệu lớn viễn thám trong cơ sở dữ liệu hệ thống.</p>
-        `;
-        document.getElementById('modalContent').innerHTML = html;
-        document.getElementById('wardDetailModal').classList.remove('hidden');
+    function khi_tim_kiem_phuong(tu_khoa) {
+        tu_khoa_tim_phuong = tu_khoa;
+        cap_nhat_bang_xep_hang();
     }
 
-    function closeWardModal() {
-        document.getElementById('wardDetailModal').classList.add('hidden');
+    function bat_tat_animation() {
+        dang_chay_animation = !dang_chay_animation;
+        var p = document.getElementById('bieu_tuong_phat');
+        var d = document.getElementById('bieu_tuong_dung');
+
+        if (dang_chay_animation) {
+            p.classList.add('hidden');
+            d.classList.remove('hidden');
+            chay_buoc_animation();
+        } else {
+            p.classList.remove('hidden');
+            d.classList.add('hidden');
+            if (bo_dem_animation) clearTimeout(bo_dem_animation);
+        }
     }
 
-    function showLoader(flag) {
-        const el = document.getElementById('mapLoader');
-        if (flag) el.classList.remove('hidden');
-        else el.classList.add('hidden');
+    function chay_buoc_animation() {
+        if (!dang_chay_animation) return;
+
+        var nam_dau = parseInt(document.getElementById('khoang_nam_bat_dau').value);
+        var nam_cuoi = parseInt(document.getElementById('khoang_nam_ket_thuc').value);
+        var nam_hien_tai = parseInt(nam_dang_chon);
+
+        var nam_tiep = nam_hien_tai + 1;
+        if (nam_tiep > nam_cuoi || nam_tiep < nam_dau) {
+            nam_tiep = nam_dau;
+        }
+
+        document.getElementById('thanh_truot_nam').value = nam_tiep;
+        khi_keo_thanh_truot_nam(nam_tiep);
+
+        bo_dem_animation = setTimeout(chay_buoc_animation, 1600);
     }
 
-    function exportThematicMap() {
-        const btn = document.getElementById('btnExportMap');
-        const origText = btn.innerHTML;
-        btn.innerHTML = `
-            <svg class="animate-spin w-4 h-4 text-white inline-block mr-1.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-            Đang xuất ảnh bản đồ...
-        `;
+    function khi_doi_khoang_animation() {
+        var nam_dau = parseInt(document.getElementById('khoang_nam_bat_dau').value);
+        var nam_cuoi = parseInt(document.getElementById('khoang_nam_ket_thuc').value);
+        if (nam_dau > nam_cuoi) {
+            document.getElementById('khoang_nam_ket_thuc').value = nam_dau;
+        }
+    }
 
-        // Đồng bộ dữ liệu tiêu đề và thước tỉ lệ
-        updateHeaderTitles();
-        updateDynamicScale();
+    function chuyen_che_do_ban_do(che_do) {
+        che_do_hien_tai = che_do;
+        var nut2d = document.getElementById('nut_che_do_2d');
+        var nut3d = document.getElementById('nut_che_do_3d');
+        var vung2d = document.getElementById('ban_do_2d');
+        var vung3d = document.getElementById('ban_do_3d_container');
 
-        const captureTarget = document.getElementById('mapCaptureContainer');
+        if (che_do === '2D') {
+            nut2d.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-indigo-700 shadow-sm transition-all flex items-center gap-1';
+            nut3d.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 transition-all flex items-center gap-1';
+            vung2d.classList.remove('hidden');
+            vung3d.classList.add('hidden');
+            if (ban_do_hien_tai) ban_do_hien_tai.invalidateSize();
+        } else {
+            nut3d.className = 'px-3 py-1 rounded-lg text-xs font-bold bg-white text-indigo-700 shadow-sm transition-all flex items-center gap-1';
+            nut2d.className = 'px-3 py-1 rounded-lg text-xs font-bold text-slate-600 hover:text-indigo-600 transition-all flex items-center gap-1';
+            vung2d.classList.add('hidden');
+            vung3d.classList.remove('hidden');
 
-        html2canvas(captureTarget, {
-            useCORS: true,
-            allowTaint: false, // TUYỆT ĐỐI không để allowTaint: true (vì canvas bị tainted sẽ bị chặn khi toBlob/toDataURL)
-            foreignObjectRendering: false,
-            scale: 2, // Độ phân giải Retina siêu nét 2x
-            backgroundColor: '#ffffff',
-            onclone: function(clonedDoc) {
-                // Ẩn bảng hover chuột, nút zoom và nút căn khung trên bản chụp để ảnh xuất sạch sẽ
-                const clonedHover = clonedDoc.getElementById('wardHoverCard');
-                if (clonedHover) clonedHover.style.display = 'none';
+            fetch('/api/wards/geojson/')
+            .then(function(r) { return r.json(); })
+            .then(function(geojson) {
+                ve_mo_hinh_3d(geojson);
+            });
+        }
+    }
 
-                const clonedZoom = clonedDoc.querySelector('.leaflet-control-zoom');
-                if (clonedZoom) clonedZoom.style.display = 'none';
+    function ve_mo_hinh_3d(geojson) {
+        var container = document.getElementById('ban_do_3d_container');
+        if (!container) return;
 
-                const clonedFitBtn = clonedDoc.getElementById('btnFitHcmc');
-                if (clonedFitBtn) clonedFitBtn.style.display = 'none';
+        if (!canh_scene_3d) {
+            canh_scene_3d = new THREE.Scene();
+            canh_scene_3d.background = new THREE.Color(0x0f172a);
 
-                const clonedLoader = clonedDoc.getElementById('mapLoader');
-                if (clonedLoader) clonedLoader.style.display = 'none';
+            var w = container.clientWidth || 800;
+            var h = container.clientHeight || 500;
+            camera_3d = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            camera_3d.position.set(0, -60, 50);
+
+            bo_ve_renderer_3d = new THREE.WebGLRenderer({ antialias: true });
+            bo_ve_renderer_3d.setSize(w, h);
+            container.appendChild(bo_ve_renderer_3d.domElement);
+
+            bo_dieu_khien_3d = new THREE.OrbitControls(camera_3d, bo_ve_renderer_3d.domElement);
+            bo_dieu_khien_3d.enableDamping = true;
+            bo_dieu_khien_3d.dampingFactor = 0.05;
+
+            var den_moi_truong = new THREE.AmbientLight(0xffffff, 0.85);
+            canh_scene_3d.add(den_moi_truong);
+
+            var den_dinh_huong = new THREE.DirectionalLight(0xffffff, 0.7);
+            den_dinh_huong.position.set(20, -30, 60);
+            canh_scene_3d.add(den_dinh_huong);
+
+            nhom_khoi_phuong_3d = new THREE.Group();
+            canh_scene_3d.add(nhom_khoi_phuong_3d);
+
+            raycaster_3d = new THREE.Raycaster();
+            chuot_3d = new THREE.Vector2();
+
+            window.addEventListener('resize', function() {
+                if (container && camera_3d && bo_ve_renderer_3d) {
+                    var nw = container.clientWidth;
+                    var nh = container.clientHeight;
+                    camera_3d.aspect = nw / nh;
+                    camera_3d.updateProjectionMatrix();
+                    bo_ve_renderer_3d.setSize(nw, nh);
+                }
+            });
+
+            function render_loop() {
+                requestAnimationFrame(render_loop);
+                if (bo_dieu_khien_3d) bo_dieu_khien_3d.update();
+                if (bo_ve_renderer_3d && canh_scene_3d && camera_3d) {
+                    bo_ve_renderer_3d.render(canh_scene_3d, camera_3d);
+                }
             }
-        }).then(canvas => {
-            btn.innerHTML = origText;
+            render_loop();
+        }
 
-            // Đặt tên file xuất chuẩn khoa học
-            const seasonSlug = currentSeason === 'dry' ? 'MuaNang' : (currentSeason === 'rain' ? 'MuaMua' : 'CaNam');
-            const fileName = `Ban_Do_Chuyen_De_${currentMetric}_TPHCM_${currentYear}_${seasonSlug}.png`;
+        while (nhom_khoi_phuong_3d.children.length > 0) {
+            var obj = nhom_khoi_phuong_3d.children[0];
+            nhom_khoi_phuong_3d.remove(obj);
+        }
 
-            if (canvas.toBlob) {
-                canvas.toBlob(function(blob) {
-                    if (!blob) {
-                        fallbackDownload(canvas, fileName);
+        var tam_lon = 106.70;
+        var tam_lat = 10.77;
+        var ti_le_toa_do = 120.0;
+
+        geojson.features.forEach(function(feat) {
+            var ma_xa = feat.properties.maXa;
+            var thong_tin = tap_hop_du_lieu_phuong[ma_xa];
+            var gia_tri = thong_tin ? thong_tin[chi_so_dang_chon] : null;
+
+            var chieu_cao = 1.0;
+            if (gia_tri !== null) {
+                if (chi_so_dang_chon === 'LST') chieu_cao = Math.max(1.0, (gia_tri - 20) * 0.8);
+                else if (chi_so_dang_chon === 'NDVI') chieu_cao = Math.max(1.0, gia_tri * 25.0);
+                else if (chi_so_dang_chon === 'TVDI') chieu_cao = Math.max(1.0, gia_tri * 22.0);
+                else if (chi_so_dang_chon === 'NDBI') chieu_cao = Math.max(1.0, (gia_tri + 0.3) * 20.0);
+                else if (chi_so_dang_chon === 'NDWI') chieu_cao = Math.max(1.0, (gia_tri + 0.3) * 20.0);
+            }
+
+            var mau_hex = lay_mau_cho_gia_tri(gia_tri, chi_so_dang_chon);
+            var vat_lieu = new THREE.MeshLambertMaterial({
+                color: new THREE.Color(mau_hex),
+                transparent: true,
+                opacity: 0.9
+            });
+
+            var coords = feat.geometry.coordinates;
+            var rings = feat.geometry.type === 'Polygon' ? [coords[0]] : (feat.geometry.type === 'MultiPolygon' ? coords.map(function(c) { return c[0]; }) : []);
+
+            rings.forEach(function(ring) {
+                if (!ring || ring.length < 3) return;
+                var hinh_2d = new THREE.Shape();
+                ring.forEach(function(pt, idx) {
+                    var x = (pt[0] - tam_lon) * ti_le_toa_do;
+                    var y = (pt[1] - tam_lat) * ti_le_toa_do;
+                    if (idx === 0) hinh_2d.moveTo(x, y);
+                    else hinh_2d.lineTo(x, y);
+                });
+
+                var hinh_khoi = new THREE.ExtrudeGeometry(hinh_2d, {
+                    depth: chieu_cao,
+                    bevelEnabled: false
+                });
+
+                var mesh = new THREE.Mesh(hinh_khoi, vat_lieu);
+                mesh.userData = { ma_xa: ma_xa, ten_xa: feat.properties.tenXa, gia_tri: gia_tri };
+                nhom_khoi_phuong_3d.add(mesh);
+            });
+        });
+    }
+
+    function hien_thi_vong_quay(trang_thai) {
+        var vq = document.getElementById('vong_quay_tai');
+        if (vq) {
+            if (trang_thai) vq.classList.remove('hidden');
+            else vq.classList.add('hidden');
+        }
+    }
+
+    var ban_do_xem_truoc_instance = null;
+    var lop_du_lieu_xem_truoc = null;
+
+    function mo_popup_bo_cuc_ban_do() {
+        var tieu_de_chinh = document.getElementById('tieu_de_hien_thi').textContent.trim();
+        document.getElementById('nhap_tieu_de_chinh').value = tieu_de_chinh;
+        document.getElementById('nhap_co_quan').value = "HỆ THỐNG GIÁM SÁT NHIỆT ĐỘ BỀ MẶT – LỚP PHỦ THỰC VẬT – MỨC ĐỘ KHÔ HẠN TẠI TP.HCM";
+        
+        var chuoi_mua = "Cả năm (Tính trung bình)";
+        if (mua_dang_chon === 'dry') chuoi_mua = "Mùa nắng nóng (Tháng 1 - Tháng 5)";
+        else if (mua_dang_chon === 'rain') chuoi_mua = "Mùa mưa mát mẻ (Tháng 6 - Tháng 11)";
+        var chuoi_phu_de = "Năm " + nam_dang_chon + " • " + chuoi_mua + " • Đầy đủ 167 Phường/Xã TP.HCM";
+        document.getElementById('nhap_phu_de').value = chuoi_phu_de;
+
+        cap_nhat_van_ban_xem_truoc();
+
+        var ten_chi_so = 'Nhiệt độ bề mặt (LST °C)';
+        if (chi_so_dang_chon === 'NDVI') ten_chi_so = 'Chỉ số thực vật (NDVI)';
+        else if (chi_so_dang_chon === 'TVDI') ten_chi_so = 'Chỉ số khô hạn (TVDI)';
+        else if (chi_so_dang_chon === 'NDBI') ten_chi_so = 'Chỉ số đất xây dựng (NDBI)';
+        else if (chi_so_dang_chon === 'NDWI') ten_chi_so = 'Chỉ số nước bề mặt (NDWI)';
+        document.getElementById('tieu_de_chu_giai_in').innerHTML = '<span class="w-2 h-2 rounded-full bg-indigo-600"></span> Chú giải ' + ten_chi_so;
+        document.getElementById('danh_sach_chu_giai_in').innerHTML = document.getElementById('cac_muc_thang_mau').innerHTML;
+
+        document.getElementById('popup_bo_cuc_ban_do').classList.remove('hidden');
+
+        setTimeout(function() {
+            if (!ban_do_xem_truoc_instance) {
+                ban_do_xem_truoc_instance = L.map('ban_do_xem_truoc', {
+                    zoomControl: true,
+                    minZoom: 8,
+                    preferCanvas: true
+                });
+
+                L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
+                    attribution: '',
+                    maxZoom: 16,
+                    crossOrigin: true
+                }).addTo(ban_do_xem_truoc_instance);
+            }
+
+            if (lop_du_lieu_xem_truoc) {
+                ban_do_xem_truoc_instance.removeLayer(lop_du_lieu_xem_truoc);
+            }
+
+            if (window.du_lieu_geojson_hien_tai) {
+                lop_du_lieu_xem_truoc = L.geoJSON(window.du_lieu_geojson_hien_tai, {
+                    style: function(dac_trung) {
+                        var ma_xa = dac_trung.properties.maXa;
+                        var thong_tin = tap_hop_du_lieu_phuong[ma_xa];
+                        var gia_tri = thong_tin ? thong_tin[chi_so_dang_chon] : null;
+                        return {
+                            fillColor: lay_mau_cho_gia_tri(gia_tri, chi_so_dang_chon),
+                            weight: 0.8,
+                            opacity: 0.9,
+                            color: '#374151',
+                            fillOpacity: 0.85
+                        };
+                    }
+                }).addTo(ban_do_xem_truoc_instance);
+            }
+
+            ban_do_xem_truoc_instance.invalidateSize();
+            if (lop_du_lieu_xem_truoc) {
+                ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+            } else {
+                ban_do_xem_truoc_instance.setView([10.776, 106.698], 10);
+            }
+            setTimeout(function() {
+                if (ban_do_xem_truoc_instance) {
+                    ban_do_xem_truoc_instance.invalidateSize();
+                    if (lop_du_lieu_xem_truoc) {
+                        ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+                    }
+                }
+            }, 80);
+        }, 150);
+    }
+
+    function dong_popup_bo_cuc_ban_do() {
+        document.getElementById('popup_bo_cuc_ban_do').classList.add('hidden');
+    }
+
+    function thay_doi_kho_giay(loai_kho) {
+        var khung = document.getElementById('khung_trang_xuat');
+        var cac_nut = document.querySelectorAll('.kho-btn');
+        cac_nut.forEach(function(nut) {
+            nut.className = "kho-btn py-2 px-3 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-left transition-all flex items-center justify-between";
+        });
+        var nut_chon = document.getElementById('nut_kho_' + loai_kho);
+        if (nut_chon) {
+            nut_chon.className = "kho-btn py-2 px-3 rounded-xl border border-indigo-600 bg-indigo-50 text-indigo-700 font-bold text-left transition-all flex items-center justify-between";
+        }
+
+        if (loai_kho === 'a4_ngang') {
+            khung.style.width = '820px';
+            khung.style.height = '580px';
+        } else if (loai_kho === 'man_hinh_rong') {
+            khung.style.width = '880px';
+            khung.style.height = '495px';
+        } else if (loai_kho === 'kho_vuong') {
+            khung.style.width = '600px';
+            khung.style.height = '600px';
+        } else if (loai_kho === 'a4_doc') {
+            khung.style.width = '520px';
+            khung.style.height = '680px';
+        }
+
+        setTimeout(function() {
+            if (ban_do_xem_truoc_instance) {
+                ban_do_xem_truoc_instance.invalidateSize();
+                if (lop_du_lieu_xem_truoc) {
+                    ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+                }
+            }
+        }, 120);
+    }
+
+    function thay_doi_vi_tri_chu_giai(vi_tri) {
+        var hop = document.getElementById('hop_chu_giai_in');
+        hop.className = "absolute p-2.5 rounded-lg shadow-xl border border-slate-300 z-[1000] max-w-[220px] transition-all bg-white/95 backdrop-blur-md ";
+        if (vi_tri === 'duoi_trai') {
+            hop.className += "bottom-3 left-3 block";
+        } else if (vi_tri === 'duoi_phai') {
+            hop.className += "bottom-3 right-3 block";
+        } else if (vi_tri === 'tren_phai') {
+            hop.className += "top-3 right-3 block";
+        } else {
+            hop.className += "hidden";
+        }
+    }
+
+    function thay_doi_vi_tri_thuoc_do(vi_tri) {
+        var hop = document.getElementById('hop_thuoc_do_in');
+        hop.className = "absolute p-2 rounded-lg shadow-xl border border-slate-300 z-[1000] items-center gap-2.5 text-xs transition-all bg-white/95 backdrop-blur-md ";
+        if (vi_tri === 'duoi_phai') {
+            hop.className += "bottom-3 right-3 flex";
+        } else if (vi_tri === 'duoi_trai') {
+            hop.className += "bottom-3 left-3 flex";
+        } else {
+            hop.className += "hidden";
+        }
+    }
+
+    function cap_nhat_van_ban_xem_truoc() {
+        document.getElementById('chu_tieu_de_in').textContent = document.getElementById('nhap_tieu_de_chinh').value;
+        document.getElementById('chu_co_quan_in').textContent = document.getElementById('nhap_co_quan').value;
+        document.getElementById('chu_phu_de_in').textContent = document.getElementById('nhap_phu_de').value;
+    }
+
+    function can_khung_xem_truoc(che_do) {
+        if (!ban_do_xem_truoc_instance) return;
+        ban_do_xem_truoc_instance.invalidateSize();
+        if (che_do === 'toan_tp') {
+            if (lop_du_lieu_xem_truoc) {
+                ban_do_xem_truoc_instance.fitBounds(lop_du_lieu_xem_truoc.getBounds(), { padding: [25, 25] });
+            }
+        } else if (che_do === 'trung_tam') {
+            ban_do_xem_truoc_instance.setView([10.776, 106.698], 12);
+        }
+    }
+
+    function lay_toa_do_dich_chuyen(phan_tu) {
+        if (!phan_tu) return { x: 0, y: 0 };
+        if (phan_tu._leaflet_pos) {
+            return { x: phan_tu._leaflet_pos.x, y: phan_tu._leaflet_pos.y };
+        }
+        var phong_cach = window.getComputedStyle(phan_tu);
+        var chuoi_transform = phong_cach.transform || phan_tu.style.transform;
+        if (!chuoi_transform || chuoi_transform === 'none') {
+            return { x: 0, y: 0 };
+        }
+        var khop_3d = chuoi_transform.match(/translate3d\(([-0-9.]+)px,\s*([-0-9.]+)px/);
+        if (khop_3d) {
+            return { x: parseFloat(khop_3d[1]), y: parseFloat(khop_3d[2]) };
+        }
+        var khop_2d = chuoi_transform.match(/translate\(([-0-9.]+)px,\s*([-0-9.]+)px/);
+        if (khop_2d) {
+            return { x: parseFloat(khop_2d[1]), y: parseFloat(khop_2d[2]) };
+        }
+        var khop_ma_tran = chuoi_transform.match(/matrix.*\((.+)\)/);
+        if (khop_ma_tran) {
+            var gia_tri = khop_ma_tran[1].split(',').map(function(s) { return parseFloat(s.trim()); });
+            if (gia_tri.length === 6) {
+                return { x: gia_tri[4], y: gia_tri[5] };
+            } else if (gia_tri.length === 16) {
+                return { x: gia_tri[12], y: gia_tri[13] };
+            }
+        }
+        return { x: 0, y: 0 };
+    }
+
+    function xuat_anh_theo_bo_cuc() {
+        var nut_xuat = document.getElementById('nut_xuat_anh_cuoi');
+        var noi_dung_goc = nut_xuat.innerHTML;
+        nut_xuat.disabled = true;
+        nut_xuat.innerHTML = '<svg class="animate-spin w-4 h-4 text-white inline-block mr-1.5" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg> Đang xuất ảnh...';
+
+        var phan_tu_chup = document.getElementById('khung_trang_xuat');
+        var lua_chon_do_net = document.querySelector('input[name="do_phan_giai"]:checked');
+        var ty_le_net = lua_chon_do_net ? parseInt(lua_chon_do_net.value, 10) : 2;
+        var chieu_rong_chup = phan_tu_chup.offsetWidth;
+        var chieu_cao_chup = phan_tu_chup.offsetHeight;
+
+        html2canvas(phan_tu_chup, {
+            useCORS: true,
+            allowTaint: false,
+            foreignObjectRendering: false,
+            scale: ty_le_net,
+            backgroundColor: '#ffffff',
+            scrollX: 0,
+            scrollY: 0,
+            width: chieu_rong_chup,
+            height: chieu_cao_chup,
+            windowWidth: chieu_rong_chup,
+            windowHeight: chieu_cao_chup,
+            onclone: function(tai_lieu_nhan_ban) {
+                var nut_zoom = tai_lieu_nhan_ban.querySelector('#ban_do_xem_truoc .leaflet-control-zoom');
+                if (nut_zoom) nut_zoom.style.display = 'none';
+
+                var khung_in_clone = tai_lieu_nhan_ban.getElementById('khung_trang_xuat');
+                if (khung_in_clone) khung_in_clone.style.transition = 'none';
+
+                var ban_do_goc = document.getElementById('ban_do_xem_truoc');
+                if (!ban_do_goc) return;
+
+                var map_pane_goc = ban_do_goc.querySelector('.leaflet-map-pane');
+                var map_pane_clone = tai_lieu_nhan_ban.querySelector('#ban_do_xem_truoc .leaflet-map-pane');
+                if (map_pane_goc && map_pane_clone) {
+                    var toa_do_pane = lay_toa_do_dich_chuyen(map_pane_goc);
+                    map_pane_clone.style.transform = 'none';
+                    map_pane_clone.style.left = toa_do_pane.x + 'px';
+                    map_pane_clone.style.top = toa_do_pane.y + 'px';
+                }
+
+                var cac_container_goc = ban_do_goc.querySelectorAll('.leaflet-tile-container');
+                var cac_container_clone = tai_lieu_nhan_ban.querySelectorAll('#ban_do_xem_truoc .leaflet-tile-container');
+                for (var i = 0; i < cac_container_goc.length && i < cac_container_clone.length; i++) {
+                    var toa_do_cnt = lay_toa_do_dich_chuyen(cac_container_goc[i]);
+                    cac_container_clone[i].style.transform = 'none';
+                    cac_container_clone[i].style.left = toa_do_cnt.x + 'px';
+                    cac_container_clone[i].style.top = toa_do_cnt.y + 'px';
+                }
+
+                var cac_tile_goc = ban_do_goc.querySelectorAll('.leaflet-tile');
+                var cac_tile_clone = tai_lieu_nhan_ban.querySelectorAll('#ban_do_xem_truoc .leaflet-tile');
+                for (var j = 0; j < cac_tile_goc.length && j < cac_tile_clone.length; j++) {
+                    var toa_do_tile = lay_toa_do_dich_chuyen(cac_tile_goc[j]);
+                    cac_tile_clone[j].style.transform = 'none';
+                    cac_tile_clone[j].style.left = toa_do_tile.x + 'px';
+                    cac_tile_clone[j].style.top = toa_do_tile.y + 'px';
+                }
+
+                var cac_overlay_goc = ban_do_goc.querySelectorAll('.leaflet-overlay-pane > canvas, .leaflet-overlay-pane > svg');
+                var cac_overlay_clone = tai_lieu_nhan_ban.querySelectorAll('#ban_do_xem_truoc .leaflet-overlay-pane > canvas, #ban_do_xem_truoc .leaflet-overlay-pane > svg');
+                for (var k = 0; k < cac_overlay_goc.length && k < cac_overlay_clone.length; k++) {
+                    var toa_do_ov = lay_toa_do_dich_chuyen(cac_overlay_goc[k]);
+                    cac_overlay_clone[k].style.transform = 'none';
+                    cac_overlay_clone[k].style.left = toa_do_ov.x + 'px';
+                    cac_overlay_clone[k].style.top = toa_do_ov.y + 'px';
+                }
+            }
+        }).then(function(canvas_ket_qua) {
+            nut_xuat.disabled = false;
+            nut_xuat.innerHTML = noi_dung_goc;
+
+            var chuoi_mua_tep = mua_dang_chon === 'dry' ? 'MuaNang' : (mua_dang_chon === 'rain' ? 'MuaMua' : 'CaNam');
+            var ten_tep = 'Ban_Do_' + chi_so_dang_chon + '_TPHCM_' + nam_dang_chon + '_' + chuoi_mua_tep + '.png';
+
+            if (canvas_ket_qua.toBlob) {
+                canvas_ket_qua.toBlob(function(du_lieu_blob) {
+                    if (!du_lieu_blob) {
+                        fallback_tai_tep(canvas_ket_qua, ten_tep);
                         return;
                     }
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.download = fileName;
-                    link.href = url;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    setTimeout(() => URL.revokeObjectURL(url), 1500);
+                    var duong_dan_tam = URL.createObjectURL(du_lieu_blob);
+                    var the_tai = document.createElement('a');
+                    the_tai.download = ten_tep;
+                    the_tai.href = duong_dan_tam;
+                    document.body.appendChild(the_tai);
+                    the_tai.click();
+                    document.body.removeChild(the_tai);
+                    setTimeout(function() {
+                        URL.revokeObjectURL(duong_dan_tam);
+                    }, 1500);
                 }, 'image/png');
             } else {
-                fallbackDownload(canvas, fileName);
+                fallback_tai_tep(canvas_ket_qua, ten_tep);
             }
-        }).catch(err => {
-            console.error("Lỗi xuất ảnh:", err);
-            btn.innerHTML = origText;
-            alert("Lỗi khi xuất ảnh: " + (err && err.message ? err.message : "Trình duyệt chặn xuất canvas do bảo mật. Vui lòng thử lại!"));
+        }).catch(function(loi_xuat) {
+            nut_xuat.disabled = false;
+            nut_xuat.innerHTML = noi_dung_goc;
+            alert("Lỗi khi xuất ảnh bản đồ. Vui lòng thử lại!");
         });
     }
 
-    function fallbackDownload(canvas, fileName) {
+    var xuat_anh_ban_do = mo_popup_bo_cuc_ban_do;
+
+    function fallback_tai_tep(canvas, ten_tep) {
         try {
-            const link = document.createElement('a');
-            link.download = fileName;
-            link.href = canvas.toDataURL('image/png');
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-        } catch (e) {
-            console.error("Lỗi fallback download:", e);
-            alert("Không thể lưu ảnh tự động: " + (e && e.message ? e.message : "Canvas bị chặn"));
+            var lien_ket = document.createElement('a');
+            lien_ket.download = ten_tep;
+            lien_ket.href = canvas.toDataURL('image/png');
+            document.body.appendChild(lien_ket);
+            lien_ket.click();
+            document.body.removeChild(lien_ket);
+        } catch (loi) {
+            alert("Không thể lưu ảnh tự động: Canvas bị chặn");
         }
     }
 </script>

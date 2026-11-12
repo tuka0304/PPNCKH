@@ -13,15 +13,19 @@
                     <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                     Dữ Liệu Sẵn Sàng (2017 - 2026)
                 </span>
-                <span class="text-xs text-blue-200">Đầy đủ 172 Xã/Phường TP.HCM</span>
+                <span class="text-xs text-blue-200">Đầy đủ 167 Xã/Phường TP.HCM</span>
             </div>
             <h1 class="text-2xl lg:text-3xl font-extrabold tracking-tight">Tra Cứu & Tải Ảnh Vệ Tinh TP. Hồ Chí Minh</h1>
             <p class="text-blue-100 text-sm mt-1">Chọn xã/phường trên bản đồ hoặc gõ tên tìm kiếm để xem mức độ nóng, cây xanh và tải ảnh về máy tính.</p>
         </div>
-        <div class="flex items-center gap-3">
+        <div class="flex flex-wrap items-center gap-3">
             <a href="{% url 'thematic_map' %}" class="bg-white/10 hover:bg-white/20 text-white font-semibold px-4 py-2.5 rounded-xl backdrop-blur-sm border border-white/30 shadow-sm transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                 Xem Bản Đồ Màu Toàn TP
+            </a>
+            <a href="{% url 'ban_tin' %}" class="bg-emerald-400 hover:bg-emerald-300 text-slate-900 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                Bản Tin & Xuất Báo Cáo
             </a>
             <a href="{% url 'history' %}" class="bg-white text-indigo-700 hover:bg-indigo-50 font-bold px-4 py-2.5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm hover:scale-105">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
@@ -34,7 +38,7 @@
     <div class="grid grid-cols-1 xl:grid-cols-12 gap-6 items-start">
         
         <!-- Map Column (7 Cols on xl) -->
-        <div class="xl:col-span-7 bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col h-[580px] lg:h-[640px] relative">
+        <div class="xl:col-span-7 bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100 flex flex-col relative" style="height: 640px; min-height: 640px;">
             <!-- Map Top Toolbar -->
             <div class="px-5 py-3.5 bg-gray-50 border-b border-gray-200 flex flex-wrap justify-between items-center gap-3 z-10">
                 <!-- Map Title & Selection Counter -->
@@ -43,7 +47,7 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
                     </span>
                     <div>
-                        <h3 class="text-sm font-bold text-gray-800">Bản Đồ 172 Xã/Phường TP.HCM</h3>
+                        <h3 class="text-sm font-bold text-gray-800">Bản Đồ 167 Xã/Phường TP.HCM</h3>
                         <p class="text-xs text-gray-500">
                             Đã chọn: <span id="mapSelectedCount" class="font-extrabold text-indigo-600">0</span> xã/phường
                         </p>
@@ -75,12 +79,12 @@
                         Xem ảnh trực tiếp:
                     </span>
                     <select id="mapLayerType" class="text-xs rounded-lg border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 py-1.5 px-2 bg-gray-50 border">
-                        <option value="TRUE_COLOR">Ảnh màu thực tế (Như mắt nhìn)</option>
-                        <option value="NDVI">Mảng xanh cây cối (Nơi nào nhiều cây xanh)</option>
-                        <option value="NDWI">Sông ngòi & Kênh rạch (Mặt nước)</option>
-                        <option value="LST">Nhiệt độ mặt đất (Nơi nào nóng / mát)</option>
-                        <option value="TVDI">Độ khô hạn của đất (Ẩm ướt hay khô cằn)</option>
-                        <option value="CLASSIFICATION">Tự động nhận diện: Nước - Cây - Nhà</option>
+                        <option value="TRUE_COLOR">Ảnh màu tự nhiên (True Color)</option>
+                        <option value="NDVI">Thảm thực vật (NDVI)</option>
+                        <option value="NDWI">Mặt nước (NDWI)</option>
+                        <option value="LST">Nhiệt độ bề mặt (LST °C)</option>
+                        <option value="TVDI">Độ khô hạn (TVDI)</option>
+                        <option value="CLASSIFICATION">Phân loại lớp phủ: Nước - Thực vật - Đất xây dựng</option>
                     </select>
                 </div>
                 <div class="flex items-center gap-2">
@@ -98,7 +102,7 @@
             <div id="mapLegend" class="absolute bottom-6 right-3 bg-white/95 backdrop-blur-md p-3.5 rounded-xl shadow-xl border border-gray-200 z-[1000] hidden max-w-xs text-xs"></div>
             
             <!-- The Leaflet Map Instance -->
-            <div id="map" class="flex-grow w-full z-0"></div>
+            <div id="map" class="flex-grow w-full z-0" style="min-height: 540px; height: 100%;"></div>
             
             <!-- Loading Overlay -->
             <div id="mapLoading" class="absolute inset-0 bg-white/80 backdrop-blur-sm z-[2000] hidden flex flex-col items-center justify-center">
@@ -118,7 +122,7 @@
                         <span class="w-6 h-6 rounded-full bg-white/20 text-white flex items-center justify-center text-xs font-bold border border-white/30">1</span>
                         <h3 class="font-bold text-base">Chọn Xã / Phường Bạn Muốn Xem</h3>
                     </div>
-                    <span id="badgeWardTotal" class="text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold">172 xã/phường</span>
+                    <span id="badgeWardTotal" class="text-xs bg-white/20 px-2.5 py-1 rounded-full font-semibold">167 xã/phường</span>
                 </div>
 
                 <div class="p-6 space-y-4">
@@ -196,13 +200,13 @@
                             {% for val, text in datasets %}
                                 <option value="{{ val }}" {% if val == 'L8_LST' %}selected{% endif %}>
                                     {% if val == 'L8_LST' %}
-                                        🌡️ Nhiệt Độ Mặt Đất (Landsat 8 - Xem mức độ nóng mát)
+                                        🌡️ Nhiệt Độ Bề Mặt (Landsat 8 LST)
                                     {% elif val == 'COPERNICUS/S2_SR_HARMONIZED' %}
-                                        🛰️ Ảnh Vệ Tinh Rõ Nét (Sentinel-2 - Xem cây xanh & sông ngòi)
+                                        🛰️ Ảnh Đa Phổ Độ Phân Giải Cao (Sentinel-2 SR)
                                     {% elif val == 'LANDSAT/LC08/C02/T1_TOA' %}
-                                        📊 Bộ Chỉ Số Đầy Đủ (Landsat 8 - Xem cây, nước, nhà cửa)
+                                        📊 Bộ Chỉ Số Đa Phổ (Landsat 8 TOA)
                                     {% elif val == 'SRTM_DEM' %}
-                                        ⛰️ Bản Đồ Độ Cao Địa Hình (SRTM DEM - Xem vùng cao/trũng)
+                                        ⛰️ Mô Hình Độ Cao Địa Hình (SRTM DEM 30m)
                                     {% else %}
                                         {{ text }}
                                     {% endif %}
@@ -257,10 +261,21 @@
                             Tải Ranh Giới (Shapefile)
                         </a>
                         
-                        <button type="submit" id="btnSubmitForm" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-3 px-6 rounded-xl shadow-lg hover:shadow-indigo-500/25 transition-all transform hover:-translate-y-0.5 flex items-center gap-2 text-sm">
-                            <svg class="w-5 h-5 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                            <span>Tải Dữ Liệu Về Máy</span>
-                        </button>
+                        <div class="flex items-center gap-2">
+                            {% if not request.session.la_admin %}
+                                <div class="p-2.5 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-800 flex items-center gap-2">
+                                    <span>🔒 Yêu cầu quyền Quản trị viên để xuất ảnh GEE</span>
+                                    <button type="button" onclick="mo_hop_dang_nhap_admin()" class="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-lg transition-colors">
+                                        Đăng Nhập Admin
+                                    </button>
+                                </div>
+                            {% else %}
+                                <button type="submit" id="btnSubmitForm" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-extrabold py-2.5 px-5 rounded-xl shadow-md transition-all flex items-center gap-2 text-sm">
+                                    <svg class="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                    <span>Tải Dữ Liệu GEE</span>
+                                </button>
+                            {% endif %}
+                        </div>
                     </div>
                 </form>
             </div>
@@ -273,14 +288,13 @@
 {% block scripts %}
 <script>
     document.addEventListener("DOMContentLoaded", function() {
-        // HCMC Bounding Box
-        var hcmcBounds = L.latLngBounds([10.3, 106.3], [11.2, 107.1]);
+        var hcmcBounds = L.latLngBounds([9.5, 105.0], [12.5, 108.5]);
 
         // Map Instance
         window.map = L.map('map', {
             maxBounds: hcmcBounds,
             minZoom: 9
-        }).setView([10.776, 106.685], 10);
+        }).setView([10.87, 106.70], 10);
 
         // Tile Basemap Providers
         var baseLayers = {
@@ -324,9 +338,15 @@
 
         window.resetMapCenter = function() {
             if (geojsonLayer) {
-                map.fitBounds(geojsonLayer.getBounds(), { padding: [20, 20], animate: true });
+                const goc = geojsonLayer.getBounds();
+                const d_lat = 0.08;
+                const khung_dieu_chinh = L.latLngBounds(
+                    [goc.getSouth() + d_lat, goc.getWest()],
+                    [goc.getNorth() + d_lat, goc.getEast()]
+                );
+                map.fitBounds(khung_dieu_chinh, { paddingTopLeft: [10, 120], paddingBottomRight: [10, 10], animate: true });
             } else {
-                map.setView([10.776, 106.685], 10);
+                map.setView([10.87, 106.70], 10);
             }
         };
 
@@ -403,7 +423,13 @@
                     }
                 }).addTo(map);
 
-                map.fitBounds(geojsonLayer.getBounds(), { padding: [15, 15] });
+                const goc = geojsonLayer.getBounds();
+                const d_lat = 0.08;
+                const khung_dieu_chinh = L.latLngBounds(
+                    [goc.getSouth() + d_lat, goc.getWest()],
+                    [goc.getNorth() + d_lat, goc.getEast()]
+                );
+                map.fitBounds(khung_dieu_chinh, { paddingTopLeft: [10, 120], paddingBottomRight: [10, 10] });
                 document.getElementById('badgeWardTotal').textContent = `${allWardsList.length} Xã/Phường`;
             })
             .catch(err => console.error("Lỗi nạp dữ liệu GeoJSON:", err));
